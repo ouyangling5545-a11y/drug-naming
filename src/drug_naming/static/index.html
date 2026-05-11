@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>创新药命名管理系统</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<style>
+:root {
+  --bg: #f5f7fa; --card: #fff; --text: #2c3e50; --sub: #64748b;
+  --border: #e2e8f0; --blue: #3b82f6; --green: #10b981; --red: #ef4444;
+  --amber: #f59e0b; --blue-bg: #eff6ff; --green-bg: #ecfdf5;
+  --red-bg: #fef2f2; --amber-bg: #fffbeb; --radius: 10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--text); }
+.app { display:flex; height:100vh; }
+.sidebar { width:380px; background:var(--card); border-right:1px solid var(--border); overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:20px; flex-shrink:0; }
+.main { flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:16px; }
+.header { font-size:18px; font-weight:700; color:var(--text); padding-bottom:16px; border-bottom:2px solid var(--blue); }
+label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin-bottom:4px; }
+select, input, textarea { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:var(--bg); color:var(--text); }
+select:focus, input:focus, textarea:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+textarea { font-size:13px; }
+.btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; }
+.btn-primary { background:var(--blue); color:#fff; width:100%; justify-content:center; }
+.btn-primary:hover { background:#2563eb; }
+.btn-primary:disabled { background:#93c5fd; cursor:not-allowed; }
+.btn-sm { padding:5px 12px; font-size:12px; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px; }
+.card h3 { font-size:15px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; }
+.badge-blue { background:var(--blue-bg); color:var(--blue); }
+.badge-green { background:var(--green-bg); color:var(--green); }
+.badge-red { background:var(--red-bg); color:var(--red); }
+.badge-amber { background:var(--amber-bg); color:var(--amber); }
+.stem-item { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); }
+.stem-item:last-child { border-bottom:none; }
+.stem-name { font-weight:700; font-size:15px; font-family:monospace; }
+.stem-meaning { font-size:12px; color:var(--sub); }
+.score { font-weight:700; font-size:14px; }
+.name-grid { display:flex; flex-wrap:wrap; gap:6px; }
+.name-chip { padding:6px 14px; border-radius:20px; font-size:13px; font-family:monospace; cursor:pointer; border:1px solid var(--border); background:var(--bg); transition:all .15s; }
+.name-chip:hover { border-color:var(--blue); background:var(--blue-bg); }
+.name-chip.selected { background:var(--blue); color:#fff; border-color:var(--blue); font-weight:700; }
+.name-chip.conflict { background:var(--red-bg); border-color:var(--red); text-decoration:line-through; }
+.poca-bar { height:8px; border-radius:4px; background:var(--border); overflow:hidden; margin:4px 0; }
+.poca-fill { height:100%; border-radius:4px; transition:width .3s; }
+.poca-fill.pass { background:var(--green); }
+.poca-fill.review { background:var(--amber); }
+.poca-fill.reject { background:var(--red); }
+.poca-row { display:flex; align-items:center; gap:12px; padding:6px 0; font-size:13px; }
+.poca-row .ref-name { flex:1; font-family:monospace; }
+.poca-row .poca-score { width:60px; text-align:right; font-weight:700; }
+.steps { display:flex; gap:0; margin-bottom:8px; }
+.step-dot { flex:1; height:4px; border-radius:2px; background:var(--border); }
+.step-dot.done { background:var(--green); }
+.step-dot.current { background:var(--blue); }
+.empty { text-align:center; padding:40px; color:var(--sub); font-size:14px; }
+.spinner { display:inline-block; width:16px; height:16px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin .6s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.info-row { display:flex; justify-content:space-between; padding:4px 0; font-size:13px; }
+.info-row span:first-child { color:var(--sub); }
+.info-row span:last-child { font-weight:600; }
+.chinese-chars { font-size:20px; font-weight:700; letter-spacing:4px; }
+.alert { padding:8px 12px; border-radius:6px; font-size:13px; margin-top:8px; }
+.alert-error { background:var(--red-bg); color:var(--red); }
+</style>
+</head>
+<body>
+<div id="app" class="app">
+  <!-- Sidebar: Input Panel -->
+  <aside class="sidebar">
+    <div class="header">🧬 创新药命名管理系统</div>
+    <div>
+      <label>项目编号</label>
+      <input v-model="molecule.molecule_id" placeholder="MOL-2026-001">
+    </div>
+    <div>
+      <label>化合物代号</label>
+      <input v-model="molecule.common_name" placeholder="候选化合物A">
+    </div>
+    <div>
+      <label>靶点类别</label>
+      <select v-model="molecule.properties.target_class">
+        <option v-for="t in enums.TargetClass" :value="t">{{ t }}</option>
+      </select>
+    </div>
+    <div>
+      <label>作用机制</label>
+      <select v-model="molecule.properties.mechanism">
+        <option v-for="m in enums.Mechanism" :value="m">{{ m }}</option>
+      </select>
+    </div>
+    <div>
+      <label>化学类别</label>
+      <select v-model="molecule.properties.chemical_class" @change="onChemicalClassChange">
+        <option v-for="c in enums.ChemicalClass" :value="c">{{ c }}</option>
+      </select>
+    </div>
+    <div>
+      <label>适应症</label>
+      <input v-model="molecule.properties.indication" placeholder="e.g. non-small cell lung cancer">
+    </div>
+    <div>
+      <label>化学亚结构 (可选)</label>
+      <input v-model="molecule.properties.chemical_structure_substructure" placeholder="e.g. pyrimidine">
+    </div>
+    <div>
+      <label>语义偏好 (中文核名用)</label>
+      <input v-model="targetMeaning" placeholder="e.g. 抑制肿瘤、免疫调节">
+    </div>
+    <div>
+      <label>品牌名提案 (逗号分隔)</label>
+      <textarea v-model="brandNamesText" rows="2" placeholder="Zelafi, Lisipro"></textarea>
+    </div>
+    <button class="btn btn-primary" @click="runFullWorkflow" :disabled="loading">
+      <span v-if="loading" class="spinner"></span>
+      {{ loading ? '分析中...' : '开始分析' }}
+    </button>
+    <div v-if="error" class="alert alert-error">{{ error }}</div>
+  </aside>
+
+  <!-- Main: Results Panel -->
+  <main class="main">
+    <!-- Progress Steps -->
+    <div class="steps">
+      <div class="step-dot" :class="stepClass(1)"></div>
+      <div class="step-dot" :class="stepClass(2)"></div>
+      <div class="step-dot" :class="stepClass(3)"></div>
+      <div class="step-dot" :class="stepClass(4)"></div>
+      <div class="step-dot" :class="stepClass(5)"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);padding:0 4px;">
+      <span>词干匹配</span><span>INN生成</span><span>POCA评分</span><span>中文核名</span><span>品牌筛选</span>
+    </div>
+
+    <!-- Step 1: Stem Matching -->
+    <div class="card" v-if="project">
+      <h3>📋 词干匹配 <span class="badge badge-blue">{{ stems.length }} 条匹配</span></h3>
+      <div v-if="stems.length">
+        <div class="stem-item" v-for="s in stems.slice(0,8)" :key="s.stem.stem">
+          <div>
+            <div class="stem-name">{{ s.stem.stem }}</div>
+            <div class="stem-meaning">{{ s.stem.meaning }}</div>
+          </div>
+          <div class="score" :style="{color: s.match_score > 0.7 ? 'var(--green)' : s.match_score > 0.4 ? 'var(--amber)' : 'var(--sub)'}">{{ (s.match_score*100).toFixed(0) }}%</div>
+        </div>
+      </div>
+      <div v-else class="empty">点击"开始分析"生成结果</div>
+    </div>
+
+    <!-- Step 2: INN Name Candidates -->
+    <div class="card" v-if="innCandidates.length">
+      <h3>💊 INN 候选名 <span class="badge badge-green">{{ innCandidates.length }} 个</span>
+        <span style="font-size:12px;color:var(--sub);margin-left:8px;">点击名称查看 POCA 评分</span>
+      </h3>
+      <div class="name-grid">
+        <span class="name-chip" v-for="c in innCandidates" :key="c.name"
+              :class="{selected: selectedInn === c.name, conflict: c.regulatory_flags && c.regulatory_flags.includes('exact_inn_conflict')}"
+              @click="selectInn(c.name)">
+          {{ c.name }}
+          <span style="font-size:10px;margin-left:4px;opacity:.6">{{ (c.phonological_score*100).toFixed(0) }}</span>
+        </span>
+      </div>
+      <div class="info-row" style="margin-top:8px;">
+        <span>原始生成 / 过滤 / 最终</span>
+        <span>{{ innMeta.total_generated }} / {{ innMeta.filtered_out }} / {{ innCandidates.length }}</span>
+      </div>
+    </div>
+
+    <!-- Step 3: POCA Scoring -->
+    <div class="card" v-if="pocaResults.length">
+      <h3>🔍 POCA 相似度评分
+        <span v-if="pocaWorstScore < 0.70" class="badge badge-green">PASS</span>
+        <span v-else-if="pocaWorstScore < 0.85" class="badge badge-amber">REVIEW</span>
+        <span v-else class="badge badge-red">REJECT</span>
+      </h3>
+      <div style="font-size:13px;color:var(--sub);margin-bottom:8px;">
+        候选名 <b>{{ selectedInn }}</b> vs {{ pocaResults.length }} 个同类 INN 名 &nbsp;
+        <button class="btn btn-sm" @click="rerunPoca" style="margin-left:4px;">换一批对比</button>
+      </div>
+      <div class="poca-row" v-for="r in pocaResults.slice(0,10)" :key="r.reference_name">
+        <span style="width:30px;text-align:center;">
+          <span v-if="r.alert_level==='PASS'" class="badge badge-green" style="font-size:10px;">PASS</span>
+          <span v-else-if="r.alert_level==='REVIEW'" class="badge badge-amber" style="font-size:10px;">REV</span>
+          <span v-else class="badge badge-red" style="font-size:10px;">REJ</span>
+        </span>
+        <span class="ref-name">{{ r.reference_name }}</span>
+        <div style="flex:1;">
+          <div class="poca-bar"><div class="poca-fill" :class="r.overall_poca_score < 0.70 ? 'pass' : r.overall_poca_score < 0.85 ? 'review' : 'reject'" :style="{width: (r.overall_poca_score*100)+'%'}"></div></div>
+          <div style="display:flex;gap:8px;font-size:10px;color:var(--sub);">
+            <span>语:{{ (r.phonetic_score*100).toFixed(0) }}%</span>
+            <span>形:{{ (r.orthographic_score*100).toFixed(0) }}%</span>
+            <span>组:{{ (r.compositional_score*100).toFixed(0) }}%</span>
+          </div>
+        </div>
+        <span class="poca-score" :style="{color: r.overall_poca_score < 0.70 ? 'var(--green)' : r.overall_poca_score < 0.85 ? 'var(--amber)' : 'var(--red)'}">{{ (r.overall_poca_score*100).toFixed(0) }}%</span>
+      </div>
+    </div>
+
+    <!-- Step 4: Chinese Names -->
+    <div class="card" v-if="chineseNames.length">
+      <h3>🀄 中文核名建议 <span class="badge badge-blue">{{ chineseNames.length }} 个</span></h3>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;">
+        <div v-for="cn in chineseNames.slice(0,6)" :key="cn.chinese_name"
+             style="padding:12px 16px;border:1px solid var(--border);border-radius:8px;text-align:center;cursor:pointer;"
+             :style="cn.regulatory_compliance ? 'border-color:var(--green);background:var(--green-bg)' : ''">
+          <div class="chinese-chars">{{ cn.chinese_name }}</div>
+          <div style="font-size:12px;color:var(--sub);margin-top:4px;">{{ cn.pinyin }}</div>
+          <div style="font-size:11px;color:var(--sub);">{{ cn.meaning_gloss }}</div>
+          <div style="font-size:10px;margin-top:2px;">
+            <span :class="cn.regulatory_compliance ? 'badge badge-green' : 'badge badge-amber'">{{ cn.regulatory_compliance ? '合规' : '需审核' }}</span>
+            <span style="margin-left:4px;">笔画:{{ cn.stroke_count }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Brand Screening -->
+    <div class="card" v-if="brandResults.length">
+      <h3>™️ 商品名筛选 <span class="badge badge-blue">{{ brandResults.length }} 个</span></h3>
+      <div class="poca-row" v-for="b in brandResults" :key="b.brand_name" style="padding:10px 0;">
+        <span style="font-weight:700;font-size:16px;width:120px;">{{ b.brand_name }}</span>
+        <div style="flex:1;display:flex;gap:16px;font-size:12px;">
+          <span>INN相似: {{ (b.similarity_to_inn*100).toFixed(0) }}%</span>
+          <span>品牌相似: {{ (b.similarity_to_existing_brands*100).toFixed(0) }}%</span>
+          <span>可注册性: {{ (b.marketability_score*100).toFixed(0) }}%</span>
+        </div>
+        <span class="poca-score" style="font-size:16px;">{{ (b.overall_score*100).toFixed(0) }}%</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const { createApp, ref, reactive, computed } = Vue;
+createApp({
+  setup() {
+    const API = '/api/v1';
+    const loading = ref(false);
+    const error = ref('');
+    const currentStep = ref(0);
+
+    const molecule = reactive({
+      molecule_id: 'MOL-2026-001',
+      common_name: '',
+      properties: {
+        target_class: 'kinase',
+        mechanism: 'inhibitor',
+        chemical_class: 'small_molecule',
+        indication: 'non-small cell lung cancer',
+        chemical_structure_substructure: ''
+      }
+    });
+
+    const targetMeaning = ref('');
+    const brandNamesText = ref('');
+
+    const project = ref(null);
+    const stems = ref([]);
+    const innCandidates = ref([]);
+    const innMeta = ref({});
+    const selectedInn = ref('');
+    const pocaResults = ref([]);
+    const pocaWorstScore = ref(0);
+    const chineseNames = ref([]);
+    const brandResults = ref([]);
+
+    const enums = {
+      TargetClass: ['kinase','gpcr','ion_channel','nuclear_receptor','protease','transporter','cytokine','growth_factor','immune_checkpoint','tnf_superfamily','complement','integrin','other'],
+      Mechanism: ['inhibitor','activator','agonist','antagonist','modulator','blocker','antibody','fusion_protein','gene_therapy','antisense','vaccine','other'],
+      ChemicalClass: ['small_molecule','monoclonal_antibody','antibody_fragment','bispecific_antibody','antibody_drug_conjugate','fusion_protein','peptide','oligonucleotide','mrna','sirna','other']
+    };
+
+    function stepClass(n) {
+      const s = currentStep.value;
+      if (s > n) return 'done';
+      if (s === n) return 'current';
+      return '';
+    }
+
+    function onChemicalClassChange() {
+      // Clear sub-structure if switching away from small molecule
+    }
+
+    async function apiPost(path, body) {
+      const res = await fetch(API + path, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) { const txt = await res.text(); throw new Error(`${path}: ${res.status} ${txt}`); }
+      return res.json();
+    }
+
+    async function apiPostQuery(path, params) {
+      const qs = new URLSearchParams(params).toString();
+      const res = await fetch(API + path + '?' + qs, { method: 'POST' });
+      if (!res.ok) { const txt = await res.text(); throw new Error(`${path}: ${res.status} ${txt}`); }
+      return res.json();
+    }
+
+    async function runFullWorkflow() {
+      loading.value = true; error.value = ''; currentStep.value = 0;
+      pocaResults.value = []; chineseNames.value = []; brandResults.value = [];
+      try {
+        // Step 1: Create project & match stems
+        const p = await apiPost('/projects/', molecule);
+        project.value = p; currentStep.value = 1;
+        const p1 = await apiPost(`/projects/${p.id}/workflow/stem-matching`, {});
+        stems.value = p1.stem_matches || [];
+
+        // Step 2: Generate INN names
+        const p2 = await apiPost(`/projects/${p.id}/workflow/generate-inn`, {existing_names: []});
+        innCandidates.value = p2.inn_candidates || [];
+        innMeta.value = { total_generated: p2.inn_candidates?.length || 0, filtered_out: 0 };
+        currentStep.value = 2;
+
+        // Select first candidate for POCA
+        if (innCandidates.value.length) {
+          selectedInn.value = innCandidates.value[0].name;
+          await runPoca();
+        }
+
+        // Step 4: Chinese names
+        const p4 = await apiPostQuery(`/projects/${p.id}/workflow/chinese-naming`, {
+          target_meaning: targetMeaning.value || ''
+        });
+        chineseNames.value = p4.chinese_candidates || [];
+        currentStep.value = 4;
+
+        // Step 5: Brand screening
+        if (brandNamesText.value.trim()) {
+          const brands = brandNamesText.value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+          const params = {};
+          brands.forEach((b, i) => { params['proposed_brands'] = brands; });
+          // Use URL with repeated params
+          const bp = new URLSearchParams();
+          brands.forEach(b => bp.append('proposed_brands', b));
+          const res = await fetch(API + `/projects/${p.id}/workflow/brand-screening?` + bp.toString(), { method: 'POST' });
+          if (res.ok) {
+            const p5 = await res.json();
+            brandResults.value = p5.brand_candidates || [];
+          }
+        }
+        currentStep.value = 5;
+
+      } catch(e) {
+        error.value = e.message;
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    async function runPoca() {
+      try {
+        const params = { proposed_name: selectedInn.value, max_refs: 15 };
+        const refs = await apiPostQuery('/poca/smart-references', params);
+        const pocaReq = {
+          proposed_name: selectedInn.value,
+          reference_names: refs.length ? refs : ['imatinib','erlotinib','gefitinib','osimertinib']
+        };
+        const result = await apiPost('/poca/score', pocaReq);
+        pocaResults.value = result.results || [];
+        pocaWorstScore.value = result.worst_score || 0;
+        currentStep.value = 3;
+      } catch(e) {
+        error.value = 'POCA: ' + e.message;
+      }
+    }
+
+    async function selectInn(name) {
+      selectedInn.value = name;
+      if (project.value) {
+        await runPoca(project.value.id);
+      }
+    }
+
+    async function rerunPoca() {
+      if (project.value) {
+        await runPoca(project.value.id);
+      }
+    }
+
+    return {
+      loading, error, currentStep, molecule, targetMeaning, brandNamesText,
+      project, stems, innCandidates, innMeta, selectedInn,
+      pocaResults, pocaWorstScore, chineseNames, brandResults,
+      enums, stepClass, onChemicalClassChange, runFullWorkflow, selectInn, rerunPoca, runPoca
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+from __future__ import annotations
+from .phonetic import PhoneticEncoder
+from .orthographic import OrthographicAnalyzer
+from .compositional import CompositionalAnalyzer
+from ..models.poca import (
+    POCAScoreDetail,
+    POCAWeights,
+    POCARequest,
+    POCAResponse,
+)
+
+
+class POCAScoringEngine:
+    """Full FDA POCA scoring coordinator combining phonetic, orthographic, and compositional analysis.
+
+    Can use an InnReferenceDB for intelligent reference name selection instead of
+    brute-force comparison against all names.
+    """
+
+    def __init__(
+        self,
+        weights: POCAWeights | None = None,
+        known_stems: list[str] | None = None,
+        inn_reference_db=None,
+    ) -> None:
+        self.weights = weights or POCAWeights()
+        self.phonetic = PhoneticEncoder()
+        self.orthographic = OrthographicAnalyzer()
+        self.compositional = CompositionalAnalyzer(known_stems or [])
+        self._inn_db = inn_reference_db
+
+    def set_known_stems(self, stems: list[str]) -> None:
+        self.compositional.set_stems(stems)
+
+    def smart_references(self, proposed_name: str, max_refs: int = 30) -> list[str]:
+        """Select the most relevant reference names for POCA comparison.
+
+        Uses the INN reference database to find names sharing the same stems,
+        falling back to the provided reference list if no DB is available.
+        """
+        if self._inn_db is None:
+            return []
+
+        # Detect stems present in the proposed name
+        detected_stems = []
+        for stem, freq in self._inn_db.get_stem_frequencies().items():
+            if stem in proposed_name.lower():
+                detected_stems.append(stem)
+
+        if detected_stems:
+            return self._inn_db.get_references_for_stems(detected_stems, max_refs)
+        return self._inn_db.get_random_references(max_refs)
+
+    def score_pair(self, proposed: str, reference: str) -> POCAScoreDetail:
+        phonetic_detail, phonetic_score = self.phonetic.compute_phonetics(proposed, reference)
+        orthographic_detail, orthographic_score = self.orthographic.compute_orthographic(proposed, reference)
+        compositional_detail, compositional_score = self.compositional.compute_compositional(proposed, reference)
+
+        overall = (
+            self.weights.phonetic_weight * phonetic_score
+            + self.weights.orthographic_weight * orthographic_score
+            + self.weights.compositional_weight * compositional_score
+        )
+
+        # Length penalty for very short names (< 5 chars)
+        max_len = max(len(proposed), len(reference))
+        if max_len < 5:
+            overall *= max_len / 5.0
+
+        overall = min(1.0, overall)
+
+        if overall >= self.weights.high_alert_threshold:
+            alert_level = "REJECT"
+        elif overall >= self.weights.safety_threshold:
+            alert_level = "REVIEW"
+        else:
+            alert_level = "PASS"
+
+        return POCAScoreDetail(
+            proposed_name=proposed,
+            reference_name=reference,
+            phonetic=phonetic_detail,
+            orthographic=orthographic_detail,
+            compositional=compositional_detail,
+            phonetic_score=phonetic_score,
+            orthographic_score=orthographic_score,
+            compositional_score=compositional_score,
+            overall_poca_score=overall,
+            is_safety_alert=alert_level in ("REVIEW", "REJECT"),
+            alert_level=alert_level,
+        )
+
+    def score_batch(self, request: POCARequest) -> POCAResponse:
+        if request.weights:
+            self.weights = request.weights
+
+        results: list[POCAScoreDetail] = []
+        worst_score = 0.0
+        worst_comparison: str | None = None
+
+        for ref_name in request.reference_names:
+            result = self.score_pair(request.proposed_name, ref_name)
+            results.append(result)
+            if result.overall_poca_score > worst_score:
+                worst_score = result.overall_poca_score
+                worst_comparison = ref_name
+
+        if worst_score >= self.weights.high_alert_threshold:
+            assessment = "REJECT"
+        elif worst_score >= self.weights.safety_threshold:
+            assessment = "REVIEW"
+        else:
+            assessment = "PASS"
+
+        return POCAResponse(
+            results=results,
+            worst_score=worst_score,
+            worst_comparison=worst_comparison,
+            overall_safety_assessment=assessment,
+        )
