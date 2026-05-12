@@ -4,6 +4,18 @@ from pydantic import BaseModel, Field
 
 
 class TargetClass(StrEnum):
+    # Respiratory / anti-infective / analgesic (prioritized)
+    COX = "cox"
+    OPIOID_RECEPTOR = "opioid_receptor"
+    SODIUM_CHANNEL = "sodium_channel"
+    HISTAMINE_RECEPTOR = "histamine_receptor"
+    LEUKOTRIENE_RECEPTOR = "leukotriene_receptor"
+    BETA_ADRENOCEPTOR = "beta_adrenoceptor"
+    MUSCARINIC_RECEPTOR = "muscarinic_receptor"
+    BACTERIAL_TARGET = "bacterial_target"
+    VIRAL_TARGET = "viral_target"
+    FUNGAL_TARGET = "fungal_target"
+    # General
     KINASE = "kinase"
     GPCR = "gpcr"
     ION_CHANNEL = "ion_channel"

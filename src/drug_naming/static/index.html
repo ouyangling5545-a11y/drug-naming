@@ -14,380 +14,502 @@
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--text); }
-.app { display:flex; height:100vh; }
-.sidebar { width:380px; background:var(--card); border-right:1px solid var(--border); overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:20px; flex-shrink:0; }
-.main { flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:16px; }
-.header { font-size:18px; font-weight:700; color:var(--text); padding-bottom:16px; border-bottom:2px solid var(--blue); }
+.app { max-width:1200px; margin:0 auto; padding:24px; }
+.header { font-size:22px; font-weight:700; padding-bottom:16px; margin-bottom:20px; border-bottom:2px solid var(--blue); display:flex; align-items:center; gap:12px; }
+.header .ver { font-size:12px; color:var(--sub); font-weight:400; margin-left:auto; }
+
+/* Tabs */
+.tabs { display:flex; gap:0; margin-bottom:24px; border-bottom:2px solid var(--border); }
+.tab { padding:10px 24px; font-size:15px; font-weight:600; cursor:pointer; color:var(--sub); border-bottom:3px solid transparent; margin-bottom:-2px; transition:all .15s; }
+.tab:hover { color:var(--text); }
+.tab.active { color:var(--blue); border-bottom-color:var(--blue); }
+
+/* Layout */
+.panels { display:flex; gap:24px; }
+.panel-left { width:380px; flex-shrink:0; display:flex; flex-direction:column; gap:16px; }
+.panel-right { flex:1; display:flex; flex-direction:column; gap:16px; min-width:0; }
+
+.card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+.card h3 { font-size:15px; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+
 label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin-bottom:4px; }
-select, input, textarea { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:var(--bg); color:var(--text); }
-select:focus, input:focus, textarea:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
-textarea { font-size:13px; }
 .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; }
 .btn-primary { background:var(--blue); color:#fff; width:100%; justify-content:center; }
 .btn-primary:hover { background:#2563eb; }
 .btn-primary:disabled { background:#93c5fd; cursor:not-allowed; }
-.btn-sm { padding:5px 12px; font-size:12px; }
-.card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:16px; }
-.card h3 { font-size:15px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.btn-outline { background:var(--bg); color:var(--blue); border:1px solid var(--blue); }
+.btn-outline:hover { background:var(--blue-bg); }
+
+/* Combobox */
+.combo { position:relative; }
+.combo input { width:100%; padding:8px 30px 8px 12px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:var(--bg); color:var(--text); cursor:default; }
+.combo input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+.combo .arrow { position:absolute; right:10px; top:10px; color:var(--sub); font-size:10px; pointer-events:none; }
+.combo .dropdown { position:absolute; top:100%; left:0; right:0; max-height:260px; overflow-y:auto; background:var(--card); border:1px solid var(--border); border-radius:6px; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,0.12); display:none; }
+.combo .dropdown.show { display:block; }
+.combo .dropdown .opt { padding:8px 12px; font-size:13px; cursor:pointer; }
+.combo .dropdown .opt:hover { background:var(--blue-bg); }
+.combo .dropdown .opt.highlight { background:var(--blue-bg); color:var(--blue); }
+.combo .dropdown .sep { padding:4px 12px; font-size:11px; color:var(--sub); font-weight:600; border-top:1px solid var(--border); background:var(--bg); }
+.combo .dropdown .sep:first-child { border-top:none; }
+
+/* Badges */
 .badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; }
 .badge-blue { background:var(--blue-bg); color:var(--blue); }
 .badge-green { background:var(--green-bg); color:var(--green); }
 .badge-red { background:var(--red-bg); color:var(--red); }
 .badge-amber { background:var(--amber-bg); color:var(--amber); }
+
+/* Name evaluation */
+.eval-verdict { padding:16px; border-radius:8px; margin-top:8px; }
+.eval-verdict.pass { background:var(--green-bg); border:1px solid var(--green); }
+.eval-verdict.review { background:var(--amber-bg); border:1px solid var(--amber); }
+.eval-verdict.reject { background:var(--red-bg); border:1px solid var(--red); }
+.eval-verdict .big { font-size:20px; font-weight:700; }
+.reason-list { margin-top:8px; padding-left:18px; }
+.reason-list li { font-size:13px; color:var(--text); margin-bottom:4px; line-height:1.5; }
+.reason-list li.risk { color:var(--red); }
+
+/* Score bars */
+.score-bar { margin:8px 0; display:flex; align-items:center; gap:8px; font-size:13px; }
+.score-bar .label { width:50px; text-align:right; color:var(--sub); }
+.score-bar .bar-wrap { flex:1; height:10px; border-radius:5px; background:var(--border); overflow:hidden; }
+.score-bar .bar-fill { height:100%; border-radius:5px; transition:width .4s; }
+.score-bar .bar-fill.pass { background:var(--green); }
+.score-bar .bar-fill.review { background:var(--amber); }
+.score-bar .bar-fill.reject { background:var(--red); }
+.score-bar .val { width:40px; font-weight:700; font-size:12px; }
+
+/* Recommendation results */
 .stem-item { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); }
 .stem-item:last-child { border-bottom:none; }
 .stem-name { font-weight:700; font-size:15px; font-family:monospace; }
 .stem-meaning { font-size:12px; color:var(--sub); }
-.score { font-weight:700; font-size:14px; }
 .name-grid { display:flex; flex-wrap:wrap; gap:6px; }
 .name-chip { padding:6px 14px; border-radius:20px; font-size:13px; font-family:monospace; cursor:pointer; border:1px solid var(--border); background:var(--bg); transition:all .15s; }
 .name-chip:hover { border-color:var(--blue); background:var(--blue-bg); }
 .name-chip.selected { background:var(--blue); color:#fff; border-color:var(--blue); font-weight:700; }
-.name-chip.conflict { background:var(--red-bg); border-color:var(--red); text-decoration:line-through; }
-.poca-bar { height:8px; border-radius:4px; background:var(--border); overflow:hidden; margin:4px 0; }
-.poca-fill { height:100%; border-radius:4px; transition:width .3s; }
-.poca-fill.pass { background:var(--green); }
-.poca-fill.review { background:var(--amber); }
-.poca-fill.reject { background:var(--red); }
-.poca-row { display:flex; align-items:center; gap:12px; padding:6px 0; font-size:13px; }
-.poca-row .ref-name { flex:1; font-family:monospace; }
-.poca-row .poca-score { width:60px; text-align:right; font-weight:700; }
-.steps { display:flex; gap:0; margin-bottom:8px; }
+.poca-row { display:flex; align-items:center; gap:8px; padding:4px 0; font-size:13px; }
+.poca-row .ref-name { flex:1; font-family:monospace; font-size:12px; }
+.poca-row .poca-val { width:44px; text-align:right; font-weight:700; font-size:12px; }
+.chinese-chars { font-size:20px; font-weight:700; letter-spacing:4px; }
+
+.steps { display:flex; gap:0; margin-bottom:4px; }
 .step-dot { flex:1; height:4px; border-radius:2px; background:var(--border); }
 .step-dot.done { background:var(--green); }
 .step-dot.current { background:var(--blue); }
-.empty { text-align:center; padding:40px; color:var(--sub); font-size:14px; }
 .spinner { display:inline-block; width:16px; height:16px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin .6s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
-.info-row { display:flex; justify-content:space-between; padding:4px 0; font-size:13px; }
-.info-row span:first-child { color:var(--sub); }
-.info-row span:last-child { font-weight:600; }
-.chinese-chars { font-size:20px; font-weight:700; letter-spacing:4px; }
-.alert { padding:8px 12px; border-radius:6px; font-size:13px; margin-top:8px; }
-.alert-error { background:var(--red-bg); color:var(--red); }
+.empty { text-align:center; padding:40px; color:var(--sub); font-size:14px; }
+.alert-error { padding:8px 12px; border-radius:6px; font-size:13px; background:var(--red-bg); color:var(--red); margin-top:8px; }
+.meta-row { display:flex; justify-content:space-between; padding:4px 0; font-size:13px; margin-top:8px; }
+.meta-row span:first-child { color:var(--sub); }
+.meta-row span:last-child { font-weight:600; }
 </style>
 </head>
 <body>
 <div id="app" class="app">
-  <!-- Sidebar: Input Panel -->
-  <aside class="sidebar">
-    <div class="header">🧬 创新药命名管理系统</div>
-    <div>
-      <label>项目编号</label>
-      <input v-model="molecule.molecule_id" placeholder="MOL-2026-001">
-    </div>
-    <div>
-      <label>化合物代号</label>
-      <input v-model="molecule.common_name" placeholder="候选化合物A">
-    </div>
-    <div>
-      <label>靶点类别</label>
-      <select v-model="molecule.properties.target_class">
-        <option v-for="t in enums.TargetClass" :value="t">{{ t }}</option>
-      </select>
-    </div>
-    <div>
-      <label>作用机制</label>
-      <select v-model="molecule.properties.mechanism">
-        <option v-for="m in enums.Mechanism" :value="m">{{ m }}</option>
-      </select>
-    </div>
-    <div>
-      <label>化学类别</label>
-      <select v-model="molecule.properties.chemical_class" @change="onChemicalClassChange">
-        <option v-for="c in enums.ChemicalClass" :value="c">{{ c }}</option>
-      </select>
-    </div>
-    <div>
-      <label>适应症</label>
-      <input v-model="molecule.properties.indication" placeholder="e.g. non-small cell lung cancer">
-    </div>
-    <div>
-      <label>化学亚结构 (可选)</label>
-      <input v-model="molecule.properties.chemical_structure_substructure" placeholder="e.g. pyrimidine">
-    </div>
-    <div>
-      <label>语义偏好 (中文核名用)</label>
-      <input v-model="targetMeaning" placeholder="e.g. 抑制肿瘤、免疫调节">
-    </div>
-    <div>
-      <label>品牌名提案 (逗号分隔)</label>
-      <textarea v-model="brandNamesText" rows="2" placeholder="Zelafi, Lisipro"></textarea>
-    </div>
-    <button class="btn btn-primary" @click="runFullWorkflow" :disabled="loading">
-      <span v-if="loading" class="spinner"></span>
-      {{ loading ? '分析中...' : '开始分析' }}
-    </button>
-    <div v-if="error" class="alert alert-error">{{ error }}</div>
-  </aside>
+  <div class="header">
+    创新药命名管理系统
+    <span class="ver">v0.2.0</span>
+  </div>
 
-  <!-- Main: Results Panel -->
-  <main class="main">
-    <!-- Progress Steps -->
-    <div class="steps">
-      <div class="step-dot" :class="stepClass(1)"></div>
-      <div class="step-dot" :class="stepClass(2)"></div>
-      <div class="step-dot" :class="stepClass(3)"></div>
-      <div class="step-dot" :class="stepClass(4)"></div>
-      <div class="step-dot" :class="stepClass(5)"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);padding:0 4px;">
-      <span>词干匹配</span><span>INN生成</span><span>POCA评分</span><span>中文核名</span><span>品牌筛选</span>
-    </div>
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab" :class="{active: activeTab==='evaluate'}" @click="activeTab='evaluate'">名称评估</div>
+    <div class="tab" :class="{active: activeTab==='recommend'}" @click="activeTab='recommend'">智能推荐</div>
+  </div>
 
-    <!-- Step 1: Stem Matching -->
-    <div class="card" v-if="project">
-      <h3>📋 词干匹配 <span class="badge badge-blue">{{ stems.length }} 条匹配</span></h3>
-      <div v-if="stems.length">
-        <div class="stem-item" v-for="s in stems.slice(0,8)" :key="s.stem.stem">
-          <div>
-            <div class="stem-name">{{ s.stem.stem }}</div>
-            <div class="stem-meaning">{{ s.stem.meaning }}</div>
-          </div>
-          <div class="score" :style="{color: s.match_score > 0.7 ? 'var(--green)' : s.match_score > 0.4 ? 'var(--amber)' : 'var(--sub)'}">{{ (s.match_score*100).toFixed(0) }}%</div>
+  <!-- ==================== TAB A: 名称评估 ==================== -->
+  <div v-if="activeTab==='evaluate'" class="panels">
+    <div class="panel-left">
+      <div class="card">
+        <h3>输入候选名称</h3>
+        <input v-model="evalName" placeholder="输入待评估的 INN 名称，如 aflisib"
+               style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:monospace;margin-bottom:12px;"
+               @keyup.enter="runEvaluate">
+        <button class="btn btn-primary" @click="runEvaluate" :disabled="evalLoading">
+          <span v-if="evalLoading" class="spinner"></span>
+          {{ evalLoading ? '评估中...' : '开始评估' }}
+        </button>
+      </div>
+
+      <!-- Chinese name suggestions -->
+      <div class="card" v-if="evalResult && evalResult.chinese_suggestions.length">
+        <h3>中文名建议</h3>
+        <div v-for="cn in evalResult.chinese_suggestions.slice(0,4)" :key="cn.chinese_name"
+             style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <span class="chinese-chars">{{ cn.chinese_name }}</span>
+          <span style="font-size:12px;color:var(--sub);margin-left:8px;">{{ cn.pinyin }}</span>
+          <span style="font-size:11px;color:var(--sub);margin-left:4px;">{{ cn.meaning_gloss }}</span>
         </div>
       </div>
-      <div v-else class="empty">点击"开始分析"生成结果</div>
     </div>
 
-    <!-- Step 2: INN Name Candidates -->
-    <div class="card" v-if="innCandidates.length">
-      <h3>💊 INN 候选名 <span class="badge badge-green">{{ innCandidates.length }} 个</span>
-        <span style="font-size:12px;color:var(--sub);margin-left:8px;">点击名称查看 POCA 评分</span>
-      </h3>
-      <div class="name-grid">
-        <span class="name-chip" v-for="c in innCandidates" :key="c.name"
-              :class="{selected: selectedInn === c.name, conflict: c.regulatory_flags && c.regulatory_flags.includes('exact_inn_conflict')}"
-              @click="selectInn(c.name)">
-          {{ c.name }}
-          <span style="font-size:10px;margin-left:4px;opacity:.6">{{ (c.phonological_score*100).toFixed(0) }}</span>
-        </span>
+    <div class="panel-right">
+      <div v-if="!evalResult && !evalLoading" class="card empty">
+        在左侧输入候选名称，点击"开始评估"查看完整评分报告
       </div>
-      <div class="info-row" style="margin-top:8px;">
-        <span>原始生成 / 过滤 / 最终</span>
-        <span>{{ innMeta.total_generated }} / {{ innMeta.filtered_out }} / {{ innCandidates.length }}</span>
-      </div>
-    </div>
 
-    <!-- Step 3: POCA Scoring -->
-    <div class="card" v-if="pocaResults.length">
-      <h3>🔍 POCA 相似度评分
-        <span v-if="pocaWorstScore < 0.70" class="badge badge-green">PASS</span>
-        <span v-else-if="pocaWorstScore < 0.85" class="badge badge-amber">REVIEW</span>
-        <span v-else class="badge badge-red">REJECT</span>
-      </h3>
-      <div style="font-size:13px;color:var(--sub);margin-bottom:8px;">
-        候选名 <b>{{ selectedInn }}</b> vs {{ pocaResults.length }} 个同类 INN 名 &nbsp;
-        <button class="btn btn-sm" @click="rerunPoca" style="margin-left:4px;">换一批对比</button>
-      </div>
-      <div class="poca-row" v-for="r in pocaResults.slice(0,10)" :key="r.reference_name">
-        <span style="width:30px;text-align:center;">
-          <span v-if="r.alert_level==='PASS'" class="badge badge-green" style="font-size:10px;">PASS</span>
-          <span v-else-if="r.alert_level==='REVIEW'" class="badge badge-amber" style="font-size:10px;">REV</span>
-          <span v-else class="badge badge-red" style="font-size:10px;">REJ</span>
-        </span>
-        <span class="ref-name">{{ r.reference_name }}</span>
-        <div style="flex:1;">
-          <div class="poca-bar"><div class="poca-fill" :class="r.overall_poca_score < 0.70 ? 'pass' : r.overall_poca_score < 0.85 ? 'review' : 'reject'" :style="{width: (r.overall_poca_score*100)+'%'}"></div></div>
-          <div style="display:flex;gap:8px;font-size:10px;color:var(--sub);">
-            <span>语:{{ (r.phonetic_score*100).toFixed(0) }}%</span>
-            <span>形:{{ (r.orthographic_score*100).toFixed(0) }}%</span>
-            <span>组:{{ (r.compositional_score*100).toFixed(0) }}%</span>
+      <div v-if="evalResult" class="card">
+        <div class="eval-verdict" :class="evalResult.poca_assessment === 'PASS' ? 'pass' : evalResult.poca_assessment === 'REVIEW' ? 'review' : 'reject'">
+          <div class="big">
+            {{ evalResult.poca_assessment === 'PASS' ? '通过' : evalResult.poca_assessment === 'REVIEW' ? '需审核' : '建议驳回' }}
+            <span style="font-size:14px;font-weight:400;margin-left:8px;">
+              POCA 综合得分 {{ (evalResult.poca_score*100).toFixed(0) }}%
+            </span>
           </div>
         </div>
-        <span class="poca-score" :style="{color: r.overall_poca_score < 0.70 ? 'var(--green)' : r.overall_poca_score < 0.85 ? 'var(--amber)' : 'var(--red)'}">{{ (r.overall_poca_score*100).toFixed(0) }}%</span>
+
+        <h3 style="margin-top:16px;">三维度评分</h3>
+        <div class="score-bar">
+          <span class="label">语音</span><div class="bar-wrap"><div class="bar-fill" :class="evalResult.phonetic_score < 0.70 ? 'pass' : evalResult.phonetic_score < 0.85 ? 'review' : 'reject'" :style="{width:(evalResult.phonetic_score*100)+'%'}"></div></div>
+          <span class="val">{{ (evalResult.phonetic_score*100).toFixed(0) }}%</span>
+        </div>
+        <div class="score-bar">
+          <span class="label">字形</span><div class="bar-wrap"><div class="bar-fill" :class="evalResult.orthographic_score < 0.70 ? 'pass' : evalResult.orthographic_score < 0.85 ? 'review' : 'reject'" :style="{width:(evalResult.orthographic_score*100)+'%'}"></div></div>
+          <span class="val">{{ (evalResult.orthographic_score*100).toFixed(0) }}%</span>
+        </div>
+        <div class="score-bar">
+          <span class="label">组合</span><div class="bar-wrap"><div class="bar-fill" :class="evalResult.compositional_score < 0.70 ? 'pass' : evalResult.compositional_score < 0.85 ? 'review' : 'reject'" :style="{width:(evalResult.compositional_score*100)+'%'}"></div></div>
+          <span class="val">{{ (evalResult.compositional_score*100).toFixed(0) }}%</span>
+        </div>
+
+        <div v-if="evalResult.worst_comparison" style="margin-top:8px;font-size:13px;color:var(--sub);">
+          最接近的已有INN名称：<b style="font-family:monospace;">{{ evalResult.worst_comparison }}</b>
+        </div>
+
+        <h3 style="margin-top:16px;">评估理由</h3>
+        <ul class="reason-list">
+          <li v-for="r in evalResult.reasons" :key="r">{{ r }}</li>
+        </ul>
+
+        <div v-if="evalResult.risks.length">
+          <h3 style="margin-top:12px;color:var(--red);">风险提示</h3>
+          <ul class="reason-list">
+            <li v-for="r in evalResult.risks" :key="r" class="risk">{{ r }}</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB B: 智能推荐 ==================== -->
+  <div v-if="activeTab==='recommend'" class="panels">
+    <div class="panel-left">
+      <div class="card">
+        <h3>分子性质</h3>
+
+        <div style="margin-bottom:12px;">
+          <label>靶点类别</label>
+          <div class="combo" ref="targetCombo">
+            <input v-model="recTargetClass" placeholder="选择或输入靶点..." @focus="openCombo('target')" @input="filterCombo('target')" @keydown.down.prevent="navCombo('target',1)" @keydown.up.prevent="navCombo('target',-1)" @keydown.enter.prevent="selectCombo('target')" @blur="blurCombo('target')">
+            <span class="arrow">▼</span>
+            <div class="dropdown" :class="{show: comboOpen.target}">
+              <div v-for="(opt,idx) in comboTargetFiltered" :key="opt.v" class="opt" :class="{highlight: idx===comboIdx.target, sep: opt.sep}" @mousedown.prevent="pickCombo('target',opt)">{{ opt.sep ? '— '+opt.label+' —' : opt.label }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label>作用机制</label>
+          <div class="combo">
+            <input v-model="recMechanism" placeholder="选择或输入机制..." @focus="openCombo('mechanism')" @input="filterCombo('mechanism')" @keydown.down.prevent="navCombo('mechanism',1)" @keydown.up.prevent="navCombo('mechanism',-1)" @keydown.enter.prevent="selectCombo('mechanism')" @blur="blurCombo('mechanism')">
+            <span class="arrow">▼</span>
+            <div class="dropdown" :class="{show: comboOpen.mechanism}">
+              <div v-for="(opt,idx) in comboMechanismFiltered" :key="opt.v" class="opt" :class="{highlight: idx===comboIdx.mechanism}" @mousedown.prevent="pickCombo('mechanism',opt)">{{ opt.label }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label>化学类别</label>
+          <div class="combo">
+            <input v-model="recChemicalClass" placeholder="选择化学类别..." @focus="openCombo('chemical')" @input="filterCombo('chemical')" @keydown.down.prevent="navCombo('chemical',1)" @keydown.up.prevent="navCombo('chemical',-1)" @keydown.enter.prevent="selectCombo('chemical')" @blur="blurCombo('chemical')">
+            <span class="arrow">▼</span>
+            <div class="dropdown" :class="{show: comboOpen.chemical}">
+              <div v-for="(opt,idx) in comboChemicalFiltered" :key="opt.v" class="opt" :class="{highlight: idx===comboIdx.chemical}" @mousedown.prevent="pickCombo('chemical',opt)">{{ opt.label }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label>适应症</label>
+          <div class="combo">
+            <input v-model="recIndication" placeholder="选择或输入适应症..." @focus="openCombo('indication')" @input="filterCombo('indication')" @keydown.down.prevent="navCombo('indication',1)" @keydown.up.prevent="navCombo('indication',-1)" @keydown.enter.prevent="selectCombo('indication')" @blur="blurCombo('indication')">
+            <span class="arrow">▼</span>
+            <div class="dropdown" :class="{show: comboOpen.indication}">
+              <div v-for="(opt,idx) in comboIndicationFiltered" :key="opt.v" class="opt" :class="{highlight: idx===comboIdx.indication, sep: opt.sep}" @mousedown.prevent="pickCombo('indication',opt)">{{ opt.sep ? '— '+opt.label+' —' : opt.label }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label>化学亚结构 <span style="font-weight:400;color:var(--sub);">(可选)</span></label>
+          <input v-model="recSubstructure" placeholder="如 pyrimidine, quinazoline" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:var(--bg);">
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label>语义偏好 <span style="font-weight:400;color:var(--sub);">(中文核名用)</span></label>
+          <input v-model="recTargetMeaning" placeholder="如 抑制肿瘤、免疫调节" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:var(--bg);">
+        </div>
+
+        <button class="btn btn-primary" @click="runRecommend" :disabled="recLoading">
+          <span v-if="recLoading" class="spinner"></span>
+          {{ recLoading ? '分析中...' : '开始推荐' }}
+        </button>
+        <div v-if="recError" class="alert-error">{{ recError }}</div>
       </div>
     </div>
 
-    <!-- Step 4: Chinese Names -->
-    <div class="card" v-if="chineseNames.length">
-      <h3>🀄 中文核名建议 <span class="badge badge-blue">{{ chineseNames.length }} 个</span></h3>
-      <div style="display:flex;flex-wrap:wrap;gap:12px;">
-        <div v-for="cn in chineseNames.slice(0,6)" :key="cn.chinese_name"
-             style="padding:12px 16px;border:1px solid var(--border);border-radius:8px;text-align:center;cursor:pointer;"
-             :style="cn.regulatory_compliance ? 'border-color:var(--green);background:var(--green-bg)' : ''">
-          <div class="chinese-chars">{{ cn.chinese_name }}</div>
-          <div style="font-size:12px;color:var(--sub);margin-top:4px;">{{ cn.pinyin }}</div>
-          <div style="font-size:11px;color:var(--sub);">{{ cn.meaning_gloss }}</div>
-          <div style="font-size:10px;margin-top:2px;">
-            <span :class="cn.regulatory_compliance ? 'badge badge-green' : 'badge badge-amber'">{{ cn.regulatory_compliance ? '合规' : '需审核' }}</span>
-            <span style="margin-left:4px;">笔画:{{ cn.stroke_count }}</span>
+    <div class="panel-right">
+      <div class="steps">
+        <div class="step-dot" :class="recStepClass(1)"></div>
+        <div class="step-dot" :class="recStepClass(2)"></div>
+        <div class="step-dot" :class="recStepClass(3)"></div>
+        <div class="step-dot" :class="recStepClass(4)"></div>
+        <div class="step-dot" :class="recStepClass(5)"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);padding:0 4px;margin-bottom:12px;">
+        <span>词干匹配</span><span>INN生成</span><span>POCA评分</span><span>中文核名</span><span>品牌筛选</span>
+      </div>
+
+      <div v-if="!recStems.length && !recLoading" class="card empty">
+        在左侧填写分子性质，点击"开始推荐"查看完整推荐结果
+      </div>
+
+      <div v-if="recStems.length" class="card">
+        <h3>词干匹配 <span class="badge badge-blue">{{ recStems.length }} 条</span></h3>
+        <div class="stem-item" v-for="s in recStems.slice(0,6)" :key="s.stem.stem">
+          <div><div class="stem-name">{{ s.stem.stem }}</div><div class="stem-meaning">{{ s.stem.meaning }}</div></div>
+          <span style="font-weight:700;font-size:14px;" :style="{color: s.match_score>0.7?'var(--green)':s.match_score>0.4?'var(--amber)':'var(--sub)'}">{{ (s.match_score*100).toFixed(0) }}%</span>
+        </div>
+      </div>
+
+      <div v-if="recInnCandidates.length" class="card">
+        <h3>INN 候选名 <span class="badge badge-green">{{ recInnCandidates.length }} 个</span></h3>
+        <div class="name-grid">
+          <span class="name-chip" v-for="c in recInnCandidates" :key="c.name"
+                :class="{selected: recSelectedInn===c.name}"
+                @click="recSelectInn(c.name)">{{ c.name }}</span>
+        </div>
+      </div>
+
+      <div v-if="recPocaResults.length" class="card">
+        <h3>POCA 评分 — {{ recSelectedInn }}
+          <span v-if="recPocaWorstScore<0.70" class="badge badge-green">PASS</span>
+          <span v-else-if="recPocaWorstScore<0.85" class="badge badge-amber">REVIEW</span>
+          <span v-else class="badge badge-red">REJECT</span>
+        </h3>
+        <div class="poca-row" v-for="r in recPocaResults.slice(0,8)" :key="r.reference_name">
+          <span :class="'badge badge-'+(r.alert_level==='PASS'?'green':r.alert_level==='REVIEW'?'amber':'red')" style="font-size:10px;width:36px;text-align:center;">{{ r.alert_level }}</span>
+          <span class="ref-name">{{ r.reference_name }}</span>
+          <div style="flex:1;height:6px;border-radius:3px;background:var(--border);"><div style="height:100%;border-radius:3px;" :class="r.overall_poca_score<0.70?'pass':r.overall_poca_score<0.85?'review':'reject'" :style="{width:(r.overall_poca_score*100)+'%'}"></div></div>
+          <span class="poca-val" :style="{color: r.overall_poca_score<0.70?'var(--green)':r.overall_poca_score<0.85?'var(--amber)':'var(--red)'}">{{ (r.overall_poca_score*100).toFixed(0) }}%</span>
+        </div>
+        <div class="meta-row"><span>语音 / 字形 / 组合</span><span style="font-size:10px;color:var(--sub);">点击候选名称可重新评分</span></div>
+      </div>
+
+      <div v-if="recChineseNames.length" class="card">
+        <h3>中文核名 <span class="badge badge-blue">{{ recChineseNames.length }} 个</span></h3>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          <div v-for="cn in recChineseNames.slice(0,6)" :key="cn.chinese_name"
+               style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;text-align:center;">
+            <div class="chinese-chars">{{ cn.chinese_name }}</div>
+            <div style="font-size:12px;color:var(--sub);">{{ cn.pinyin }}</div>
+            <div style="font-size:11px;color:var(--sub);">{{ cn.meaning_gloss }}</div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Step 5: Brand Screening -->
-    <div class="card" v-if="brandResults.length">
-      <h3>™️ 商品名筛选 <span class="badge badge-blue">{{ brandResults.length }} 个</span></h3>
-      <div class="poca-row" v-for="b in brandResults" :key="b.brand_name" style="padding:10px 0;">
-        <span style="font-weight:700;font-size:16px;width:120px;">{{ b.brand_name }}</span>
-        <div style="flex:1;display:flex;gap:16px;font-size:12px;">
-          <span>INN相似: {{ (b.similarity_to_inn*100).toFixed(0) }}%</span>
-          <span>品牌相似: {{ (b.similarity_to_existing_brands*100).toFixed(0) }}%</span>
-          <span>可注册性: {{ (b.marketability_score*100).toFixed(0) }}%</span>
-        </div>
-        <span class="poca-score" style="font-size:16px;">{{ (b.overall_score*100).toFixed(0) }}%</span>
-      </div>
-    </div>
-  </main>
+  </div>
 </div>
 
 <script>
-const { createApp, ref, reactive, computed } = Vue;
+const { createApp, ref, reactive, nextTick } = Vue;
 createApp({
   setup() {
     const API = '/api/v1';
-    const loading = ref(false);
-    const error = ref('');
-    const currentStep = ref(0);
+    const activeTab = ref('evaluate');
 
-    const molecule = reactive({
-      molecule_id: 'MOL-2026-001',
-      common_name: '',
-      properties: {
-        target_class: 'kinase',
-        mechanism: 'inhibitor',
-        chemical_class: 'small_molecule',
-        indication: 'non-small cell lung cancer',
-        chemical_structure_substructure: ''
-      }
-    });
+    // ========== Tab A: Name Evaluation ==========
+    const evalName = ref('');
+    const evalLoading = ref(false);
+    const evalResult = ref(null);
 
-    const targetMeaning = ref('');
-    const brandNamesText = ref('');
-
-    const project = ref(null);
-    const stems = ref([]);
-    const innCandidates = ref([]);
-    const innMeta = ref({});
-    const selectedInn = ref('');
-    const pocaResults = ref([]);
-    const pocaWorstScore = ref(0);
-    const chineseNames = ref([]);
-    const brandResults = ref([]);
-
-    const enums = {
-      TargetClass: ['kinase','gpcr','ion_channel','nuclear_receptor','protease','transporter','cytokine','growth_factor','immune_checkpoint','tnf_superfamily','complement','integrin','other'],
-      Mechanism: ['inhibitor','activator','agonist','antagonist','modulator','blocker','antibody','fusion_protein','gene_therapy','antisense','vaccine','other'],
-      ChemicalClass: ['small_molecule','monoclonal_antibody','antibody_fragment','bispecific_antibody','antibody_drug_conjugate','fusion_protein','peptide','oligonucleotide','mrna','sirna','other']
-    };
-
-    function stepClass(n) {
-      const s = currentStep.value;
-      if (s > n) return 'done';
-      if (s === n) return 'current';
-      return '';
+    async function runEvaluate() {
+      if (!evalName.value.trim()) return;
+      evalLoading.value = true; evalResult.value = null;
+      try {
+        const qs = new URLSearchParams({ proposed_name: evalName.value.trim() }).toString();
+        const res = await fetch(API + '/poca/evaluate?' + qs, { method: 'POST' });
+        if (!res.ok) throw new Error(await res.text());
+        evalResult.value = await res.json();
+      } catch(e) {
+        evalResult.value = { verdict: '评估失败', reasons: [e.message], risks: [], poca_assessment: 'REJECT', poca_score:0, phonetic_score:0, orthographic_score:0, compositional_score:0, worst_comparison:'', chinese_suggestions:[] };
+      } finally { evalLoading.value = false; }
     }
 
-    function onChemicalClassChange() {
-      // Clear sub-structure if switching away from small molecule
+    // ========== Tab B: Smart Recommendation ==========
+    const recLoading = ref(false); const recError = ref(''); const recStep = ref(0);
+    const recTargetClass = ref('kinase');
+    const recMechanism = ref('inhibitor');
+    const recChemicalClass = ref('small_molecule');
+    const recIndication = ref('非小细胞肺癌');
+    const recSubstructure = ref('');
+    const recTargetMeaning = ref('');
+    const recStems = ref([]); const recInnCandidates = ref([]);
+    const recSelectedInn = ref(''); const recPocaResults = ref([]);
+    const recPocaWorstScore = ref(0); const recChineseNames = ref([]);
+
+    function recStepClass(n) { const s=recStep.value; if(s>n)return'done'; if(s===n)return'current'; return''; }
+
+    // ========== Combobox system ==========
+    const comboOpen = reactive({ target:false, mechanism:false, chemical:false, indication:false });
+    const comboIdx = reactive({ target:0, mechanism:0, chemical:0, indication:0 });
+
+    // Target class options — respiratory/infection/pain prioritized
+    const comboTargetOptions = [
+      {v:'cox',label:'cox — COX酶（镇痛抗炎）'},{v:'opioid_receptor',label:'opioid_receptor — 阿片受体（镇痛）'},
+      {v:'sodium_channel',label:'sodium_channel — 钠离子通道（局麻镇痛）'},{v:'histamine_receptor',label:'histamine_receptor — 组胺受体（呼吸/抗过敏）'},
+      {v:'leukotriene_receptor',label:'leukotriene_receptor — 白三烯受体（呼吸）'},{v:'beta_adrenoceptor',label:'beta_adrenoceptor — β肾上腺素受体（呼吸）'},
+      {v:'muscarinic_receptor',label:'muscarinic_receptor — 毒蕈碱受体（呼吸/COPD）'},{v:'bacterial_target',label:'bacterial_target — 细菌靶点（抗感染）'},
+      {v:'viral_target',label:'viral_target — 病毒靶点（抗感染）'},{v:'fungal_target',label:'fungal_target — 真菌靶点（抗感染）'},
+      {v:'kinase',label:'kinase — 激酶'},{v:'gpcr',label:'gpcr — G蛋白偶联受体'},{v:'ion_channel',label:'ion_channel — 离子通道'},
+      {v:'nuclear_receptor',label:'nuclear_receptor — 核受体'},{v:'protease',label:'protease — 蛋白酶'},{v:'transporter',label:'transporter — 转运体'},
+      {v:'cytokine',label:'cytokine — 细胞因子'},{v:'growth_factor',label:'growth_factor — 生长因子'},{v:'immune_checkpoint',label:'immune_checkpoint — 免疫检查点'},
+      {v:'tnf_superfamily',label:'tnf_superfamily — TNF超家族'},{v:'complement',label:'complement — 补体'},{v:'integrin',label:'integrin — 整合素'},{v:'other',label:'other — 其他'}
+    ];
+    const comboMechanismOptions = [
+      {v:'inhibitor',label:'inhibitor — 抑制剂'},{v:'antagonist',label:'antagonist — 拮抗剂'},{v:'blocker',label:'blocker — 阻断剂'},
+      {v:'agonist',label:'agonist — 激动剂'},{v:'activator',label:'activator — 激活剂'},{v:'modulator',label:'modulator — 调节剂'},
+      {v:'antibody',label:'antibody — 抗体'},{v:'fusion_protein',label:'fusion_protein — 融合蛋白'},
+      {v:'gene_therapy',label:'gene_therapy — 基因治疗'},{v:'antisense',label:'antisense — 反义核酸'},{v:'vaccine',label:'vaccine — 疫苗'},{v:'other',label:'other — 其他'}
+    ];
+    const comboChemicalOptions = [
+      {v:'small_molecule',label:'small_molecule — 小分子'},{v:'monoclonal_antibody',label:'monoclonal_antibody — 单克隆抗体'},
+      {v:'antibody_fragment',label:'antibody_fragment — 抗体片段'},{v:'bispecific_antibody',label:'bispecific_antibody — 双特异性抗体'},
+      {v:'antibody_drug_conjugate',label:'antibody_drug_conjugate — ADC'},{v:'fusion_protein',label:'fusion_protein — 融合蛋白'},
+      {v:'peptide',label:'peptide — 多肽'},{v:'oligonucleotide',label:'oligonucleotide — 寡核苷酸'},
+      {v:'mrna',label:'mrna — mRNA'},{v:'sirna',label:'sirna — siRNA'},{v:'other',label:'other — 其他'}
+    ];
+    const comboIndicationOptions = [
+      {v:'非小细胞肺癌',label:'非小细胞肺癌',sep:true,sepLabel:'呼吸系统'},{v:'哮喘',label:'哮喘'},{v:'慢性阻塞性肺病',label:'慢性阻塞性肺病'},
+      {v:'过敏性鼻炎',label:'过敏性鼻炎'},{v:'社区获得性肺炎',label:'社区获得性肺炎',sep:true,sepLabel:'抗感染'},
+      {v:'复杂性尿路感染',label:'复杂性尿路感染'},{v:'耐药菌感染',label:'耐药菌感染'},{v:'慢性乙型肝炎',label:'慢性乙型肝炎'},
+      {v:'慢性丙型肝炎',label:'慢性丙型肝炎'},{v:'HIV感染',label:'HIV感染'},
+      {v:'骨关节炎疼痛',label:'骨关节炎疼痛',sep:true,sepLabel:'镇痛'},{v:'神经病理性疼痛',label:'神经病理性疼痛'},
+      {v:'术后疼痛',label:'术后疼痛'},{v:'偏头痛',label:'偏头痛'},{v:'乳腺癌',label:'乳腺癌',sep:true,sepLabel:'其他'},
+      {v:'结直肠癌',label:'结直肠癌'},{v:'糖尿病',label:'糖尿病'},{v:'高血压',label:'高血压'},
+      {v:'心力衰竭',label:'心力衰竭'},{v:'类风湿关节炎',label:'类风湿关节炎'},{v:'银屑病',label:'银屑病'},{v:'阿尔茨海默病',label:'阿尔茨海默病'}
+    ];
+
+    const comboTargetFiltered = ref([...comboTargetOptions]);
+    const comboMechanismFiltered = ref([...comboMechanismOptions]);
+    const comboChemicalFiltered = ref([...comboChemicalOptions]);
+    const comboIndicationFiltered = ref([...comboIndicationOptions]);
+
+    function openCombo(type) { comboOpen[type]=true; comboIdx[type]=0; filterCombo(type); }
+    function blurCombo(type) { setTimeout(()=>{comboOpen[type]=false;},150); }
+
+    function filterCombo(type) {
+      const source = type==='target'?comboTargetOptions:type==='mechanism'?comboMechanismOptions:type==='chemical'?comboChemicalOptions:comboIndicationOptions;
+      const input = type==='target'?recTargetClass.value:type==='mechanism'?recMechanism.value:type==='chemical'?recChemicalClass.value:recIndication.value;
+      const q = input.toLowerCase();
+      const filtered = source.filter(o => o.label.toLowerCase().includes(q) || o.v.toLowerCase().includes(q));
+      const target = type==='target'?comboTargetFiltered:type==='mechanism'?comboMechanismFiltered:type==='chemical'?comboChemicalFiltered:comboIndicationFiltered;
+      target.value = filtered;
+      comboIdx[type] = 0;
     }
 
+    function navCombo(type, dir) {
+      const target = type==='target'?comboTargetFiltered:type==='mechanism'?comboMechanismFiltered:type==='chemical'?comboChemicalFiltered:comboIndicationFiltered;
+      const idx = comboIdx[type] + dir;
+      if (idx >= 0 && idx < target.value.length) comboIdx[type] = idx;
+    }
+
+    function selectCombo(type) {
+      const target = type==='target'?comboTargetFiltered:type==='mechanism'?comboMechanismFiltered:type==='chemical'?comboChemicalFiltered:comboIndicationFiltered;
+      const opt = target.value[comboIdx[type]];
+      if (opt) pickCombo(type, opt);
+    }
+
+    function pickCombo(type, opt) {
+      if (opt.sep) return;
+      if (type==='target') recTargetClass.value = opt.v;
+      else if (type==='mechanism') recMechanism.value = opt.v;
+      else if (type==='chemical') recChemicalClass.value = opt.v;
+      else recIndication.value = opt.v;
+      comboOpen[type] = false;
+    }
+
+    // ========== Recommendation workflow ==========
     async function apiPost(path, body) {
-      const res = await fetch(API + path, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(body)
-      });
-      if (!res.ok) { const txt = await res.text(); throw new Error(`${path}: ${res.status} ${txt}`); }
+      const res = await fetch(API + path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      if (!res.ok) throw new Error(await res.text());
       return res.json();
     }
 
     async function apiPostQuery(path, params) {
       const qs = new URLSearchParams(params).toString();
-      const res = await fetch(API + path + '?' + qs, { method: 'POST' });
-      if (!res.ok) { const txt = await res.text(); throw new Error(`${path}: ${res.status} ${txt}`); }
+      const res = await fetch(API + path + '?' + qs, { method:'POST' });
+      if (!res.ok) throw new Error(await res.text());
       return res.json();
     }
 
-    async function runFullWorkflow() {
-      loading.value = true; error.value = ''; currentStep.value = 0;
-      pocaResults.value = []; chineseNames.value = []; brandResults.value = [];
+    async function runRecommend() {
+      recLoading.value = true; recError.value = ''; recStep.value = 0;
+      recPocaResults.value = []; recChineseNames.value = [];
       try {
-        // Step 1: Create project & match stems
-        const p = await apiPost('/projects/', molecule);
-        project.value = p; currentStep.value = 1;
-        const p1 = await apiPost(`/projects/${p.id}/workflow/stem-matching`, {});
-        stems.value = p1.stem_matches || [];
-
-        // Step 2: Generate INN names
-        const p2 = await apiPost(`/projects/${p.id}/workflow/generate-inn`, {existing_names: []});
-        innCandidates.value = p2.inn_candidates || [];
-        innMeta.value = { total_generated: p2.inn_candidates?.length || 0, filtered_out: 0 };
-        currentStep.value = 2;
-
-        // Select first candidate for POCA
-        if (innCandidates.value.length) {
-          selectedInn.value = innCandidates.value[0].name;
-          await runPoca();
-        }
-
-        // Step 4: Chinese names
-        const p4 = await apiPostQuery(`/projects/${p.id}/workflow/chinese-naming`, {
-          target_meaning: targetMeaning.value || ''
-        });
-        chineseNames.value = p4.chinese_candidates || [];
-        currentStep.value = 4;
-
-        // Step 5: Brand screening
-        if (brandNamesText.value.trim()) {
-          const brands = brandNamesText.value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
-          const params = {};
-          brands.forEach((b, i) => { params['proposed_brands'] = brands; });
-          // Use URL with repeated params
-          const bp = new URLSearchParams();
-          brands.forEach(b => bp.append('proposed_brands', b));
-          const res = await fetch(API + `/projects/${p.id}/workflow/brand-screening?` + bp.toString(), { method: 'POST' });
-          if (res.ok) {
-            const p5 = await res.json();
-            brandResults.value = p5.brand_candidates || [];
+        const mol = {
+          molecule_id: 'REC-' + Date.now(),
+          properties: {
+            target_class: recTargetClass.value || 'other',
+            mechanism: recMechanism.value || 'other',
+            chemical_class: recChemicalClass.value || 'small_molecule',
+            indication: recIndication.value || '',
+            chemical_structure_substructure: recSubstructure.value || null
           }
-        }
-        currentStep.value = 5;
-
-      } catch(e) {
-        error.value = e.message;
-      } finally {
-        loading.value = false;
-      }
-    }
-
-    async function runPoca() {
-      try {
-        const params = { proposed_name: selectedInn.value, max_refs: 15 };
-        const refs = await apiPostQuery('/poca/smart-references', params);
-        const pocaReq = {
-          proposed_name: selectedInn.value,
-          reference_names: refs.length ? refs : ['imatinib','erlotinib','gefitinib','osimertinib']
         };
-        const result = await apiPost('/poca/score', pocaReq);
-        pocaResults.value = result.results || [];
-        pocaWorstScore.value = result.worst_score || 0;
-        currentStep.value = 3;
-      } catch(e) {
-        error.value = 'POCA: ' + e.message;
-      }
+        const p = await apiPost('/projects/', mol);
+        const p1 = await apiPost(`/projects/${p.id}/workflow/stem-matching`, {});
+        recStems.value = p1.stem_matches || []; recStep.value = 1;
+
+        const p2 = await apiPost(`/projects/${p.id}/workflow/generate-inn`, {existing_names:[]});
+        recInnCandidates.value = p2.inn_candidates || []; recStep.value = 2;
+
+        if (recInnCandidates.value.length) {
+          recSelectedInn.value = recInnCandidates.value[0].name;
+          await recRunPoca();
+        }
+
+        const p4 = await apiPostQuery(`/projects/${p.id}/workflow/chinese-naming`, {target_meaning: recTargetMeaning.value||''});
+        recChineseNames.value = p4.chinese_candidates || []; recStep.value = 4;
+        recStep.value = 5;
+      } catch(e) { recError.value = e.message; } finally { recLoading.value = false; }
     }
 
-    async function selectInn(name) {
-      selectedInn.value = name;
-      if (project.value) {
-        await runPoca(project.value.id);
-      }
+    async function recRunPoca() {
+      try {
+        const refs = await apiPostQuery('/poca/smart-references', {proposed_name: recSelectedInn.value, max_refs:12});
+        const result = await apiPost('/poca/score', {proposed_name: recSelectedInn.value, reference_names: refs.length?refs:['imatinib','erlotinib','gefitinib','osimertinib']});
+        recPocaResults.value = result.results||[]; recPocaWorstScore.value = result.worst_score||0; recStep.value = 3;
+      } catch(e) { recError.value = 'POCA: '+e.message; }
     }
 
-    async function rerunPoca() {
-      if (project.value) {
-        await runPoca(project.value.id);
-      }
-    }
+    async function recSelectInn(name) { recSelectedInn.value = name; await recRunPoca(); }
 
     return {
-      loading, error, currentStep, molecule, targetMeaning, brandNamesText,
-      project, stems, innCandidates, innMeta, selectedInn,
-      pocaResults, pocaWorstScore, chineseNames, brandResults,
-      enums, stepClass, onChemicalClassChange, runFullWorkflow, selectInn, rerunPoca, runPoca
+      activeTab,
+      evalName, evalLoading, evalResult, runEvaluate,
+      recLoading, recError, recStep, recTargetClass, recMechanism, recChemicalClass,
+      recIndication, recSubstructure, recTargetMeaning,
+      recStems, recInnCandidates, recSelectedInn, recPocaResults, recPocaWorstScore, recChineseNames,
+      recStepClass, runRecommend, recSelectInn,
+      comboOpen, comboIdx,
+      comboTargetFiltered, comboMechanismFiltered, comboChemicalFiltered, comboIndicationFiltered,
+      openCombo, blurCombo, filterCombo, navCombo, selectCombo, pickCombo
     };
   }
 }).mount('#app');
