@@ -111,7 +111,7 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
 <div id="app" class="app">
   <div class="header">
     创新药命名管理系统
-    <span class="ver">v0.2.0</span>
+    <span class="ver">v0.2.1</span>
   </div>
 
   <!-- Tabs -->
@@ -125,12 +125,22 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
     <div class="panel-left">
       <div class="card">
         <h3>输入候选名称</h3>
-        <input v-model="evalName" placeholder="输入待评估的 INN 名称，如 aflisib"
+        <input v-model="evalName" placeholder="输入待评估的 INN 名称，如 zoratrigine"
                style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:monospace;margin-bottom:12px;"
                @keyup.enter="runEvaluate">
+
+        <div style="margin-bottom:12px;">
+          <label>相似度阈值: <b>{{ evalThreshold }}%</b></label>
+          <input type="range" v-model.number="evalThreshold" min="30" max="95" step="5"
+                 style="width:100%;accent-color:var(--blue);">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--sub);">
+            <span>30% (宽松)</span><span>55% (默认)</span><span>95% (严格)</span>
+          </div>
+        </div>
+
         <button class="btn btn-primary" @click="runEvaluate" :disabled="evalLoading">
           <span v-if="evalLoading" class="spinner"></span>
-          {{ evalLoading ? '评估中...' : '开始评估' }}
+          {{ evalLoading ? '正在比对 ' + evalProgress + ' 条...' : '开始评估' }}
         </button>
       </div>
 
@@ -144,11 +154,26 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
           <span style="font-size:11px;color:var(--sub);margin-left:4px;">{{ cn.meaning_gloss }}</span>
         </div>
       </div>
+
+      <!-- Similar names above threshold -->
+      <div class="card" v-if="evalResult && evalResult.similar_names.length">
+        <h3>超过阈值的相似名称 <span class="badge badge-amber">{{ evalResult.similar_names.length }} 个</span></h3>
+        <div style="max-height:400px;overflow-y:auto;">
+          <div v-for="sn in evalResult.similar_names" :key="sn.reference_name"
+               style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:12px;">
+            <span style="font-family:monospace;flex:1;">{{ sn.reference_name }}</span>
+            <div style="width:80px;height:6px;border-radius:3px;background:var(--border);">
+              <div style="height:100%;border-radius:3px;" :class="sn.overall_poca_score<0.70?'pass':sn.overall_poca_score<0.85?'review':'reject'" :style="{width:(sn.overall_poca_score*100)+'%'}"></div>
+            </div>
+            <span style="width:40px;text-align:right;font-weight:700;font-size:11px;" :style="{color: sn.overall_poca_score<0.70?'var(--green)':sn.overall_poca_score<0.85?'var(--amber)':'var(--red)'}">{{ (sn.overall_poca_score*100).toFixed(0) }}%</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="panel-right">
       <div v-if="!evalResult && !evalLoading" class="card empty">
-        在左侧输入候选名称，点击"开始评估"查看完整评分报告
+        在左侧输入候选名称，点击"开始评估"查看完整 FDA POCA 评分报告
       </div>
 
       <div v-if="evalResult" class="card">
@@ -156,12 +181,12 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
           <div class="big">
             {{ evalResult.poca_assessment === 'PASS' ? '通过' : evalResult.poca_assessment === 'REVIEW' ? '需审核' : '建议驳回' }}
             <span style="font-size:14px;font-weight:400;margin-left:8px;">
-              POCA 综合得分 {{ (evalResult.poca_score*100).toFixed(0) }}%
+              最高相似度 {{ (evalResult.poca_score*100).toFixed(0) }}%（阈值 {{ (evalResult.threshold*100).toFixed(0) }}%）
             </span>
           </div>
         </div>
 
-        <h3 style="margin-top:16px;">三维度评分</h3>
+        <h3 style="margin-top:16px;">FDA POCA 二维度评分（Phonetic + Orthographic）</h3>
         <div class="score-bar">
           <span class="label">语音</span><div class="bar-wrap"><div class="bar-fill" :class="evalResult.phonetic_score < 0.70 ? 'pass' : evalResult.phonetic_score < 0.85 ? 'review' : 'reject'" :style="{width:(evalResult.phonetic_score*100)+'%'}"></div></div>
           <span class="val">{{ (evalResult.phonetic_score*100).toFixed(0) }}%</span>
@@ -170,13 +195,14 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
           <span class="label">字形</span><div class="bar-wrap"><div class="bar-fill" :class="evalResult.orthographic_score < 0.70 ? 'pass' : evalResult.orthographic_score < 0.85 ? 'review' : 'reject'" :style="{width:(evalResult.orthographic_score*100)+'%'}"></div></div>
           <span class="val">{{ (evalResult.orthographic_score*100).toFixed(0) }}%</span>
         </div>
-        <div class="score-bar">
-          <span class="label">组合</span><div class="bar-wrap"><div class="bar-fill" :class="evalResult.compositional_score < 0.70 ? 'pass' : evalResult.compositional_score < 0.85 ? 'review' : 'reject'" :style="{width:(evalResult.compositional_score*100)+'%'}"></div></div>
-          <span class="val">{{ (evalResult.compositional_score*100).toFixed(0) }}%</span>
-        </div>
 
-        <div v-if="evalResult.worst_comparison" style="margin-top:8px;font-size:13px;color:var(--sub);">
-          最接近的已有INN名称：<b style="font-family:monospace;">{{ evalResult.worst_comparison }}</b>
+        <div v-if="evalResult.worst_comparison" class="meta-row">
+          <span>最接近的已有 INN 名称</span>
+          <span style="font-family:monospace;">{{ evalResult.worst_comparison }}</span>
+        </div>
+        <div class="meta-row">
+          <span>超过阈值的相似名称数</span>
+          <span>{{ evalResult.similar_count }} 个（全库 {{ evalResult.similar_count }} / 9378）</span>
         </div>
 
         <h3 style="margin-top:16px;">评估理由</h3>

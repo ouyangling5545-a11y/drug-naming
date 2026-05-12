@@ -51,16 +51,20 @@ class POCAScoringEngine:
             return self._inn_db.get_references_for_stems(detected_stems, max_refs)
         return self._inn_db.get_random_references(max_refs)
 
-    def score_pair(self, proposed: str, reference: str) -> POCAScoreDetail:
+    def score_pair(self, proposed: str, reference: str, mode: str = "full") -> POCAScoreDetail:
+        """Score a pair of names. mode='full' uses 3D, mode='fda' uses Phon+Orth only."""
         phonetic_detail, phonetic_score = self.phonetic.compute_phonetics(proposed, reference)
         orthographic_detail, orthographic_score = self.orthographic.compute_orthographic(proposed, reference)
         compositional_detail, compositional_score = self.compositional.compute_compositional(proposed, reference)
 
-        overall = (
-            self.weights.phonetic_weight * phonetic_score
-            + self.weights.orthographic_weight * orthographic_score
-            + self.weights.compositional_weight * compositional_score
-        )
+        if mode == "fda":
+            overall = (phonetic_score + orthographic_score) / 2.0
+        else:
+            overall = (
+                self.weights.phonetic_weight * phonetic_score
+                + self.weights.orthographic_weight * orthographic_score
+                + self.weights.compositional_weight * compositional_score
+            )
 
         # Length penalty for very short names (< 5 chars)
         max_len = max(len(proposed), len(reference))
@@ -118,3 +122,24 @@ class POCAScoringEngine:
             worst_comparison=worst_comparison,
             overall_safety_assessment=assessment,
         )
+
+    def score_batch_fda(
+        self,
+        proposed_name: str,
+        reference_names: list[str],
+        threshold: float = 0.55,
+        max_results: int = 100,
+    ) -> list[POCAScoreDetail]:
+        """FDA-style 2D scoring with threshold filtering.
+
+        Returns only names at or above the threshold, sorted by score descending,
+        capped at max_results.
+        """
+        results: list[POCAScoreDetail] = []
+        for ref_name in reference_names:
+            result = self.score_pair(proposed_name, ref_name, mode="fda")
+            if result.overall_poca_score >= threshold:
+                results.append(result)
+
+        results.sort(key=lambda r: r.overall_poca_score, reverse=True)
+        return results[:max_results]

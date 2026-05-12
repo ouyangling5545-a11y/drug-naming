@@ -83,24 +83,36 @@ class PhoneticEncoder:
         mp_prop_primary, mp_prop_secondary = self.double_metaphone(proposed)
         mp_ref_primary, mp_ref_secondary = self.double_metaphone(reference)
 
+        # Primary metaphone edit distance → continuous similarity
         mp_edit = self.metaphone_edit_distance(mp_prop_primary, mp_ref_primary)
         max_mp_len = max(len(mp_prop_primary), len(mp_ref_primary), 1)
         mp_norm = mp_edit / max_mp_len
+        mp_similarity = 1.0 - min(1.0, mp_norm)
 
+        # Secondary metaphone similarity (if available)
+        mp2_similarity = 0.0
+        if mp_prop_secondary and mp_ref_secondary:
+            mp2_edit = self.metaphone_edit_distance(mp_prop_secondary, mp_ref_secondary)
+            mp2_max = max(len(mp_prop_secondary), len(mp_ref_secondary), 1)
+            mp2_similarity = 1.0 - min(1.0, mp2_edit / mp2_max)
+
+        # Syllable count similarity
         syl_prop = self.syllable_count(proposed)
         syl_ref = self.syllable_count(reference)
+        syl_diff = abs(syl_prop - syl_ref)
+        syl_similarity = 1.0 if syl_diff == 0 else 0.5 if syl_diff == 1 else 0.0
+
+        # Stress pattern similarity
         stress_sim = self.stress_pattern_similarity(proposed, reference)
 
-        score = 0.0
-        if s_prop and s_ref and s_prop == s_ref:
-            score += 0.25
-        if mp_prop_primary and mp_ref_primary and mp_prop_primary == mp_ref_primary:
-            score += 0.50
-        elif mp_norm <= 0.25:
-            score += 0.25
-        if syl_prop == syl_ref:
-            score += 0.15
-        score += 0.10 * stress_sim
+        # Continuous scoring — primary DM dominates, others contribute proportionally
+        score = (
+            mp_similarity * 0.55
+            + mp2_similarity * 0.15
+            + syl_similarity * 0.15
+            + stress_sim * 0.15
+        )
+        score = min(1.0, score)
 
         detail = PhoneticScoreDetail(
             soundex_match=bool(s_prop and s_ref and s_prop == s_ref),
@@ -116,8 +128,8 @@ class PhoneticEncoder:
             metaphone_normalized_distance=mp_norm,
             syllable_count_proposed=syl_prop,
             syllable_count_reference=syl_ref,
-            syllable_count_diff=abs(syl_prop - syl_ref),
+            syllable_count_diff=syl_diff,
             stress_pattern_similarity=stress_sim,
-            phonetic_score=min(1.0, score),
+            phonetic_score=score,
         )
         return detail, detail.phonetic_score

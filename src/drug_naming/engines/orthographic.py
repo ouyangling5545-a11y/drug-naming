@@ -66,18 +66,18 @@ class OrthographicAnalyzer:
         prefix, pfx_len, suffix, sfx_len = self.common_prefix_suffix(proposed, reference)
 
         max_len = max(len(proposed), len(reference), 1)
-        prefix_score = (pfx_len / max_len) * 0.6
-        suffix_score = (sfx_len / max_len) * 0.4
+        prefix_ratio = pfx_len / max_len
+        suffix_ratio = sfx_len / max_len
 
-        score = 0.0
-        if lev_norm <= 0.25:
-            score += 0.35
-        elif lev_norm <= 0.50:
-            score += 0.15
-        score += 0.25 * bigram
-        score += 0.15 * trigram
-        score += 0.15 * prefix_score
-        score += 0.10 * suffix_score
+        # Continuous scoring — all sub-scores contribute proportionally
+        lev_sim = 1.0 - lev_norm  # Edit distance → similarity
+        score = (
+            lev_sim * 0.35
+            + bigram * 0.25
+            + trigram * 0.15
+            + prefix_ratio * 0.10
+            + suffix_ratio * 0.15
+        )
         score = min(1.0, score)
 
         detail = OrthographicScoreDetail(
@@ -89,8 +89,8 @@ class OrthographicAnalyzer:
             longest_common_prefix_len=pfx_len,
             longest_common_suffix=suffix,
             longest_common_suffix_len=sfx_len,
-            prefix_similarity_score=prefix_score,
-            suffix_similarity_score=suffix_score,
+            prefix_similarity_score=prefix_ratio,
+            suffix_similarity_score=suffix_ratio,
             orthographic_score=score,
         )
         return detail, score
