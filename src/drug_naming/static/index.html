@@ -155,20 +155,23 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
         </div>
       </div>
 
-      <!-- Similar names above threshold -->
-      <div class="card" v-if="evalResult && evalResult.similar_names.length">
-        <h3>超过阈值的相似名称 <span class="badge badge-amber">{{ evalResult.similar_names.length }} 个</span></h3>
-        <div style="max-height:400px;overflow-y:auto;">
-          <div v-for="sn in evalResult.similar_names" :key="sn.reference_name"
-               style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:12px;">
-            <span style="font-family:monospace;flex:1;">{{ sn.reference_name }}</span>
-            <div style="width:80px;height:6px;border-radius:3px;background:var(--border);">
-              <div style="height:100%;border-radius:3px;" :class="sn.overall_poca_score<0.70?'pass':sn.overall_poca_score<0.85?'review':'reject'" :style="{width:(sn.overall_poca_score*100)+'%'}"></div>
-            </div>
-            <span style="width:40px;text-align:right;font-weight:700;font-size:11px;" :style="{color: sn.overall_poca_score<0.70?'var(--green)':sn.overall_poca_score<0.85?'var(--amber)':'var(--red)'}">{{ (sn.overall_poca_score*100).toFixed(0) }}%</span>
+      <!-- Multi-language name variants -->
+      <div class="card" v-if="evalResult && evalResult.language_variants && evalResult.language_variants.length">
+        <h3>多语言名称变体</h3>
+        <div v-for="lv in evalResult.language_variants" :key="lv.language"
+             style="padding:8px 0;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="badge" :class="lv.source === 'not_available' ? 'badge-amber' : lv.source === 'derived' || lv.source === 'transliteration' ? 'badge-blue' : 'badge-green'"
+                  style="min-width:60px;text-align:center;">{{ lv.language === 'chinese_transliteration' ? 'CN音译' : lv.language.toUpperCase() }}</span>
+            <span style="font-family:monospace;font-size:14px;font-weight:600;">{{ lv.name }}</span>
+          </div>
+          <div style="font-size:11px;color:var(--sub);margin-top:3px;margin-left:68px;">{{ lv.commentary }}</div>
+          <div v-if="lv.taboo_flags.length" style="font-size:11px;color:var(--red);margin-left:68px;margin-top:2px;">
+            禁忌: <span v-for="(f,i) in lv.taboo_flags" :key="f">{{ f }}<span v-if="i < lv.taboo_flags.length-1">, </span></span>
           </div>
         </div>
       </div>
+
     </div>
 
     <div class="panel-right">
@@ -217,6 +220,21 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
           </ul>
         </div>
 
+      </div>
+
+      <!-- Similar names above threshold -->
+      <div class="card" v-if="evalResult && evalResult.similar_names.length">
+        <h3>超过阈值的相似名称 <span class="badge badge-amber">{{ evalResult.similar_names.length }} 个</span></h3>
+        <div style="max-height:400px;overflow-y:auto;">
+          <div v-for="sn in evalResult.similar_names" :key="sn.reference_name"
+               style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:12px;">
+            <span style="font-family:monospace;flex:1;">{{ sn.reference_name }}</span>
+            <div style="width:80px;height:6px;border-radius:3px;background:var(--border);">
+              <div style="height:100%;border-radius:3px;" :class="sn.overall_poca_score<0.70?'pass':sn.overall_poca_score<0.85?'review':'reject'" :style="{width:(sn.overall_poca_score*100)+'%'}"></div>
+            </div>
+            <span style="width:40px;text-align:right;font-weight:700;font-size:11px;" :style="{color: sn.overall_poca_score<0.70?'var(--green)':sn.overall_poca_score<0.85?'var(--amber)':'var(--red)'}">{{ (sn.overall_poca_score*100).toFixed(0) }}%</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -361,6 +379,8 @@ createApp({
 
     // ========== Tab A: Name Evaluation ==========
     const evalName = ref('');
+    const evalThreshold = ref(55);
+    const evalProgress = ref(0);
     const evalLoading = ref(false);
     const evalResult = ref(null);
 
@@ -368,7 +388,7 @@ createApp({
       if (!evalName.value.trim()) return;
       evalLoading.value = true; evalResult.value = null;
       try {
-        const qs = new URLSearchParams({ proposed_name: evalName.value.trim() }).toString();
+        const qs = new URLSearchParams({ proposed_name: evalName.value.trim(), threshold: evalThreshold.value }).toString();
         const res = await fetch(API + '/poca/evaluate?' + qs, { method: 'POST' });
         if (!res.ok) throw new Error(await res.text());
         evalResult.value = await res.json();
@@ -528,7 +548,7 @@ createApp({
 
     return {
       activeTab,
-      evalName, evalLoading, evalResult, runEvaluate,
+      evalName, evalThreshold, evalProgress, evalLoading, evalResult, runEvaluate,
       recLoading, recError, recStep, recTargetClass, recMechanism, recChemicalClass,
       recIndication, recSubstructure, recTargetMeaning,
       recStems, recInnCandidates, recSelectedInn, recPocaResults, recPocaWorstScore, recChineseNames,

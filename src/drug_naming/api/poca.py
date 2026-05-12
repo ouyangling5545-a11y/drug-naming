@@ -6,7 +6,25 @@ from ..models.chinese import ChineseNameCandidate, ChineseNameRequest
 from ..engines.poca_scorer import POCAScoringEngine
 from ..engines.chinese_name import ChineseNameEngine
 from ..data.inn_reference import get_inn_reference_db
+from ..engines.latin_name import (
+    derive_latin_name,
+    check_latin_taboo,
+    check_french_taboo,
+    check_spanish_taboo,
+)
+from ..engines.chinese_transliteration import (
+    transliterate_to_chinese,
+    check_chinese_transliteration_taboo,
+)
 from .stems import _get_default_provider
+
+
+class LanguageNameVariant(BaseModel):
+    language: str       # "latin", "french", "spanish", "chinese_transliteration"
+    name: str
+    source: str         # "inn_database", "derived", "transliteration", "not_available"
+    commentary: str
+    taboo_flags: list[str] = Field(default_factory=list)
 
 
 class NameEvaluationResponse(BaseModel):
@@ -25,6 +43,7 @@ class NameEvaluationResponse(BaseModel):
     verdict: str
     reasons: list[str] = Field(default_factory=list)
     risks: list[str] = Field(default_factory=list)
+    language_variants: list[LanguageNameVariant] = Field(default_factory=list)
 
 router = APIRouter()
 
@@ -101,7 +120,7 @@ def smart_score_poca(
 @router.post("/evaluate", response_model=NameEvaluationResponse)
 def evaluate_name(
     proposed_name: str,
-    threshold: float = 0.55,
+    threshold: float = 55.0,
     max_similar: int = 100,
     request: Request = None,
 ) -> NameEvaluationResponse:
@@ -140,6 +159,77 @@ def evaluate_name(
         chinese_suggestions = chinese_response.candidates[:4]
     except Exception:
         chinese_suggestions = []
+
+    # 3.5. Multi-language name variants
+    language_variants: list[LanguageNameVariant] = []
+
+    # Latin: prefer INN database, fall back to derivation
+    latin_from_db = inn_db.lookup_latin(name_clean) if inn_db else None
+    if latin_from_db:
+        language_variants.append(LanguageNameVariant(
+            language="latin",
+            name=latin_from_db,
+            source="inn_database",
+            commentary=f"Official Latin INN name for '{name_clean}'",
+            taboo_flags=check_latin_taboo(latin_from_db),
+        ))
+    else:
+        derived_latin = derive_latin_name(name_clean)
+        language_variants.append(LanguageNameVariant(
+            language="latin",
+            name=derived_latin,
+            source="derived",
+            commentary=f"Derived via standard Latin suffix rules (no INN database entry for '{name_clean}')",
+            taboo_flags=check_latin_taboo(derived_latin),
+        ))
+
+    # French: INN database only
+    french_from_db = inn_db.lookup_french(name_clean) if inn_db else None
+    if french_from_db:
+        language_variants.append(LanguageNameVariant(
+            language="french",
+            name=french_from_db,
+            source="inn_database",
+            commentary=f"Official French INN designation for '{name_clean}'",
+            taboo_flags=check_french_taboo(french_from_db),
+        ))
+    else:
+        language_variants.append(LanguageNameVariant(
+            language="french",
+            name=name_clean,
+            source="not_available",
+            commentary="No French reference data in INN database. Manual linguistic review recommended for EU (ANSM) submissions.",
+            taboo_flags=[],
+        ))
+
+    # Spanish: INN database only
+    spanish_from_db = inn_db.lookup_spanish(name_clean) if inn_db else None
+    if spanish_from_db:
+        language_variants.append(LanguageNameVariant(
+            language="spanish",
+            name=spanish_from_db,
+            source="inn_database",
+            commentary=f"Official Spanish INN designation for '{name_clean}'",
+            taboo_flags=check_spanish_taboo(spanish_from_db),
+        ))
+    else:
+        language_variants.append(LanguageNameVariant(
+            language="spanish",
+            name=name_clean,
+            source="not_available",
+            commentary="No Spanish reference data in INN database. Manual linguistic review recommended for Latin American (AEMPS) submissions.",
+            taboo_flags=[],
+        ))
+
+    # Chinese transliteration: sound-based (distinct from combinatorial suggestions above)
+    chinese_trans = transliterate_to_chinese(name_clean)
+    language_variants.append(LanguageNameVariant(
+        language="chinese_transliteration",
+        name=chinese_trans,
+        source="transliteration",
+        commentary=f"Sound-based phonetic transliteration of '{name_clean}'. Not a regulatory Chinese name — combinatorial semantic suggestions are shown separately above.",
+        taboo_flags=check_chinese_transliteration_taboo(chinese_trans),
+    ))
 
     # 4. Build verdict and reasons
     reasons: list[str] = []
@@ -226,4 +316,5 @@ def evaluate_name(
         verdict=verdict,
         reasons=reasons,
         risks=risks,
+        language_variants=language_variants,
     )

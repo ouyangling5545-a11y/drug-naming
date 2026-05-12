@@ -22,7 +22,12 @@ class InnReferenceDB:
         self._by_stem: dict[str, list[str]] = defaultdict(list)
         self._english_set: set[str] = set()
         self._latin_set: set[str] = set()
+        self._french_set: set[str] = set()
+        self._spanish_set: set[str] = set()
         self._stem_frequencies: dict[str, int] = {}
+        self._english_to_latin: dict[str, str] = {}
+        self._english_to_french: dict[str, str] = {}
+        self._english_to_spanish: dict[str, str] = {}
 
         if csv_path is None:
             csv_path = Path(__file__).parent / "inn_reference.csv"
@@ -35,10 +40,22 @@ class InnReferenceDB:
                 self._names.append(row)
                 eng = row["english"].strip().lower()
                 lat = row["latin"].strip().lower()
+                fre = row["french"].strip().lower()
+                spa = row["spanish"].strip().lower()
                 if eng:
                     self._english_set.add(eng)
+                    if lat:
+                        self._english_to_latin[eng] = lat
+                    if fre:
+                        self._english_to_french[eng] = fre
+                    if spa:
+                        self._english_to_spanish[eng] = spa
                 if lat:
                     self._latin_set.add(lat)
+                if fre:
+                    self._french_set.add(fre)
+                if spa:
+                    self._spanish_set.add(spa)
 
         self._index_stems()
 
@@ -72,6 +89,23 @@ class InnReferenceDB:
     @property
     def english_names(self) -> set[str]:
         return self._english_set
+
+    @property
+    def french_names(self) -> set[str]:
+        return self._french_set
+
+    @property
+    def spanish_names(self) -> set[str]:
+        return self._spanish_set
+
+    def lookup_latin(self, english_name: str) -> str | None:
+        return self._english_to_latin.get(english_name.strip().lower())
+
+    def lookup_french(self, english_name: str) -> str | None:
+        return self._english_to_french.get(english_name.strip().lower())
+
+    def lookup_spanish(self, english_name: str) -> str | None:
+        return self._english_to_spanish.get(english_name.strip().lower())
 
     def exists(self, name: str) -> bool:
         """Check if a name (English or Latin) already exists in the INN database."""
