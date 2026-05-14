@@ -5604,8 +5604,7 @@ def match_stems(properties: PharmacologicalProperties) -> list[StemMatch]:
 def list_stems(request: Request) -> list[INNStem]:
     """List all INN stems in the database."""
     registry = getattr(request.app.state, "data_registry", None)
-    if registry:
-        provider = registry.get("stems")
-    else:
+    provider = registry.get("stems") if registry else None
+    if not provider:
         provider = _get_default_provider()
-    return provider.get_all_stems() if provider else []
+    return provider.get_all_stems()

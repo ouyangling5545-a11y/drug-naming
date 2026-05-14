@@ -5,113 +5,486 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>创新药命名管理系统</title>
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #f5f7fa; --card: #fff; --text: #2c3e50; --sub: #64748b;
-  --border: #e2e8f0; --blue: #3b82f6; --green: #10b981; --red: #ef4444;
-  --amber: #f59e0b; --blue-bg: #eff6ff; --green-bg: #ecfdf5;
-  --red-bg: #fef2f2; --amber-bg: #fffbeb; --radius: 10px;
+  /* Design System: Accessible & Ethical — Healthcare/Pharma */
+  --color-primary: #2563EB;
+  --color-on-primary: #FFFFFF;
+  --color-secondary: #3B82F6;
+  --color-accent: #059669;
+  --color-bg: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-foreground: #0F172A;
+  --color-muted: #F1F5FD;
+  --color-muted-foreground: #64748B;
+  --color-border: #E4ECFC;
+  --color-border-strong: #CBD5E1;
+  --color-destructive: #DC2626;
+  --color-warning: #D97706;
+  --color-success: #059669;
+  --color-ring: #2563EB;
+
+  /* Semantic surfaces */
+  --surface-blue: #EFF6FF;
+  --surface-green: #ECFDF5;
+  --surface-red: #FEF2F2;
+  --surface-amber: #FFFBEB;
+  --surface-slate: #F8FAFC;
+
+  /* Typography */
+  --font-heading: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+
+  /* Spacing scale (4pt system) */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15,23,42,0.06), 0 2px 4px -2px rgba(15,23,42,0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(15,23,42,0.06), 0 4px 6px -4px rgba(15,23,42,0.04);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Reset & Base */
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--text); }
-.app { max-width:1200px; margin:0 auto; padding:24px; }
-.header { font-size:22px; font-weight:700; padding-bottom:16px; margin-bottom:20px; border-bottom:2px solid var(--blue); display:flex; align-items:center; gap:12px; }
-.header .ver { font-size:12px; color:var(--sub); font-weight:400; margin-left:auto; }
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  background: var(--color-bg);
+  color: var(--color-foreground);
+  min-height: 100vh;
+}
+
+/* App Shell */
+.app {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-6) var(--space-10);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-6);
+  border-bottom: 2px solid var(--color-primary);
+}
+.header .logo-icon {
+  width: 32px; height: 32px;
+  background: var(--color-primary);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 16px; font-weight: 700;
+}
+.header .title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-foreground);
+  letter-spacing: -0.02em;
+}
+.header .ver {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted-foreground);
+  background: var(--surface-slate);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
 
 /* Tabs */
-.tabs { display:flex; gap:0; margin-bottom:24px; border-bottom:2px solid var(--border); }
-.tab { padding:10px 24px; font-size:15px; font-weight:600; cursor:pointer; color:var(--sub); border-bottom:3px solid transparent; margin-bottom:-2px; transition:all .15s; }
-.tab:hover { color:var(--text); }
-.tab.active { color:var(--blue); border-bottom-color:var(--blue); }
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-6);
+  background: var(--surface-slate);
+  padding: 4px;
+  border-radius: var(--radius);
+}
+.tab {
+  flex: 1;
+  padding: 10px 20px;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-muted-foreground);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+.tab:hover { color: var(--color-foreground); background: rgba(255,255,255,0.6); }
+.tab.active {
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
 
 /* Layout */
-.panels { display:flex; gap:24px; }
-.panel-left { width:380px; flex-shrink:0; display:flex; flex-direction:column; gap:16px; }
-.panel-right { flex:1; display:flex; flex-direction:column; gap:16px; min-width:0; }
+.panels { display:flex; gap: var(--space-6); }
+.panel-left {
+  width: 400px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.panel-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
 
-.card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
-.card h3 { font-size:15px; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+/* Cards */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow var(--transition-fast);
+}
+.card:hover { box-shadow: var(--shadow-sm); }
+.card h3 {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-foreground);
+  letter-spacing: -0.01em;
+}
 
-label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin-bottom:4px; }
-.btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; }
-.btn-primary { background:var(--blue); color:#fff; width:100%; justify-content:center; }
-.btn-primary:hover { background:#2563eb; }
-.btn-primary:disabled { background:#93c5fd; cursor:not-allowed; }
-.btn-outline { background:var(--bg); color:var(--blue); border:1px solid var(--blue); }
-.btn-outline:hover { background:var(--blue-bg); }
+/* Labels */
+label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-muted-foreground);
+  display: block;
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+label b {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 11px 22px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  letter-spacing: -0.01em;
+  position: relative;
+  overflow: hidden;
+  min-height: 44px;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  width: 100%;
+  justify-content: center;
+}
+.btn-primary:hover { background: #1D4ED8; box-shadow: var(--shadow-md); }
+.btn-primary:disabled { background: #93A3D8; cursor: not-allowed; box-shadow: none; transform: none; }
+.btn-outline {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+}
+.btn-outline:hover { background: var(--surface-blue); }
+
+/* Inputs */
+input[type="text"],
+input:not([type]) {
+  width: 100%;
+  padding: 9px 13px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 14px;
+  background: var(--color-bg);
+  color: var(--color-foreground);
+  transition: all var(--transition-fast);
+  min-height: 42px;
+}
+input[type="text"]:focus,
+input:not([type]):focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+  background: var(--color-surface);
+}
+input[type="text"]::placeholder,
+input:not([type])::placeholder {
+  color: #94A3B8;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--color-primary);
+  height: 6px;
+  cursor: pointer;
+}
 
 /* Combobox */
 .combo { position:relative; }
-.combo input { width:100%; padding:8px 30px 8px 12px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:var(--bg); color:var(--text); cursor:default; }
-.combo input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
-.combo .arrow { position:absolute; right:10px; top:10px; color:var(--sub); font-size:10px; pointer-events:none; }
-.combo .dropdown { position:absolute; top:100%; left:0; right:0; max-height:260px; overflow-y:auto; background:var(--card); border:1px solid var(--border); border-radius:6px; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,0.12); display:none; }
-.combo .dropdown.show { display:block; }
-.combo .dropdown .opt { padding:8px 12px; font-size:13px; cursor:pointer; }
-.combo .dropdown .opt:hover { background:var(--blue-bg); }
-.combo .dropdown .opt.highlight { background:var(--blue-bg); color:var(--blue); }
-.combo .dropdown .sep { padding:4px 12px; font-size:11px; color:var(--sub); font-weight:600; border-top:1px solid var(--border); background:var(--bg); }
+.combo input {
+  width:100%; padding:9px 32px 9px 13px;
+  border:1.5px solid var(--color-border); border-radius:var(--radius-sm);
+  font-size:14px; background:var(--color-bg); color:var(--color-foreground);
+  font-family: var(--font-body); min-height: 42px; cursor:default;
+}
+.combo input:focus { outline:none; border-color:var(--color-primary); box-shadow:0 0 0 3px rgba(37,99,235,0.12); background:var(--color-surface); }
+.combo .arrow {
+  position:absolute; right:12px; top:50%; transform:translateY(-50%);
+  color:var(--color-muted-foreground); font-size:10px; pointer-events:none;
+  transition: transform var(--transition-fast);
+}
+.combo .dropdown {
+  position:absolute; top:calc(100% + 4px); left:0; right:0;
+  max-height:280px; overflow-y:auto; scroll-behavior: smooth;
+  background:var(--color-surface); border:1px solid var(--color-border-strong);
+  border-radius:var(--radius); z-index:100;
+  box-shadow:var(--shadow-lg); display:none;
+}
+.combo .dropdown.show { display:block; animation: dropdownIn 120ms ease-out; }
+@keyframes dropdownIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+.combo .dropdown .opt { padding:9px 13px; font-size:13px; cursor:pointer; transition: background 80ms; border-radius: 4px; margin: 2px 4px; }
+.combo .dropdown .opt:hover { background:var(--surface-blue); }
+.combo .dropdown .opt.highlight { background:var(--surface-blue); color:var(--color-primary); font-weight:600; }
+.combo .dropdown .sep {
+  padding:5px 13px; font-size:11px; color:var(--color-muted-foreground);
+  font-weight:700; text-transform: uppercase; letter-spacing: 0.05em;
+  border-top:1px solid var(--color-border); background:var(--color-bg);
+  position: sticky; top: 0; z-index: 1;
+}
 .combo .dropdown .sep:first-child { border-top:none; }
 
 /* Badges */
-.badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; }
-.badge-blue { background:var(--blue-bg); color:var(--blue); }
-.badge-green { background:var(--green-bg); color:var(--green); }
-.badge-red { background:var(--red-bg); color:var(--red); }
-.badge-amber { background:var(--amber-bg); color:var(--amber); }
+.badge {
+  display:inline-flex; align-items:center;
+  padding:2px 10px; border-radius:20px;
+  font-size:11px; font-weight:700;
+  letter-spacing: 0.02em;
+  min-height: 22px;
+}
+.badge-blue { background:var(--surface-blue); color:var(--color-primary); }
+.badge-green { background:var(--surface-green); color:var(--color-success); }
+.badge-red { background:var(--surface-red); color:var(--color-destructive); }
+.badge-amber { background:var(--surface-amber); color:var(--color-warning); }
 
-/* Name evaluation */
-.eval-verdict { padding:16px; border-radius:8px; margin-top:8px; }
-.eval-verdict.pass { background:var(--green-bg); border:1px solid var(--green); }
-.eval-verdict.review { background:var(--amber-bg); border:1px solid var(--amber); }
-.eval-verdict.reject { background:var(--red-bg); border:1px solid var(--red); }
-.eval-verdict .big { font-size:20px; font-weight:700; }
-.reason-list { margin-top:8px; padding-left:18px; }
-.reason-list li { font-size:13px; color:var(--text); margin-bottom:4px; line-height:1.5; }
-.reason-list li.risk { color:var(--red); }
+/* Name evaluation verdicts */
+.eval-verdict {
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-2);
+  display: flex; align-items: center; gap: var(--space-3);
+}
+.eval-verdict.pass {
+  background: var(--surface-green);
+  border: 1.5px solid #34D399;
+}
+.eval-verdict.review {
+  background: var(--surface-amber);
+  border: 1.5px solid #FBBF24;
+}
+.eval-verdict.reject {
+  background: var(--surface-red);
+  border: 1.5px solid #F87171;
+}
+.eval-verdict .big {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.eval-verdict.pass .big { color: var(--color-success); }
+.eval-verdict.review .big { color: var(--color-warning); }
+.eval-verdict.reject .big { color: var(--color-destructive); }
+
+.reason-list { margin-top: var(--space-2); padding-left: 20px; }
+.reason-list li { font-size: 13px; color: var(--color-foreground); margin-bottom: 6px; line-height: 1.6; }
+.reason-list li.risk { color: var(--color-destructive); font-weight: 500; }
+.reason-list li.risk::marker { color: var(--color-destructive); }
 
 /* Score bars */
-.score-bar { margin:8px 0; display:flex; align-items:center; gap:8px; font-size:13px; }
-.score-bar .label { width:50px; text-align:right; color:var(--sub); }
-.score-bar .bar-wrap { flex:1; height:10px; border-radius:5px; background:var(--border); overflow:hidden; }
-.score-bar .bar-fill { height:100%; border-radius:5px; transition:width .4s; }
-.score-bar .bar-fill.pass { background:var(--green); }
-.score-bar .bar-fill.review { background:var(--amber); }
-.score-bar .bar-fill.reject { background:var(--red); }
-.score-bar .val { width:40px; font-weight:700; font-size:12px; }
+.score-bar { margin: 10px 0; display:flex; align-items:center; gap:10px; font-size:13px; }
+.score-bar .label { width: 44px; text-align: right; font-weight: 600; color: var(--color-muted-foreground); font-size: 12px; }
+.score-bar .bar-wrap { flex:1; height: 12px; border-radius: 6px; background: var(--color-border); overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.04); }
+.score-bar .bar-fill { height:100%; border-radius: 6px; transition: width 500ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.score-bar .bar-fill.pass { background: linear-gradient(90deg, #34D399, #059669); }
+.score-bar .bar-fill.review { background: linear-gradient(90deg, #FBBF24, #D97706); }
+.score-bar .bar-fill.reject { background: linear-gradient(90deg, #F87171, #DC2626); }
+.score-bar .val { width: 44px; font-weight: 700; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
 
 /* Recommendation results */
-.stem-item { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); }
+.stem-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 0; border-bottom:1px solid var(--color-border);
+  transition: background var(--transition-fast);
+}
+.stem-item:hover { background: var(--color-bg); margin: 0 -8px; padding: 10px 8px; border-radius: var(--radius-sm); }
 .stem-item:last-child { border-bottom:none; }
-.stem-name { font-weight:700; font-size:15px; font-family:monospace; }
-.stem-meaning { font-size:12px; color:var(--sub); }
-.name-grid { display:flex; flex-wrap:wrap; gap:6px; }
-.name-chip { padding:6px 14px; border-radius:20px; font-size:13px; font-family:monospace; cursor:pointer; border:1px solid var(--border); background:var(--bg); transition:all .15s; }
-.name-chip:hover { border-color:var(--blue); background:var(--blue-bg); }
-.name-chip.selected { background:var(--blue); color:#fff; border-color:var(--blue); font-weight:700; }
-.poca-row { display:flex; align-items:center; gap:8px; padding:4px 0; font-size:13px; }
-.poca-row .ref-name { flex:1; font-family:monospace; font-size:12px; }
-.poca-row .poca-val { width:44px; text-align:right; font-weight:700; font-size:12px; }
-.chinese-chars { font-size:20px; font-weight:700; letter-spacing:4px; }
+.stem-name { font-weight:700; font-size:15px; font-family:var(--font-mono); color: var(--color-foreground); }
+.stem-meaning { font-size:12px; color:var(--color-muted-foreground); margin-top: 2px; }
 
-.steps { display:flex; gap:0; margin-bottom:4px; }
-.step-dot { flex:1; height:4px; border-radius:2px; background:var(--border); }
-.step-dot.done { background:var(--green); }
-.step-dot.current { background:var(--blue); }
-.spinner { display:inline-block; width:16px; height:16px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin .6s linear infinite; }
+.name-grid { display:flex; flex-wrap:wrap; gap:8px; }
+.name-chip {
+  padding:7px 16px; border-radius: var(--radius-xl);
+  font-size: 13px; font-family: var(--font-mono); font-weight: 500;
+  cursor: pointer; border: 1.5px solid var(--color-border);
+  background: var(--color-bg); color: var(--color-foreground);
+  transition: all var(--transition-fast);
+  min-height: 36px; display: inline-flex; align-items: center;
+}
+.name-chip:hover {
+  border-color: var(--color-primary);
+  background: var(--surface-blue);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.name-chip.selected {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+  font-weight: 700;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.poca-row { display:flex; align-items:center; gap:10px; padding:6px 0; font-size:13px; }
+.poca-row .ref-name { flex:1; font-family:var(--font-mono); font-size:12px; font-weight: 500; }
+.poca-row .poca-val { width:44px; text-align:right; font-weight:700; font-size:13px; font-variant-numeric: tabular-nums; }
+
+.chinese-chars {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  font-family: var(--font-heading);
+}
+
+/* Steps */
+.steps { display:flex; gap:0; margin-bottom: 6px; }
+.step-dot { flex:1; height:5px; border-radius:3px; background:var(--color-border); transition: background var(--transition-base); }
+.step-dot.done { background: var(--color-accent); }
+.step-dot.current { background: var(--color-primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.25); }
+
+/* Spinner */
+.spinner {
+  display:inline-block; width:18px; height:18px;
+  border:2px solid rgba(255,255,255,0.3); border-top-color:#fff;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
 @keyframes spin { to { transform:rotate(360deg); } }
-.empty { text-align:center; padding:40px; color:var(--sub); font-size:14px; }
-.alert-error { padding:8px 12px; border-radius:6px; font-size:13px; background:var(--red-bg); color:var(--red); margin-top:8px; }
-.meta-row { display:flex; justify-content:space-between; padding:4px 0; font-size:13px; margin-top:8px; }
-.meta-row span:first-child { color:var(--sub); }
-.meta-row span:last-child { font-weight:600; }
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: var(--space-10) var(--space-6);
+  color: var(--color-muted-foreground);
+  font-size: 14px;
+}
+.empty::before {
+  content: '';
+  display: block;
+  width: 48px; height: 48px;
+  margin: 0 auto 16px;
+  background: var(--surface-blue);
+  border-radius: var(--radius);
+  opacity: 0.6;
+}
+
+/* Alert */
+.alert-error {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--surface-red);
+  color: var(--color-destructive);
+  border: 1px solid #FECACA;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+/* Meta data rows */
+.meta-row {
+  display:flex; justify-content:space-between;
+  padding: 6px 0; font-size: 13px; margin-top: 6px;
+}
+.meta-row span:first-child { color: var(--color-muted-foreground); font-weight: 500; }
+.meta-row span:last-child { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-muted-foreground); }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .panels { flex-direction: column; }
+  .panel-left { width: 100%; }
+  .header .title { font-size: 20px; }
+  .app { padding: var(--space-4); }
+  .card { padding: var(--space-4); }
+}
+
+/* Focus ring for keyboard nav */
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 </style>
 </head>
 <body>
 <div id="app" class="app">
   <div class="header">
-    创新药命名管理系统
-    <span class="ver">v0.2.1</span>
+    <div class="logo-icon">D</div>
+    <span class="title">创新药命名管理系统</span>
+    <span class="ver">v0.2.2</span>
   </div>
 
   <!-- Tabs -->
@@ -124,51 +497,114 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
   <div v-if="activeTab==='evaluate'" class="panels">
     <div class="panel-left">
       <div class="card">
-        <h3>输入候选名称</h3>
-        <input v-model="evalName" placeholder="输入待评估的 INN 名称，如 zoratrigine"
-               style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:monospace;margin-bottom:12px;"
-               @keyup.enter="runEvaluate">
+        <h3>组装候选名称</h3>
 
+        <!-- Prefix -->
         <div style="margin-bottom:12px;">
+          <label>前缀 <span style="font-weight:400;color:var(--color-muted-foreground);">(自由输入，反复切换)</span></label>
+          <input v-model="evalPrefix" placeholder="如 zora, ima, osimer"
+                 style="width:100%;padding:11px 14px;border:1.5px solid var(--color-border);border-radius:var(--radius-sm);font-size:16px;font-family:var(--font-mono);"
+                 @keyup.enter="evalStem && runEvaluate()">
+        </div>
+
+        <!-- Stem (Suffix) -->
+        <div style="margin-bottom:12px;">
+          <label>词干后缀 <span style="font-weight:400;color:var(--color-muted-foreground);">(从词干库选或手写)</span></label>
+          <div class="combo" ref="stemCombo">
+            <input v-model="evalStem" placeholder="搜索或输入词干，如 tinib, sartan..."
+                   @focus="openCombo('stem')" @input="filterCombo('stem')"
+                   @keydown.down.prevent="navCombo('stem',1)" @keydown.up.prevent="navCombo('stem',-1)"
+                   @keydown.enter.prevent="selectCombo('stem')" @blur="blurCombo('stem')"
+                   style="font-family:var(--font-mono);">
+            <span class="arrow">▼</span>
+            <div class="dropdown" :class="{show: comboOpen.stem}">
+              <div v-for="(opt,idx) in comboStemFiltered" :key="opt.v" class="opt"
+                   :class="{highlight: idx===comboIdx.stem}"
+                   @mousedown.prevent="pickCombo('stem',opt)">
+                <span style="font-family:var(--font-mono);font-weight:600;">{{ opt.label }}</span>
+                <span style="font-size:11px;color:var(--color-muted-foreground);margin-left:8px;">{{ opt.meaning }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Infix (collapsed) -->
+        <div v-if="showInfixField" style="margin-bottom:12px;">
+          <label>中缀 <span style="font-weight:400;color:var(--color-muted-foreground);">(少数特殊词干需要)</span></label>
+          <div style="display:flex;gap:6px;">
+            <input v-model="evalInfix" placeholder="如 xi, zu"
+                   style="flex:1;padding:9px 12px;border:1.5px solid var(--color-border);border-radius:var(--radius-sm);font-size:14px;font-family:var(--font-mono);">
+            <button class="btn btn-outline" @click="showInfixField=false" style="white-space:nowrap;font-size:12px;padding:9px 12px;">隐藏</button>
+          </div>
+        </div>
+        <div v-if="!showInfixField && evalStemInfo && evalStemInfo.infix_required" style="margin-bottom:12px;">
+          <button class="btn btn-outline" @click="showInfixField=true" style="font-size:12px;width:100%;">
+            + 添加中缀（词干 {{ evalStemInfo.stem }} 需要中缀: {{ evalStemInfo.allowed_infixes.join(', ') }}）
+          </button>
+        </div>
+        <div v-if="!showInfixField && !(evalStemInfo && evalStemInfo.infix_required)" style="margin-bottom:12px;">
+          <button class="btn btn-outline" @click="showInfixField=true" style="font-size:12px;width:100%;">
+            + 添加中缀（可选，极少场景用到）
+          </button>
+        </div>
+
+        <!-- Live Preview -->
+        <div style="background:var(--surface-blue);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:12px;text-align:center;">
+          <div style="font-size:11px;color:var(--color-muted-foreground);margin-bottom:4px;">完整候选名预览</div>
+          <div style="font-size:20px;font-weight:700;font-family:var(--font-mono);color:var(--color-primary);">
+            {{ evalPreviewName || '（输入前缀 + 词干）' }}
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
           <label>相似度阈值: <b>{{ evalThreshold }}%</b></label>
           <input type="range" v-model.number="evalThreshold" min="30" max="95" step="5"
-                 style="width:100%;accent-color:var(--blue);">
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--sub);">
+                 style="width:100%;accent-color:var(--color-primary);">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-muted-foreground);margin-top:4px;font-weight:500;">
             <span>30% (宽松)</span><span>55% (默认)</span><span>95% (严格)</span>
           </div>
         </div>
 
-        <button class="btn btn-primary" @click="runEvaluate" :disabled="evalLoading">
+        <button class="btn btn-primary" @click="runEvaluate" :disabled="evalLoading || !evalPreviewName">
           <span v-if="evalLoading" class="spinner"></span>
-          {{ evalLoading ? '正在比对 ' + evalProgress + ' 条...' : '开始评估' }}
+          {{ evalLoading ? '正在比对 ' + evalProgress + ' 条...' : '评估 ' + evalPreviewName }}
         </button>
+      </div>
+
+      <!-- 多语言名称变体（基于输入的候选名变换） -->
+      <div class="card" v-if="evalResult && evalResult.language_variants && evalResult.language_variants.length">
+        <h3>多语言名称变体</h3>
+        <div style="font-size:11px;color:var(--color-muted-foreground);margin-bottom:10px;">基于输入名称”{{ evalPreviewName }}”在不同语言中的对应形式，含规则推导与禁忌筛查</div>
+        <div v-for="lv in evalResult.language_variants" :key="lv.language"
+             style="padding:10px 0;border-bottom:1px solid var(--color-border);">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="badge" :class="lv.source === 'not_available' ? 'badge-amber' : lv.source === 'derived' || lv.source === 'transliteration' ? 'badge-blue' : 'badge-green'"
+                  style="min-width:60px;text-align:center;">{{ lv.language === 'chinese_transliteration' ? 'CN音译' : lv.language.toUpperCase() }}</span>
+            <span style="font-family:var(--font-mono);font-size:14px;font-weight:600;">{{ lv.name }}</span>
+            <span v-if="lv.source === 'inn_database'" class="badge badge-green" style="font-size:9px;">官方数据</span>
+            <span v-else-if="lv.source === 'derived'" class="badge badge-blue" style="font-size:9px;">规则推导</span>
+            <span v-else-if="lv.source === 'transliteration'" class="badge badge-blue" style="font-size:9px;">音译合成</span>
+            <span v-else class="badge badge-amber" style="font-size:9px;">无参考数据</span>
+          </div>
+          <div style="font-size:11px;color:var(--color-muted-foreground);margin-top:4px;margin-left:68px;line-height:1.5;">{{ lv.commentary }}</div>
+          <div v-if="lv.taboo_flags.length" style="font-size:11px;color:var(--color-destructive);margin-left:68px;margin-top:3px;font-weight:500;">
+            禁忌: <span v-for="(f,i) in lv.taboo_flags" :key="f">{{ f }}<span v-if="i < lv.taboo_flags.length-1">, </span></span>
+          </div>
+          <div v-else style="font-size:10px;color:var(--color-success);margin-left:68px;margin-top:3px;font-weight:500;">
+            该语言环境下未检出禁忌问题
+          </div>
+        </div>
       </div>
 
       <!-- Chinese name suggestions -->
       <div class="card" v-if="evalResult && evalResult.chinese_suggestions.length">
         <h3>中文名建议</h3>
+        <div style="font-size:11px;color:var(--color-muted-foreground);margin-bottom:10px;">基于分子性质与语义偏好的组合式中文命名方案</div>
         <div v-for="cn in evalResult.chinese_suggestions.slice(0,4)" :key="cn.chinese_name"
-             style="padding:8px 0;border-bottom:1px solid var(--border);">
+             style="padding:10px 0;border-bottom:1px solid var(--color-border);">
           <span class="chinese-chars">{{ cn.chinese_name }}</span>
-          <span style="font-size:12px;color:var(--sub);margin-left:8px;">{{ cn.pinyin }}</span>
-          <span style="font-size:11px;color:var(--sub);margin-left:4px;">{{ cn.meaning_gloss }}</span>
-        </div>
-      </div>
-
-      <!-- Multi-language name variants -->
-      <div class="card" v-if="evalResult && evalResult.language_variants && evalResult.language_variants.length">
-        <h3>多语言名称变体</h3>
-        <div v-for="lv in evalResult.language_variants" :key="lv.language"
-             style="padding:8px 0;border-bottom:1px solid var(--border);">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span class="badge" :class="lv.source === 'not_available' ? 'badge-amber' : lv.source === 'derived' || lv.source === 'transliteration' ? 'badge-blue' : 'badge-green'"
-                  style="min-width:60px;text-align:center;">{{ lv.language === 'chinese_transliteration' ? 'CN音译' : lv.language.toUpperCase() }}</span>
-            <span style="font-family:monospace;font-size:14px;font-weight:600;">{{ lv.name }}</span>
-          </div>
-          <div style="font-size:11px;color:var(--sub);margin-top:3px;margin-left:68px;">{{ lv.commentary }}</div>
-          <div v-if="lv.taboo_flags.length" style="font-size:11px;color:var(--red);margin-left:68px;margin-top:2px;">
-            禁忌: <span v-for="(f,i) in lv.taboo_flags" :key="f">{{ f }}<span v-if="i < lv.taboo_flags.length-1">, </span></span>
-          </div>
+          <span style="font-size:12px;color:var(--color-muted-foreground);margin-left:10px;">{{ cn.pinyin }}</span>
+          <span style="font-size:11px;color:var(--color-muted-foreground);margin-left:6px;">{{ cn.meaning_gloss }}</span>
         </div>
       </div>
 
@@ -183,13 +619,13 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
         <div class="eval-verdict" :class="evalResult.poca_assessment === 'PASS' ? 'pass' : evalResult.poca_assessment === 'REVIEW' ? 'review' : 'reject'">
           <div class="big">
             {{ evalResult.poca_assessment === 'PASS' ? '通过' : evalResult.poca_assessment === 'REVIEW' ? '需审核' : '建议驳回' }}
-            <span style="font-size:14px;font-weight:400;margin-left:8px;">
-              最高相似度 {{ (evalResult.poca_score*100).toFixed(0) }}%（阈值 {{ (evalResult.threshold*100).toFixed(0) }}%）
-            </span>
+          </div>
+          <div style="font-size:13px;color:var(--color-muted-foreground);">
+            最高相似度 {{ (evalResult.poca_score*100).toFixed(0) }}%（阈值 {{ (evalResult.threshold*100).toFixed(0) }}%）
           </div>
         </div>
 
-        <h3 style="margin-top:16px;">FDA POCA 二维度评分（Phonetic + Orthographic）</h3>
+        <h3 style="margin-top:18px;">FDA POCA 二维度评分（Phonetic + Orthographic）</h3>
         <div class="score-bar">
           <span class="label">语音</span><div class="bar-wrap"><div class="bar-fill" :class="evalResult.phonetic_score < 0.70 ? 'pass' : evalResult.phonetic_score < 0.85 ? 'review' : 'reject'" :style="{width:(evalResult.phonetic_score*100)+'%'}"></div></div>
           <span class="val">{{ (evalResult.phonetic_score*100).toFixed(0) }}%</span>
@@ -201,20 +637,20 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
 
         <div v-if="evalResult.worst_comparison" class="meta-row">
           <span>最接近的已有 INN 名称</span>
-          <span style="font-family:monospace;">{{ evalResult.worst_comparison }}</span>
+          <span style="font-family:var(--font-mono);">{{ evalResult.worst_comparison }}</span>
         </div>
         <div class="meta-row">
           <span>超过阈值的相似名称数</span>
           <span>{{ evalResult.similar_count }} 个（全库 {{ evalResult.similar_count }} / 9378）</span>
         </div>
 
-        <h3 style="margin-top:16px;">评估理由</h3>
+        <h3 style="margin-top:18px;">评估理由</h3>
         <ul class="reason-list">
           <li v-for="r in evalResult.reasons" :key="r">{{ r }}</li>
         </ul>
 
         <div v-if="evalResult.risks.length">
-          <h3 style="margin-top:12px;color:var(--red);">风险提示</h3>
+          <h3 style="margin-top:14px;color:var(--color-destructive);">风险提示</h3>
           <ul class="reason-list">
             <li v-for="r in evalResult.risks" :key="r" class="risk">{{ r }}</li>
           </ul>
@@ -225,14 +661,14 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
       <!-- Similar names above threshold -->
       <div class="card" v-if="evalResult && evalResult.similar_names.length">
         <h3>超过阈值的相似名称 <span class="badge badge-amber">{{ evalResult.similar_names.length }} 个</span></h3>
-        <div style="max-height:400px;overflow-y:auto;">
+        <div style="max-height:420px;overflow-y:auto;">
           <div v-for="sn in evalResult.similar_names" :key="sn.reference_name"
-               style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:12px;">
-            <span style="font-family:monospace;flex:1;">{{ sn.reference_name }}</span>
-            <div style="width:80px;height:6px;border-radius:3px;background:var(--border);">
-              <div style="height:100%;border-radius:3px;" :class="sn.overall_poca_score<0.70?'pass':sn.overall_poca_score<0.85?'review':'reject'" :style="{width:(sn.overall_poca_score*100)+'%'}"></div>
+               style="padding:7px 0;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:10px;font-size:12px;">
+            <span style="font-family:var(--font-mono);flex:1;font-weight:500;">{{ sn.reference_name }}</span>
+            <div style="width:80px;height:8px;border-radius:4px;background:var(--color-border);overflow:hidden;">
+              <div style="height:100%;border-radius:4px;transition:width 400ms ease-out;" :class="sn.overall_poca_score<0.70?'pass':sn.overall_poca_score<0.85?'review':'reject'" :style="{width:(sn.overall_poca_score*100)+'%'}"></div>
             </div>
-            <span style="width:40px;text-align:right;font-weight:700;font-size:11px;" :style="{color: sn.overall_poca_score<0.70?'var(--green)':sn.overall_poca_score<0.85?'var(--amber)':'var(--red)'}">{{ (sn.overall_poca_score*100).toFixed(0) }}%</span>
+            <span style="width:42px;text-align:right;font-weight:700;font-size:12px;font-variant-numeric:tabular-nums;" :style="{color: sn.overall_poca_score<0.70?'var(--color-success)':sn.overall_poca_score<0.85?'var(--color-warning)':'var(--color-destructive)'}">{{ (sn.overall_poca_score*100).toFixed(0) }}%</span>
           </div>
         </div>
       </div>
@@ -245,7 +681,7 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
       <div class="card">
         <h3>分子性质</h3>
 
-        <div style="margin-bottom:12px;">
+        <div style="margin-bottom:14px;">
           <label>靶点类别</label>
           <div class="combo" ref="targetCombo">
             <input v-model="recTargetClass" placeholder="选择或输入靶点..." @focus="openCombo('target')" @input="filterCombo('target')" @keydown.down.prevent="navCombo('target',1)" @keydown.up.prevent="navCombo('target',-1)" @keydown.enter.prevent="selectCombo('target')" @blur="blurCombo('target')">
@@ -256,7 +692,7 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
           </div>
         </div>
 
-        <div style="margin-bottom:12px;">
+        <div style="margin-bottom:14px;">
           <label>作用机制</label>
           <div class="combo">
             <input v-model="recMechanism" placeholder="选择或输入机制..." @focus="openCombo('mechanism')" @input="filterCombo('mechanism')" @keydown.down.prevent="navCombo('mechanism',1)" @keydown.up.prevent="navCombo('mechanism',-1)" @keydown.enter.prevent="selectCombo('mechanism')" @blur="blurCombo('mechanism')">
@@ -267,7 +703,7 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
           </div>
         </div>
 
-        <div style="margin-bottom:12px;">
+        <div style="margin-bottom:14px;">
           <label>化学类别</label>
           <div class="combo">
             <input v-model="recChemicalClass" placeholder="选择化学类别..." @focus="openCombo('chemical')" @input="filterCombo('chemical')" @keydown.down.prevent="navCombo('chemical',1)" @keydown.up.prevent="navCombo('chemical',-1)" @keydown.enter.prevent="selectCombo('chemical')" @blur="blurCombo('chemical')">
@@ -278,7 +714,7 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
           </div>
         </div>
 
-        <div style="margin-bottom:12px;">
+        <div style="margin-bottom:14px;">
           <label>适应症</label>
           <div class="combo">
             <input v-model="recIndication" placeholder="选择或输入适应症..." @focus="openCombo('indication')" @input="filterCombo('indication')" @keydown.down.prevent="navCombo('indication',1)" @keydown.up.prevent="navCombo('indication',-1)" @keydown.enter.prevent="selectCombo('indication')" @blur="blurCombo('indication')">
@@ -289,14 +725,14 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
           </div>
         </div>
 
-        <div style="margin-bottom:12px;">
-          <label>化学亚结构 <span style="font-weight:400;color:var(--sub);">(可选)</span></label>
-          <input v-model="recSubstructure" placeholder="如 pyrimidine, quinazoline" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:var(--bg);">
+        <div style="margin-bottom:14px;">
+          <label>化学亚结构 <span style="font-weight:400;color:var(--color-muted-foreground);">(可选)</span></label>
+          <input v-model="recSubstructure" placeholder="如 pyrimidine, quinazoline">
         </div>
 
-        <div style="margin-bottom:12px;">
-          <label>语义偏好 <span style="font-weight:400;color:var(--sub);">(中文核名用)</span></label>
-          <input v-model="recTargetMeaning" placeholder="如 抑制肿瘤、免疫调节" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:var(--bg);">
+        <div style="margin-bottom:14px;">
+          <label>语义偏好 <span style="font-weight:400;color:var(--color-muted-foreground);">(中文核名用)</span></label>
+          <input v-model="recTargetMeaning" placeholder="如 抑制肿瘤、免疫调节">
         </div>
 
         <button class="btn btn-primary" @click="runRecommend" :disabled="recLoading">
@@ -315,7 +751,7 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
         <div class="step-dot" :class="recStepClass(4)"></div>
         <div class="step-dot" :class="recStepClass(5)"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);padding:0 4px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-muted-foreground);padding:0 4px;margin-bottom:14px;font-weight:500;">
         <span>词干匹配</span><span>INN生成</span><span>POCA评分</span><span>中文核名</span><span>品牌筛选</span>
       </div>
 
@@ -327,7 +763,7 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
         <h3>词干匹配 <span class="badge badge-blue">{{ recStems.length }} 条</span></h3>
         <div class="stem-item" v-for="s in recStems.slice(0,6)" :key="s.stem.stem">
           <div><div class="stem-name">{{ s.stem.stem }}</div><div class="stem-meaning">{{ s.stem.meaning }}</div></div>
-          <span style="font-weight:700;font-size:14px;" :style="{color: s.match_score>0.7?'var(--green)':s.match_score>0.4?'var(--amber)':'var(--sub)'}">{{ (s.match_score*100).toFixed(0) }}%</span>
+          <span style="font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;" :style="{color: s.match_score>0.7?'var(--color-success)':s.match_score>0.4?'var(--color-warning)':'var(--color-muted-foreground)'}">{{ (s.match_score*100).toFixed(0) }}%</span>
         </div>
       </div>
 
@@ -347,22 +783,24 @@ label { font-size:13px; font-weight:600; color:var(--sub); display:block; margin
           <span v-else class="badge badge-red">REJECT</span>
         </h3>
         <div class="poca-row" v-for="r in recPocaResults.slice(0,8)" :key="r.reference_name">
-          <span :class="'badge badge-'+(r.alert_level==='PASS'?'green':r.alert_level==='REVIEW'?'amber':'red')" style="font-size:10px;width:36px;text-align:center;">{{ r.alert_level }}</span>
+          <span :class="'badge badge-'+(r.alert_level==='PASS'?'green':r.alert_level==='REVIEW'?'amber':'red')" style="font-size:10px;width:40px;text-align:center;">{{ r.alert_level }}</span>
           <span class="ref-name">{{ r.reference_name }}</span>
-          <div style="flex:1;height:6px;border-radius:3px;background:var(--border);"><div style="height:100%;border-radius:3px;" :class="r.overall_poca_score<0.70?'pass':r.overall_poca_score<0.85?'review':'reject'" :style="{width:(r.overall_poca_score*100)+'%'}"></div></div>
-          <span class="poca-val" :style="{color: r.overall_poca_score<0.70?'var(--green)':r.overall_poca_score<0.85?'var(--amber)':'var(--red)'}">{{ (r.overall_poca_score*100).toFixed(0) }}%</span>
+          <div style="flex:1;height:8px;border-radius:4px;background:var(--color-border);overflow:hidden;"><div style="height:100%;border-radius:4px;transition:width 400ms ease-out;" :class="r.overall_poca_score<0.70?'pass':r.overall_poca_score<0.85?'review':'reject'" :style="{width:(r.overall_poca_score*100)+'%'}"></div></div>
+          <span class="poca-val" :style="{color: r.overall_poca_score<0.70?'var(--color-success)':r.overall_poca_score<0.85?'var(--color-warning)':'var(--color-destructive)'}">{{ (r.overall_poca_score*100).toFixed(0) }}%</span>
         </div>
-        <div class="meta-row"><span>语音 / 字形 / 组合</span><span style="font-size:10px;color:var(--sub);">点击候选名称可重新评分</span></div>
+        <div class="meta-row"><span>语音 / 字形 / 组合</span><span style="font-size:11px;color:var(--color-muted-foreground);">点击候选名称可重新评分</span></div>
       </div>
 
       <div v-if="recChineseNames.length" class="card">
         <h3>中文核名 <span class="badge badge-blue">{{ recChineseNames.length }} 个</span></h3>
-        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;flex-wrap:wrap;gap:12px;">
           <div v-for="cn in recChineseNames.slice(0,6)" :key="cn.chinese_name"
-               style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;text-align:center;">
+               style="padding:12px 16px;border:1.5px solid var(--color-border);border-radius:var(--radius);text-align:center;transition:all var(--transition-fast);cursor:default;"
+               onmouseover="this.style.borderColor='var(--color-primary)';this.style.boxShadow='var(--shadow-sm)';this.style.transform='translateY(-2px)';"
+               onmouseout="this.style.borderColor='var(--color-border)';this.style.boxShadow='none';this.style.transform='translateY(0)';">
             <div class="chinese-chars">{{ cn.chinese_name }}</div>
-            <div style="font-size:12px;color:var(--sub);">{{ cn.pinyin }}</div>
-            <div style="font-size:11px;color:var(--sub);">{{ cn.meaning_gloss }}</div>
+            <div style="font-size:12px;color:var(--color-muted-foreground);margin-top:4px;">{{ cn.pinyin }}</div>
+            <div style="font-size:11px;color:var(--color-muted-foreground);margin-top:2px;">{{ cn.meaning_gloss }}</div>
           </div>
         </div>
       </div>
@@ -378,23 +816,68 @@ createApp({
     const activeTab = ref('evaluate');
 
     // ========== Tab A: Name Evaluation ==========
-    const evalName = ref('');
+    const evalPrefix = ref('');
+    const evalStem = ref('');
+    const evalInfix = ref('');
+    const evalStemInfo = ref(null);  // full INNStem object if matched from DB
+    const showInfixField = ref(false);
     const evalThreshold = ref(55);
     const evalProgress = ref(0);
     const evalLoading = ref(false);
     const evalResult = ref(null);
+    const knownStems = ref([]);       // all stems from API
+    const nameEvalCount = ref(0);     // counter to track which eval we're on
+
+    // Computed: full name from parts. Strips leading hyphens from stem for concatenation.
+    const evalPreviewName = Vue.computed(() => {
+      const prefix = evalPrefix.value.trim();
+      let stem = evalStem.value.trim();
+      if (!prefix && !stem) return '';
+      // Strip leading/trailing hyphens for clean concatenation
+      let infix = evalInfix.value.trim();
+      let name = prefix;
+      if (infix) name += infix;
+      if (stem.startsWith('-')) stem = stem.slice(1);
+      if (stem.endsWith('-')) stem = stem.slice(0, -1);
+      name += stem;
+      return name;
+    });
+
+    // Load known suffix stems from API
+    async function loadStems() {
+      try {
+        const res = await fetch(API + '/stems/list');
+        if (!res.ok) return;
+        const all = await res.json();
+        // Filter to suffix stems, sort by priority desc
+        knownStems.value = all
+          .filter(s => s.position === 'suffix')
+          .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+        // Build combo options
+        comboStemOptions.length = 0;
+        for (const s of knownStems.value) {
+          const label = s.stem.startsWith('-') ? s.stem : '-' + s.stem;
+          comboStemOptions.push({ v: s.stem, label: label, meaning: s.meaning, obj: s });
+        }
+        comboStemFiltered.value = [...comboStemOptions];
+      } catch(e) { /* ignore */ }
+    }
+    loadStems();
 
     async function runEvaluate() {
-      if (!evalName.value.trim()) return;
+      const name = evalPreviewName.value;
+      if (!name) return;
+      const currentCount = ++nameEvalCount.value;
       evalLoading.value = true; evalResult.value = null;
       try {
-        const qs = new URLSearchParams({ proposed_name: evalName.value.trim(), threshold: evalThreshold.value }).toString();
+        const qs = new URLSearchParams({ proposed_name: name, threshold: evalThreshold.value }).toString();
         const res = await fetch(API + '/poca/evaluate?' + qs, { method: 'POST' });
         if (!res.ok) throw new Error(await res.text());
-        evalResult.value = await res.json();
+        if (currentCount === nameEvalCount.value) evalResult.value = await res.json();
       } catch(e) {
-        evalResult.value = { verdict: '评估失败', reasons: [e.message], risks: [], poca_assessment: 'REJECT', poca_score:0, phonetic_score:0, orthographic_score:0, compositional_score:0, worst_comparison:'', chinese_suggestions:[] };
-      } finally { evalLoading.value = false; }
+        if (currentCount === nameEvalCount.value)
+          evalResult.value = { verdict: '评估失败', reasons: [e.message], risks: [], poca_assessment: 'REJECT', poca_score:0, phonetic_score:0, orthographic_score:0, compositional_score:0, worst_comparison:'', chinese_suggestions:[], language_variants:[] };
+      } finally { if (currentCount === nameEvalCount.value) evalLoading.value = false; }
     }
 
     // ========== Tab B: Smart Recommendation ==========
@@ -412,10 +895,12 @@ createApp({
     function recStepClass(n) { const s=recStep.value; if(s>n)return'done'; if(s===n)return'current'; return''; }
 
     // ========== Combobox system ==========
-    const comboOpen = reactive({ target:false, mechanism:false, chemical:false, indication:false });
-    const comboIdx = reactive({ target:0, mechanism:0, chemical:0, indication:0 });
+    const comboOpen = reactive({ target:false, mechanism:false, chemical:false, indication:false, stem:false });
+    const comboIdx = reactive({ target:0, mechanism:0, chemical:0, indication:0, stem:0 });
+    const comboStemOptions = [];
+    const comboStemFiltered = ref([...comboStemOptions]);
 
-    // Target class options — respiratory/infection/pain prioritized
+    // Target class options
     const comboTargetOptions = [
       {v:'cox',label:'cox — COX酶（镇痛抗炎）'},{v:'opioid_receptor',label:'opioid_receptor — 阿片受体（镇痛）'},
       {v:'sodium_channel',label:'sodium_channel — 钠离子通道（局麻镇痛）'},{v:'histamine_receptor',label:'histamine_receptor — 组胺受体（呼吸/抗过敏）'},
@@ -460,6 +945,13 @@ createApp({
     function blurCombo(type) { setTimeout(()=>{comboOpen[type]=false;},150); }
 
     function filterCombo(type) {
+      if (type === 'stem') {
+        const q = evalStem.value.toLowerCase();
+        const filtered = comboStemOptions.filter(o => o.label.toLowerCase().includes(q) || o.meaning.toLowerCase().includes(q));
+        comboStemFiltered.value = filtered;
+        comboIdx.stem = 0;
+        return;
+      }
       const source = type==='target'?comboTargetOptions:type==='mechanism'?comboMechanismOptions:type==='chemical'?comboChemicalOptions:comboIndicationOptions;
       const input = type==='target'?recTargetClass.value:type==='mechanism'?recMechanism.value:type==='chemical'?recChemicalClass.value:recIndication.value;
       const q = input.toLowerCase();
@@ -470,12 +962,18 @@ createApp({
     }
 
     function navCombo(type, dir) {
-      const target = type==='target'?comboTargetFiltered:type==='mechanism'?comboMechanismFiltered:type==='chemical'?comboChemicalFiltered:comboIndicationFiltered;
+      const target = type==='stem'?comboStemFiltered:
+        type==='target'?comboTargetFiltered:type==='mechanism'?comboMechanismFiltered:type==='chemical'?comboChemicalFiltered:comboIndicationFiltered;
       const idx = comboIdx[type] + dir;
       if (idx >= 0 && idx < target.value.length) comboIdx[type] = idx;
     }
 
     function selectCombo(type) {
+      if (type === 'stem') {
+        const opt = comboStemFiltered.value[comboIdx.stem];
+        if (opt) pickCombo('stem', opt);
+        return;
+      }
       const target = type==='target'?comboTargetFiltered:type==='mechanism'?comboMechanismFiltered:type==='chemical'?comboChemicalFiltered:comboIndicationFiltered;
       const opt = target.value[comboIdx[type]];
       if (opt) pickCombo(type, opt);
@@ -483,6 +981,14 @@ createApp({
 
     function pickCombo(type, opt) {
       if (opt.sep) return;
+      if (type === 'stem') {
+        evalStem.value = opt.v;
+        evalStemInfo.value = opt.obj || null;
+        // Auto-show infix if stem requires it
+        if (opt.obj && opt.obj.infix_required) showInfixField.value = true;
+        comboOpen[type] = false;
+        return;
+      }
       if (type==='target') recTargetClass.value = opt.v;
       else if (type==='mechanism') recMechanism.value = opt.v;
       else if (type==='chemical') recChemicalClass.value = opt.v;
@@ -548,12 +1054,13 @@ createApp({
 
     return {
       activeTab,
-      evalName, evalThreshold, evalProgress, evalLoading, evalResult, runEvaluate,
+      evalPrefix, evalStem, evalInfix, evalStemInfo, showInfixField,
+      evalPreviewName, evalThreshold, evalProgress, evalLoading, evalResult, runEvaluate,
       recLoading, recError, recStep, recTargetClass, recMechanism, recChemicalClass,
       recIndication, recSubstructure, recTargetMeaning,
       recStems, recInnCandidates, recSelectedInn, recPocaResults, recPocaWorstScore, recChineseNames,
       recStepClass, runRecommend, recSelectInn,
-      comboOpen, comboIdx,
+      comboOpen, comboIdx, comboStemFiltered,
       comboTargetFiltered, comboMechanismFiltered, comboChemicalFiltered, comboIndicationFiltered,
       openCombo, blurCombo, filterCombo, navCombo, selectCombo, pickCombo
     };

@@ -11,10 +11,12 @@ from ..engines.latin_name import (
     check_latin_taboo,
     check_french_taboo,
     check_spanish_taboo,
+    LATIN_SUFFIX_RULES,
 )
 from ..engines.chinese_transliteration import (
     transliterate_to_chinese,
     check_chinese_transliteration_taboo,
+    SYLLABLE_TO_CHAR,
 )
 from .stems import _get_default_provider
 
@@ -44,6 +46,35 @@ class NameEvaluationResponse(BaseModel):
     reasons: list[str] = Field(default_factory=list)
     risks: list[str] = Field(default_factory=list)
     language_variants: list[LanguageNameVariant] = Field(default_factory=list)
+
+def _describe_latin_taboos(flags: list[str]) -> str:
+    if not flags:
+        return "，未发现拉丁语禁忌词汇"
+    terms = [f.split(":")[-1] for f in flags]
+    return f"，注意：发现拉丁语禁忌词汇 {', '.join(terms)}（含医疗宣称或绝对化表述，可能被 EMA 拒绝）"
+
+
+def _describe_french_taboos(flags: list[str]) -> str:
+    if not flags:
+        return "，未发现法语禁忌词汇"
+    terms = [f.split(":")[-1] for f in flags]
+    return f"，注意：发现法语禁忌词汇 {', '.join(terms)}（含治愈、神奇等暗示性表述，可能被 ANSM 拒绝）"
+
+
+def _describe_spanish_taboos(flags: list[str]) -> str:
+    if not flags:
+        return "，未发现西班牙语禁忌词汇"
+    terms = [f.split(":")[-1] for f in flags]
+    return f"，注意：发现西班牙语禁忌词汇 {', '.join(terms)}（含治愈、奇迹等暗示性表述，可能被 AEMPS 拒绝）"
+
+
+def _describe_chinese_taboos(flags: list[str]) -> str:
+    if not flags:
+        return "，未发现禁用汉字"
+    chars = [f.split(":")[-1] for f in flags]
+    count = len(chars)
+    return f"，注意：发现 {count} 个禁用汉字{'、'.join(chars) if chars else ''}（含“神、仙、灵、宝”等暗示功效/夸大表述，违反中国药典命名原则）"
+
 
 router = APIRouter()
 
@@ -160,75 +191,85 @@ def evaluate_name(
     except Exception:
         chinese_suggestions = []
 
-    # 3.5. Multi-language name variants
+    # 3.5. 多语言名称变体（拉丁/法语/西语查询+推导，中文音译）
     language_variants: list[LanguageNameVariant] = []
 
-    # Latin: prefer INN database, fall back to derivation
+    # 拉丁名：优先查 INN 数据库，否则用尾缀规则推导
     latin_from_db = inn_db.lookup_latin(name_clean) if inn_db else None
     if latin_from_db:
+        latin_taboos = check_latin_taboo(latin_from_db)
+        latin_note = _describe_latin_taboos(latin_taboos)
         language_variants.append(LanguageNameVariant(
             language="latin",
             name=latin_from_db,
             source="inn_database",
-            commentary=f"Official Latin INN name for '{name_clean}'",
-            taboo_flags=check_latin_taboo(latin_from_db),
+            commentary=f"从 WHO INN 数据库直接获取 '{name_clean}' 的官方拉丁名{latin_note}",
+            taboo_flags=latin_taboos,
         ))
     else:
         derived_latin = derive_latin_name(name_clean)
+        latin_taboos = check_latin_taboo(derived_latin)
+        latin_note = _describe_latin_taboos(latin_taboos)
         language_variants.append(LanguageNameVariant(
             language="latin",
             name=derived_latin,
             source="derived",
-            commentary=f"Derived via standard Latin suffix rules (no INN database entry for '{name_clean}')",
-            taboo_flags=check_latin_taboo(derived_latin),
+            commentary=f"数据库中未收录 '{name_clean}'，通过 {len(LATIN_SUFFIX_RULES)} 条拉丁尾缀规则自动推导（如 -tinib→-tinibum, -mab→-mabum，按最长匹配优先）{latin_note}",
+            taboo_flags=latin_taboos,
         ))
 
-    # French: INN database only
+    # 法语名：仅查 INN 数据库，无推导规则
     french_from_db = inn_db.lookup_french(name_clean) if inn_db else None
     if french_from_db:
+        french_taboos = check_french_taboo(french_from_db)
+        french_note = _describe_french_taboos(french_taboos)
         language_variants.append(LanguageNameVariant(
             language="french",
             name=french_from_db,
             source="inn_database",
-            commentary=f"Official French INN designation for '{name_clean}'",
-            taboo_flags=check_french_taboo(french_from_db),
+            commentary=f"从 WHO INN 数据库直接获取 '{name_clean}' 的官方法语名{french_note}",
+            taboo_flags=french_taboos,
         ))
     else:
         language_variants.append(LanguageNameVariant(
             language="french",
             name=name_clean,
             source="not_available",
-            commentary="No French reference data in INN database. Manual linguistic review recommended for EU (ANSM) submissions.",
+            commentary=f"数据库中无 '{name_clean}' 的法语对应数据，建议在提交欧盟 ANSM 前进行人工语言学审查",
             taboo_flags=[],
         ))
 
-    # Spanish: INN database only
+    # 西班牙语名：仅查 INN 数据库，无推导规则
     spanish_from_db = inn_db.lookup_spanish(name_clean) if inn_db else None
     if spanish_from_db:
+        spanish_taboos = check_spanish_taboo(spanish_from_db)
+        spanish_note = _describe_spanish_taboos(spanish_taboos)
         language_variants.append(LanguageNameVariant(
             language="spanish",
             name=spanish_from_db,
             source="inn_database",
-            commentary=f"Official Spanish INN designation for '{name_clean}'",
-            taboo_flags=check_spanish_taboo(spanish_from_db),
+            commentary=f"从 WHO INN 数据库直接获取 '{name_clean}' 的官方西班牙语名{spanish_note}",
+            taboo_flags=spanish_taboos,
         ))
     else:
         language_variants.append(LanguageNameVariant(
             language="spanish",
             name=name_clean,
             source="not_available",
-            commentary="No Spanish reference data in INN database. Manual linguistic review recommended for Latin American (AEMPS) submissions.",
+            commentary=f"数据库中无 '{name_clean}' 的西班牙语对应数据，建议在提交拉美 AEMPS 前进行人工语言学审查",
             taboo_flags=[],
         ))
 
-    # Chinese transliteration: sound-based (distinct from combinatorial suggestions above)
+    # 中文音译：基于最长音节贪心匹配（与上方语义组合式中文核名不同方法论）
     chinese_trans = transliterate_to_chinese(name_clean)
+    chinese_taboos = check_chinese_transliteration_taboo(chinese_trans)
+    chinese_note = _describe_chinese_taboos(chinese_taboos)
     language_variants.append(LanguageNameVariant(
         language="chinese_transliteration",
         name=chinese_trans,
         source="transliteration",
-        commentary=f"Sound-based phonetic transliteration of '{name_clean}'. Not a regulatory Chinese name — combinatorial semantic suggestions are shown separately above.",
-        taboo_flags=check_chinese_transliteration_taboo(chinese_trans),
+        commentary=f"将 '{name_clean}' 按 {len(SYLLABLE_TO_CHAR)} 条音节-汉字映射表进行贪心最长匹配音译（优先匹配药物词干如 gliflozin→格列净, tinib→替尼，再逐音节映射）{chinese_note}",
+        taboo_flags=chinese_taboos,
     ))
 
     # 4. Build verdict and reasons
