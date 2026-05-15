@@ -477,6 +477,77 @@ input[type="range"] {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ===== Tab C: Pipeline Management ===== */
+.pipeline-toolbar {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-4) 0; flex-wrap: wrap;
+}
+.pipeline-toolbar .btn {
+  padding: 8px 18px; border-radius: var(--radius-sm); font-weight: 600;
+  font-size: 13px; cursor: pointer; border: none; transition: var(--transition-fast);
+  font-family: var(--font-body);
+}
+.btn-primary { background: var(--color-primary); color: white; }
+.btn-primary:hover { background: var(--color-secondary); }
+.btn-outline { background: transparent; border: 1.5px solid var(--color-border-strong); color: var(--color-foreground); }
+.btn-outline:hover { background: var(--color-muted); }
+.status-filter { display: flex; gap: 2px; margin-left: auto; }
+.status-filter .sf-chip {
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--color-border); background: white;
+  transition: var(--transition-fast);
+}
+.status-filter .sf-chip:hover { background: var(--color-muted); }
+.status-filter .sf-chip.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+.pipeline-canvas-wrap {
+  overflow-x: auto; border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  background: var(--color-surface); position: relative;
+}
+.pipeline-canvas-wrap canvas { display: block; }
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.4); z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-card {
+  background: white; border-radius: var(--radius-xl); padding: var(--space-8);
+  max-width: 560px; width: 90%; max-height: 85vh; overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+.modal-card h3 { font-family: var(--font-heading); font-size: 20px; margin-bottom: var(--space-5); }
+.modal-card label {
+  display: block; font-size: 13px; font-weight: 600; color: var(--color-muted-foreground);
+  margin-bottom: 4px; margin-top: var(--space-4);
+}
+.modal-card input, .modal-card select {
+  width: 100%; padding: 10px 14px; border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font-body);
+}
+.modal-card input:focus, .modal-card select:focus { border-color: var(--color-primary); outline: none; }
+.modal-actions { display: flex; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-6); }
+.drawer-overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.3); z-index: 200;
+}
+.drawer-panel {
+  position: fixed; right: 0; top: 0; bottom: 0; width: 420px; max-width: 90vw;
+  background: white; box-shadow: var(--shadow-lg); padding: var(--space-8);
+  overflow-y: auto; z-index: 201;
+}
+.drawer-panel h3 { font-family: var(--font-heading); font-size: 18px; margin-bottom: var(--space-5); }
+.drawer-field { margin-bottom: var(--space-4); }
+.drawer-field label { font-size: 12px; font-weight: 600; color: var(--color-muted-foreground); display: block; margin-bottom: 2px; }
+.drawer-field .val { font-size: 14px; }
+.status-badge {
+  display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;
+}
+.status-pending { background: #F1F5FD; color: #64748B; }
+.status-in_progress { background: #EFF6FF; color: #2563EB; }
+.status-completed { background: #ECFDF5; color: #059669; }
+.status-blocked { background: #FEF2F2; color: #DC2626; }
+.pj-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.pj-table th { text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--color-border); font-weight: 600; color: var(--color-muted-foreground); }
+.pj-table td { padding: 10px 14px; border-bottom: 1px solid var(--color-border); }
+.pj-table tr:hover td { background: var(--color-muted); }
 </style>
 </head>
 <body>
@@ -484,13 +555,14 @@ input[type="range"] {
   <div class="header">
     <div class="logo-icon">D</div>
     <span class="title">创新药命名管理系统</span>
-    <span class="ver">v0.2.2</span>
+    <span class="ver">v0.3.0</span>
   </div>
 
   <!-- Tabs -->
   <div class="tabs">
     <div class="tab" :class="{active: activeTab==='evaluate'}" @click="activeTab='evaluate'">名称评估</div>
     <div class="tab" :class="{active: activeTab==='recommend'}" @click="activeTab='recommend'">智能推荐</div>
+    <div class="tab" :class="{active: activeTab==='projects'}" @click="activeTab='projects'">项目管理</div>
   </div>
 
   <!-- ==================== TAB A: 名称评估 ==================== -->
@@ -806,10 +878,125 @@ input[type="range"] {
       </div>
     </div>
   </div>
+
+  <!-- ==================== TAB C: 项目管理 ==================== -->
+  <div v-if="activeTab==='projects'">
+    <div class="pipeline-toolbar">
+      <button class="btn btn-primary" @click="pjShowCreate=true">+ 新建项目</button>
+      <button class="btn btn-outline" @click="pjTriggerFile.click()">导入 CSV</button>
+      <input type="file" accept=".csv" style="display:none" ref="pjTriggerFile" @change="pjImportCsv">
+      <button class="btn btn-outline" @click="pjViewMode = pjViewMode==='gantt' ? 'list' : 'gantt'">
+        {{ pjViewMode === 'gantt' ? '列表视图' : '管线图视图' }}
+      </button>
+      <div class="status-filter">
+        <span class="sf-chip" :class="{active: pjFilter===''}" @click="pjFilter=''">全部</span>
+        <span class="sf-chip" :class="{active: pjFilter==='on_track'}" @click="pjFilter='on_track'">进行中</span>
+        <span class="sf-chip" :class="{active: pjFilter==='completed'}" @click="pjFilter='completed'">已完成</span>
+        <span class="sf-chip" :class="{active: pjFilter==='at_risk'}" @click="pjFilter='at_risk'">卡点</span>
+      </div>
+    </div>
+
+    <div v-if="pjFiltered.length === 0" style="text-align:center;padding:80px 20px;color:var(--color-muted-foreground);">
+      <div style="font-size:48px;margin-bottom:16px;">&#x1F4CB;</div>
+      <div style="font-size:16px;font-weight:600;">尚无项目，创建第一个项目开始追踪</div>
+      <div style="font-size:13px;margin-top:8px;">点击"+ 新建项目"或导入 CSV 文件</div>
+    </div>
+
+    <div v-if="pjViewMode==='gantt' && pjFiltered.length > 0" class="pipeline-canvas-wrap" ref="pjCanvasWrap">
+      <canvas ref="pjCanvas" :width="pjCanvasWidth" :height="pjCanvasHeight" style="cursor:pointer;" @click="pjCanvasClick"></canvas>
+    </div>
+
+    <div v-if="pjViewMode==='list' && pjFiltered.length > 0">
+      <table class="pj-table">
+        <thead>
+          <tr><th>项目名称</th><th>CAS号</th><th>当前阶段</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="p in pjFiltered" :key="p.id">
+            <td style="font-weight:600;">{{ p.name }}</td>
+            <td style="font-family:var(--font-mono);">{{ p.cas_number || '—' }}</td>
+            <td>{{ pjPhaseName(p.current_phase) }}</td>
+            <td><span class="status-badge" :class="'status-'+pjStatusBadgeClass(p.overall_status)">{{ pjStatusLabel(p.overall_status) }}</span></td>
+            <td style="color:var(--color-muted-foreground);">{{ p.created_at?.slice(0,10) }}</td>
+            <td><button class="btn btn-outline" style="font-size:11px;padding:4px 10px;" @click="pjDeleteProject(p.id)">删除</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Create Project Modal -->
+    <div class="modal-overlay" v-if="pjShowCreate" @click.self="pjShowCreate=false">
+      <div class="modal-card">
+        <h3>新建项目档案</h3>
+        <label>项目名称</label>
+        <input v-model="pjForm.name" placeholder="如 AMG-001">
+        <label>CAS号 <span style="font-weight:400;">(可选，留空则从 CAS 申请开始)</span></label>
+        <input v-model="pjForm.cas_number" placeholder="如 123456-78-9">
+        <label>靶点分类</label>
+        <select v-model="pjForm.target_class">
+          <option v-for="t in pjTargetClasses" :value="t">{{ t }}</option>
+        </select>
+        <label>作用机制</label>
+        <select v-model="pjForm.mechanism">
+          <option v-for="m in pjMechanisms" :value="m">{{ m }}</option>
+        </select>
+        <label>化合物类型</label>
+        <select v-model="pjForm.chemical_class">
+          <option v-for="c in pjChemicalClasses" :value="c">{{ c }}</option>
+        </select>
+        <label>适应症</label>
+        <input v-model="pjForm.indication" placeholder="如 非小细胞肺癌">
+        <div class="modal-actions">
+          <button class="btn btn-outline" @click="pjShowCreate=false">取消</button>
+          <button class="btn btn-primary" @click="pjCreateProject">创建项目</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Milestone Drawer -->
+    <div class="drawer-overlay" v-if="pjDrawer" @click.self="pjDrawer=null">
+      <div class="drawer-panel">
+        <h3>{{ pjDrawer.milestone.name }}</h3>
+        <div style="margin-bottom:16px;font-size:13px;color:var(--color-muted-foreground);">
+          项目: {{ pjDrawer.project.name }} · {{ pjPhaseName(pjDrawer.milestone.phase) }}
+        </div>
+        <div class="drawer-field">
+          <label>状态</label>
+          <select v-model="pjDrawer.milestone.status" @change="pjUpdateMilestone(pjDrawer.project.id, pjDrawer.milestone)" style="width:100%;padding:8px 12px;border:1.5px solid var(--color-border);border-radius:var(--radius-sm);">
+            <option value="pending">待开始</option>
+            <option value="in_progress">进行中</option>
+            <option value="completed">已完成</option>
+            <option value="blocked">已阻塞</option>
+          </select>
+        </div>
+        <div class="drawer-field">
+          <label>最快路径</label>
+          <div class="val">{{ pjDrawer.milestone.fastest_start }} → {{ pjDrawer.milestone.fastest_end }} ({{ pjDrawer.milestone.fastest_days }}工作日)</div>
+        </div>
+        <div class="drawer-field">
+          <label>最慢路径</label>
+          <div class="val">{{ pjDrawer.milestone.slowest_start }} → {{ pjDrawer.milestone.slowest_end }} ({{ pjDrawer.milestone.slowest_days }}工作日)</div>
+        </div>
+        <div class="drawer-field" v-if="pjDrawer.milestone.actual_start">
+          <label>实际开始</label><div class="val">{{ pjDrawer.milestone.actual_start }}</div>
+        </div>
+        <div class="drawer-field" v-if="pjDrawer.milestone.actual_end">
+          <label>实际完成</label><div class="val">{{ pjDrawer.milestone.actual_end }}</div>
+        </div>
+        <div class="drawer-field">
+          <label>备注</label>
+          <input v-model="pjDrawer.milestone.notes" @change="pjUpdateMilestone(pjDrawer.project.id, pjDrawer.milestone)" placeholder="添加备注...">
+        </div>
+        <div style="margin-top:24px;">
+          <button class="btn btn-outline" @click="pjDrawer=null" style="width:100%;">关闭</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-const { createApp, ref, reactive, nextTick } = Vue;
+const { createApp, ref, reactive, nextTick, computed, watch } = Vue;
 createApp({
   setup() {
     const API = '/api/v1';
@@ -1052,8 +1239,348 @@ createApp({
 
     async function recSelectInn(name) { recSelectedInn.value = name; await recRunPoca(); }
 
+    // ========== Tab C: Project Pipeline Management ==========
+    const pjProjects = ref([]);
+    const pjFilter = ref('');
+    const pjViewMode = ref('gantt');
+    const pjShowCreate = ref(false);
+    const pjTriggerFile = ref(null);
+    const pjDrawer = ref(null);
+    const pjForm = reactive({ name: '', cas_number: '', target_class: 'kinase', mechanism: 'inhibitor', chemical_class: 'small_molecule', indication: '' });
+    const pjTargetClasses = ['kinase','gpcr','ion_channel','nuclear_receptor','protease','transporter','cytokine','growth_factor','immune_checkpoint','cox','opioid_receptor','sodium_channel','histamine_receptor','leukotriene_receptor','beta_adrenoceptor','muscarinic_receptor','bacterial_target','viral_target','fungal_target','tnf_superfamily','complement','integrin','other'];
+    const pjMechanisms = ['inhibitor','activator','agonist','antagonist','modulator','blocker','antibody','fusion_protein','gene_therapy','antisense','vaccine','other'];
+    const pjChemicalClasses = ['small_molecule','monoclonal_antibody','antibody_fragment','bispecific_antibody','antibody_drug_conjugate','fusion_protein','peptide','oligonucleotide','mrna','sirna','other'];
+
+    const pjFiltered = computed(() => {
+      let list = pjProjects.value;
+      if (pjFilter.value) list = list.filter(p => p.overall_status === pjFilter.value);
+      return list;
+    });
+
+    const pjPhaseName = (id) => ({ cas_application:'CAS申请', inn_naming:'INN命名', chinese_submission:'中文名提交', pharmacopoeia_review:'药典委核名', trademark:'商标品牌' }[id] || id);
+    const pjStatusLabel = (s) => ({ on_track:'进行中', at_risk:'有风险', delayed:'已延误', completed:'已完成' }[s] || s);
+    const pjStatusBadgeClass = (s) => s;
+
+    async function pjLoadProjects() {
+      try {
+        const res = await fetch('/api/v1/projects/');
+        if (!res.ok) throw new Error(await res.text());
+        pjProjects.value = await res.json();
+      } catch(e) { console.error('Load projects failed:', e); }
+    }
+
+    async function pjCreateProject() {
+      const body = {
+        name: pjForm.name,
+        cas_number: pjForm.cas_number || null,
+        molecule: {
+          molecule_id: pjForm.name,
+          common_name: pjForm.name,
+          properties: {
+            target_class: pjForm.target_class,
+            mechanism: pjForm.mechanism,
+            chemical_class: pjForm.chemical_class,
+            indication: pjForm.indication,
+          }
+        }
+      };
+      try {
+        const res = await fetch('/api/v1/projects/', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+        if (!res.ok) throw new Error(await res.text());
+        pjShowCreate.value = false;
+        Object.assign(pjForm, { name:'', cas_number:'', indication:'' });
+        await pjLoadProjects();
+      } catch(e) { alert('创建失败: '+e.message); }
+    }
+
+    async function pjImportCsv(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const form = new FormData();
+      form.append('file', file);
+      try {
+        const res = await fetch('/api/v1/projects/import', { method:'POST', body:form });
+        if (!res.ok) throw new Error(await res.text());
+        await pjLoadProjects();
+        alert('导入成功');
+      } catch(e) { alert('导入失败: '+e.message); }
+      e.target.value = '';
+    }
+
+    async function pjDeleteProject(id) {
+      if (!confirm('确定删除此项目？')) return;
+      try {
+        await fetch('/api/v1/projects/'+id, { method:'DELETE' });
+        await pjLoadProjects();
+      } catch(e) { alert('删除失败: '+e.message); }
+    }
+
+    // ===== Pipeline Gantt Canvas =====
+    const pjCanvas = ref(null);
+    const pjCanvasWrap = ref(null);
+    const pjCanvasWidth = ref(1200);
+    const pjCanvasHeight = ref(600);
+
+    const PHASE_COLORS = {
+      cas_application: '#E2E8F0', inn_naming: '#DBEAFE',
+      chinese_submission: '#D1FAE5', pharmacopoeia_review: '#EDE9FE',
+      trademark: '#FED7AA',
+    };
+    const STATUS_COLORS = {
+      pending: '#94A3B8', in_progress: '#3B82F6',
+      completed: '#10B981', blocked: '#EF4444',
+    };
+
+    function pjRenderGantt() {
+      const canvas = pjCanvas.value;
+      if (!canvas) return;
+      const wrap = pjCanvasWrap.value;
+      if (!wrap) return;
+      const dpr = window.devicePixelRatio || 1;
+      const projects = pjFiltered.value;
+      if (projects.length === 0) return;
+
+      let minDate = new Date();
+      let maxDate = new Date();
+      maxDate.setMonth(maxDate.getMonth() + 6);
+      for (const p of projects) {
+        for (const ph of (p.phases || [])) {
+          for (const m of (ph.milestones || [])) {
+            for (const d of [m.fastest_start, m.fastest_end, m.slowest_start, m.slowest_end]) {
+              if (!d) continue;
+              const dt = new Date(d);
+              if (dt < minDate) minDate = dt;
+              if (dt > maxDate) maxDate = dt;
+            }
+          }
+        }
+      }
+      minDate = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+      maxDate = new Date(maxDate.getFullYear(), maxDate.getMonth() + 2, 0);
+      const totalDays = Math.ceil((maxDate - minDate) / (1000*60*60*24));
+
+      const leftPad = 160;
+      const rowH = 44;
+      const phaseH = 16;
+      const headerH = 40;
+      const topPad = headerH + 10;
+      const rowsPerProject = 2;
+      const projectGap = 8;
+      const totalH = topPad + projects.length * (rowsPerProject * rowH + phaseH + projectGap) + 20;
+      const contentW = Math.max((wrap.clientWidth || 800) - leftPad - 20, 400);
+      const dayW = contentW / Math.max(totalDays, 1);
+
+      pjCanvasWidth.value = leftPad + contentW + 20;
+      pjCanvasHeight.value = totalH;
+
+      setTimeout(() => {
+        const canvas2 = pjCanvas.value;
+        if (!canvas2) return;
+        canvas2.width = pjCanvasWidth.value * dpr;
+        canvas2.height = pjCanvasHeight.value * dpr;
+        canvas2.style.width = pjCanvasWidth.value + 'px';
+        canvas2.style.height = pjCanvasHeight.value + 'px';
+        const ctx = canvas2.getContext('2d');
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, canvas2.width, canvas2.height);
+        const _hits = [];
+
+        // Month headers
+        ctx.font = '11px "Noto Sans", sans-serif';
+        let cursor = new Date(minDate);
+        const months = [];
+        while (cursor <= maxDate) {
+          months.push(new Date(cursor));
+          cursor.setMonth(cursor.getMonth() + 1);
+        }
+        for (let mi = 0; mi < months.length; mi++) {
+          const mStart = months[mi];
+          const mEnd = new Date(mStart.getFullYear(), mStart.getMonth()+1, 0);
+          const x = leftPad + Math.ceil((mStart - minDate) / (1000*60*60*24)) * dayW;
+          const w = (Math.ceil((mEnd - mStart) / (1000*60*60*24)) + 1) * dayW;
+          ctx.fillStyle = (mi % 2 === 0) ? '#F8FAFC' : '#FFFFFF';
+          ctx.fillRect(x, 0, w, totalH);
+          ctx.fillStyle = '#94A3B8';
+          ctx.fillText(mStart.getFullYear() + '/' + (mStart.getMonth()+1), x + 6, headerH - 10);
+          ctx.strokeStyle = '#E2E8F0';
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(x, headerH);
+          ctx.lineTo(x, totalH);
+          ctx.stroke();
+        }
+
+        // Today line
+        const today = new Date();
+        if (today >= minDate && today <= maxDate) {
+          const tx = leftPad + Math.ceil((today - minDate) / (1000*60*60*24)) * dayW;
+          ctx.strokeStyle = '#EF4444';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(tx, headerH);
+          ctx.lineTo(tx, totalH);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#EF4444';
+          ctx.fillText('今天', tx + 4, headerH - 4);
+        }
+
+        // Render each project
+        for (let pi = 0; pi < projects.length; pi++) {
+          const project = projects[pi];
+          const baseY = topPad + pi * (rowsPerProject * rowH + phaseH + projectGap);
+
+          // Project name
+          ctx.fillStyle = '#0F172A';
+          ctx.font = '600 13px "Noto Sans", sans-serif';
+          ctx.fillText(project.name, 8, baseY + 20);
+
+          // Phase background bands
+          for (const phase of (project.phases || [])) {
+            const color = PHASE_COLORS[phase.id] || '#F1F5FD';
+            const firstM = phase.milestones[0];
+            const lastM = phase.milestones[phase.milestones.length - 1];
+            if (!firstM || !lastM) continue;
+            const pStart = new Date(firstM.fastest_start || minDate);
+            const pEnd = new Date(lastM.fastest_end || maxDate);
+            const px = leftPad + Math.ceil((pStart - minDate) / (1000*60*60*24)) * dayW;
+            const pw = Math.max(Math.ceil((pEnd - pStart) / (1000*60*60*24)) * dayW, 20);
+            const py = baseY - 2;
+            const ph = rowsPerProject * rowH + 4;
+            ctx.fillStyle = color;
+            ctx.fillRect(px, py, pw, ph);
+          }
+
+          // Fastest path (green solid)
+          const fy = baseY + 10;
+          ctx.strokeStyle = '#10B981';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          let firstF = true;
+          for (const phase of (project.phases || [])) {
+            for (const m of (phase.milestones || [])) {
+              if (!m.fastest_start || !m.fastest_end) continue;
+              const mx = leftPad + Math.ceil((new Date(m.fastest_start) - minDate) / (1000*60*60*24)) * dayW;
+              const my = fy + rowH/2;
+              if (firstF) { ctx.moveTo(mx, my); firstF = false; }
+              else ctx.lineTo(mx, my);
+              const ex = leftPad + Math.ceil((new Date(m.fastest_end) - minDate) / (1000*60*60*24)) * dayW;
+              ctx.lineTo(ex, my);
+              ctx.fillStyle = STATUS_COLORS[m.status] || '#94A3B8';
+              ctx.beginPath();
+              ctx.arc(ex, my, 6, 0, Math.PI*2);
+              ctx.fill();
+              ctx.strokeStyle = '#FFFFFF';
+              ctx.lineWidth = 2;
+              ctx.stroke();
+              ctx.strokeStyle = '#10B981';
+              ctx.lineWidth = 3;
+              _hits.push({ x: ex, y: my, r: 8, project, milestone: m });
+              ctx.beginPath();
+              ctx.moveTo(ex, my);
+            }
+          }
+          ctx.stroke();
+
+          // Slowest path (gray dashed)
+          const sy = fy + rowH;
+          ctx.strokeStyle = '#94A3B8';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.beginPath();
+          let firstS = true;
+          for (const phase of (project.phases || [])) {
+            for (const m of (phase.milestones || [])) {
+              if (!m.slowest_start || !m.slowest_end) continue;
+              const mx = leftPad + Math.ceil((new Date(m.slowest_start) - minDate) / (1000*60*60*24)) * dayW;
+              const my = sy + rowH/2;
+              if (firstS) { ctx.moveTo(mx, my); firstS = false; }
+              else ctx.lineTo(mx, my);
+              const ex = leftPad + Math.ceil((new Date(m.slowest_end) - minDate) / (1000*60*60*24)) * dayW;
+              ctx.lineTo(ex, my);
+              ctx.fillStyle = '#CBD5E1';
+              ctx.beginPath();
+              ctx.arc(ex, my, 4, 0, Math.PI*2);
+              ctx.fill();
+              _hits.push({ x: ex, y: my, r: 8, project, milestone: m });
+              ctx.beginPath();
+              ctx.moveTo(ex, my);
+            }
+          }
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Legend
+          ctx.fillStyle = '#10B981';
+          ctx.font = '10px "Noto Sans", sans-serif';
+          ctx.fillText('最快', 8, fy + rowH/2 + 4);
+          ctx.fillStyle = '#94A3B8';
+          ctx.fillText('最慢', 8, sy + rowH/2 + 4);
+        }
+
+        canvas2._hits = _hits;
+      }, 50);
+    }
+
+    function pjCanvasClick(e) {
+      const canvas = pjCanvas.value;
+      if (!canvas || !canvas._hits) return;
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      for (const hit of canvas._hits) {
+        const dx = mx - hit.x;
+        const dy = my - hit.y;
+        if (Math.sqrt(dx*dx + dy*dy) <= hit.r) {
+          pjDrawer.value = { project: hit.project, milestone: hit.milestone };
+          return;
+        }
+      }
+    }
+
+    async function pjUpdateMilestone(projectId, milestone) {
+      try {
+        const res = await fetch(`/api/v1/projects/${projectId}/milestones/${milestone.id}`, {
+          method: 'PATCH', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            status: milestone.status,
+            notes: milestone.notes,
+            actual_start: milestone.actual_start,
+            actual_end: milestone.actual_end,
+          })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const updated = await res.json();
+        const idx = pjProjects.value.findIndex(p => p.id === projectId);
+        if (idx >= 0) {
+          pjProjects.value[idx] = updated;
+          pjProjects.value = [...pjProjects.value];
+        }
+        pjRenderGantt();
+      } catch(e) { alert('更新失败: '+e.message); }
+    }
+
+    // Load projects on tab switch
+    const pjLoaded = ref(false);
+    watch(activeTab, (tab) => {
+      if (tab === 'projects') {
+        if (!pjLoaded.value) { pjLoadProjects(); pjLoaded.value = true; }
+        setTimeout(pjRenderGantt, 200);
+      }
+    });
+    watch(pjFilter, () => { setTimeout(pjRenderGantt, 100); });
+    watch(pjViewMode, (mode) => { if (mode === 'gantt') setTimeout(pjRenderGantt, 100); });
+    watch(pjProjects, () => { setTimeout(pjRenderGantt, 100); }, { deep: true });
+
     return {
       activeTab,
+      pjProjects, pjFilter, pjViewMode, pjShowCreate, pjTriggerFile, pjDrawer,
+      pjForm, pjTargetClasses, pjMechanisms, pjChemicalClasses,
+      pjFiltered, pjPhaseName, pjStatusLabel, pjStatusBadgeClass,
+      pjLoadProjects, pjCreateProject, pjImportCsv, pjDeleteProject,
+      pjCanvas, pjCanvasWrap, pjCanvasWidth, pjCanvasHeight,
+      pjRenderGantt, pjCanvasClick, pjUpdateMilestone,
       evalPrefix, evalStem, evalInfix, evalStemInfo, showInfixField,
       evalPreviewName, evalThreshold, evalProgress, evalLoading, evalResult, runEvaluate,
       recLoading, recError, recStep, recTargetClass, recMechanism, recChemicalClass,
