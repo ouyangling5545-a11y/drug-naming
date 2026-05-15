@@ -1,54 +1,62 @@
 from __future__ import annotations
 from .._compat import StrEnum
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field
 from .molecule import MoleculeInput
-from .naming import NameCandidate
-from .poca import POCAScoreDetail
-from .chinese import ChineseNameCandidate
-from .brand import BrandNameCandidate
+
+
+class MilestoneStatus(StrEnum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    BLOCKED = "blocked"
+
+
+class Milestone(BaseModel):
+    id: str
+    name: str
+    phase: str
+    order: int
+    status: MilestoneStatus = MilestoneStatus.PENDING
+    fastest_days: int
+    slowest_days: int
+    fastest_start: date | None = None
+    fastest_end: date | None = None
+    slowest_start: date | None = None
+    slowest_end: date | None = None
+    actual_start: date | None = None
+    actual_end: date | None = None
+    depends_on: list[str] = Field(default_factory=list)
+    parallel_with: str | None = None
+    notes: str = ""
+
+
+class Phase(BaseModel):
+    id: str
+    name: str
+    order: int
+    milestones: list[Milestone] = Field(default_factory=list)
+    is_parallel: bool = False
+    parallel_trigger: str | None = None
 
 
 class ProjectStatus(StrEnum):
-    DRAFT = "draft"
-    STEM_MATCHING = "stem_matching"
-    NAME_GENERATION = "name_generation"
-    POCA_SCREENING = "poca_screening"
-    CHINESE_NAMING = "chinese_naming"
-    BRAND_SCREENING = "brand_screening"
-    DECISION_PENDING = "decision_pending"
+    ON_TRACK = "on_track"
+    AT_RISK = "at_risk"
+    DELAYED = "delayed"
     COMPLETED = "completed"
-    REJECTED = "rejected"
 
 
-class Decision(StrEnum):
-    APPROVED = "approved"
-    REJECTED = "rejected"
-    NEEDS_REVISION = "needs_revision"
-    ESCALATED = "escalated"
-
-
-class WorkflowStep(BaseModel):
-    step_name: str
-    status: ProjectStatus
-    started_at: datetime | None = None
-    completed_at: datetime | None = None
-    result_summary: dict = Field(default_factory=dict)
-    decision: Decision | None = None
-    decision_notes: str | None = None
-
-
-class NamingProject(BaseModel):
+class Project(BaseModel):
     id: UUID = Field(default_factory=uuid4)
+    name: str
+    cas_number: str | None = None
     molecule: MoleculeInput
-    status: ProjectStatus = ProjectStatus.DRAFT
-    workflow: list[WorkflowStep] = Field(default_factory=list)
-    stem_matches: list = Field(default_factory=list)
-    inn_candidates: list[NameCandidate] = Field(default_factory=list)
-    poca_results: list[POCAScoreDetail] = Field(default_factory=list)
-    chinese_candidates: list[ChineseNameCandidate] = Field(default_factory=list)
-    brand_candidates: list[BrandNameCandidate] = Field(default_factory=list)
-    final_selection: dict | None = None
+    phases: list[Phase] = Field(default_factory=list)
+    current_phase: str = ""
+    current_milestone: str = ""
+    overall_status: ProjectStatus = ProjectStatus.ON_TRACK
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    csv_source: str | None = None
