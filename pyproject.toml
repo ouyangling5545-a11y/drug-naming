@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "drug-naming"
-version = "0.3.0"
+version = "0.3.1"
 description = "创新药命名管理系统 - INN申请、中文核名、商品名一站式管理"
 requires-python = ">=3.9"
 dependencies = [
