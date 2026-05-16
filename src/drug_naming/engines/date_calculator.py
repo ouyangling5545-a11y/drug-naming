@@ -35,6 +35,30 @@ def add_working_days(start: date, working_days: int) -> date:
     return current
 
 
+def _next_inn_meeting(after_date: date) -> date:
+    """Find the nearest April 1 or October 1 that is >= after_date,
+    with a floor of today + 3 months."""
+    today = date.today()
+    floor_month = today.month + 3
+    floor_year = today.year
+    if floor_month > 12:
+        floor_month -= 12
+        floor_year += 1
+    floor = date(floor_year, floor_month, 1)
+
+    effective = max(floor, after_date)
+
+    candidates = []
+    for y in (effective.year, effective.year + 1):
+        for m in (4, 10):
+            d = date(y, m, 1)
+            if d >= effective:
+                candidates.append(d)
+
+    candidates.sort()
+    return candidates[0] if candidates else date(effective.year + 2, 4, 1)
+
+
 def recalculate_milestone_dates(milestones: list, start_date: date | None = None) -> None:
     """Recalculate fastest_start/fastest_end and slowest_start/slowest_end
     for an ordered list of milestones.
@@ -125,3 +149,47 @@ def recalculate_project_dates(project) -> None:
             last = phase.milestones[-1]
             if last.fastest_end:
                 base_date = last.fastest_end
+
+    # Override inn_consultation with fixed meeting date (April/October)
+    for phase in project.phases:
+        if phase.id == "inn_naming":
+            by_id = {m.id: m for m in phase.milestones}
+            sub = by_id.get("inn_submission")
+            con = by_id.get("inn_consultation")
+            if con and sub and sub.slowest_end:
+                meeting = _next_inn_meeting(sub.slowest_end)
+                con.fastest_start = con.slowest_start = meeting
+                con.fastest_end = con.slowest_end = meeting
+            downstream = [m for m in phase.milestones if m.order > (con.order if con else 3)]
+            if con and downstream:
+                recalculate_milestone_dates(downstream, start_date=con.fastest_end)
+            break
+
+    # Default planned dates to slowest where not already set by user
+    for phase in project.phases:
+        for m in phase.milestones:
+            if m.planned_start is None:
+                m.planned_start = m.slowest_start
+            if m.planned_end is None:
+                m.planned_end = m.slowest_end
+
+    # Determine active path (A or B) based on NDA date
+    project.active_path = determine_active_path(project)
+
+
+def determine_active_path(project) -> str:
+    """Determine whether Path A (auto 药典委) or Path B (active CDE) applies.
+
+    Path A: NDA >= pINN publication + 11 months → auto pharmacopoeia review
+    Path B: NDA < pINN publication + 11 months → active review via CDE
+    Defaults to 'B' if no NDA date is set.
+    """
+    if not project.nda_date:
+        return "B"
+    for phase in project.phases:
+        if phase.id == "inn_naming":
+            for m in phase.milestones:
+                if m.id == "inn_pinn_published" and m.fastest_end:
+                    cutoff = m.fastest_end + timedelta(days=330)
+                    return "A" if project.nda_date >= cutoff else "B"
+    return "B"

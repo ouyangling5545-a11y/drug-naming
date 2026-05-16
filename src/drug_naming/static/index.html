@@ -505,6 +505,7 @@ input[type="range"] {
   background: var(--color-surface); position: relative;
 }
 .pipeline-canvas-wrap canvas { display: block; }
+.pan-btn { padding: 6px 10px !important; font-size: 13px !important; min-width: 32px; text-align: center; }
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(15,23,42,0.4); z-index: 100;
   display: flex; align-items: center; justify-content: center;
@@ -524,6 +525,13 @@ input[type="range"] {
   border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font-body);
 }
 .modal-card input:focus, .modal-card select:focus { border-color: var(--color-primary); outline: none; }
+.modal-card.wide { max-width: 900px; }
+.preview-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+.preview-table th { background: var(--color-muted); padding: 8px 10px; text-align: left; font-weight: 600; font-size: 12px; color: var(--color-muted-foreground); border-bottom: 2px solid var(--color-border); }
+.preview-table td { padding: 8px 10px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+.preview-table .phase-row td { background: #EEF2FF; font-weight: 700; font-size: 13px; padding: 9px 10px; color: var(--color-primary); }
+.preview-table input[type="date"] { padding: 4px 8px; border: 1.5px solid var(--color-border); border-radius: var(--radius-sm); font-size: 13px; width: 130px; font-family: var(--font-body); }
+.preview-table .ref-duration { color: var(--color-muted-foreground); font-size: 12px; white-space: nowrap; }
 .modal-actions { display: flex; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-6); }
 .drawer-overlay {
   position: fixed; inset: 0; background: rgba(15,23,42,0.3); z-index: 200;
@@ -894,15 +902,24 @@ input[type="range"] {
       <button class="btn btn-outline" @click="pjViewMode = pjViewMode==='gantt' ? 'list' : 'gantt'">
         {{ pjViewMode === 'gantt' ? '列表视图' : '管线图视图' }}
       </button>
-      <span style="font-size:12px;color:var(--color-muted-foreground);margin:0 4px;">|</span>
-      <button class="btn btn-outline" :style="{background:pjZoom==='month'?'var(--color-primary)':'',color:pjZoom==='month'?'white':''}" @click="pjZoom='month';pjRenderGantt()" style="font-size:11px;padding:4px 10px;">月</button>
-      <button class="btn btn-outline" :style="{background:pjZoom==='quarter'?'var(--color-primary)':'',color:pjZoom==='quarter'?'white':''}" @click="pjZoom='quarter';pjRenderGantt()" style="font-size:11px;padding:4px 10px;">季</button>
-      <button class="btn btn-outline" :style="{background:pjZoom==='year'?'var(--color-primary)':'',color:pjZoom==='year'?'white':''}" @click="pjZoom='year';pjRenderGantt()" style="font-size:11px;padding:4px 10px;">年</button>
-      <div class="status-filter">
-        <span class="sf-chip" :class="{active: pjFilter===''}" @click="pjFilter=''">全部</span>
-        <span class="sf-chip" :class="{active: pjFilter==='on_track'}" @click="pjFilter='on_track'">进行中</span>
-        <span class="sf-chip" :class="{active: pjFilter==='completed'}" @click="pjFilter='completed'">已完成</span>
-        <span class="sf-chip" :class="{active: pjFilter==='at_risk'}" @click="pjFilter='at_risk'">卡点</span>
+      <template v-if="pjViewMode==='gantt' && pjFiltered.length > 0">
+        <span style="font-size:12px;color:var(--color-muted-foreground);margin:0 4px;">|</span>
+        <button class="btn btn-outline pan-btn" @click="pjViewportStart = new Date(pjViewportStart.getFullYear(), pjViewportStart.getMonth() - 3, 1); pjRenderGantt()" title="向左滚动3个月">◀</button>
+        <button class="btn btn-outline" :style="{background:pjZoom==='month'?'var(--color-primary)':'',color:pjZoom==='month'?'white':''}" @click="pjZoom='month';pjRenderGantt()" style="font-size:11px;padding:4px 10px;">月</button>
+        <button class="btn btn-outline" :style="{background:pjZoom==='quarter'?'var(--color-primary)':'',color:pjZoom==='quarter'?'white':''}" @click="pjZoom='quarter';pjRenderGantt()" style="font-size:11px;padding:4px 10px;">季</button>
+        <button class="btn btn-outline" :style="{background:pjZoom==='year'?'var(--color-primary)':'',color:pjZoom==='year'?'white':''}" @click="pjZoom='year';pjRenderGantt()" style="font-size:11px;padding:4px 10px;">年</button>
+        <button class="btn btn-outline pan-btn" @click="pjViewportStart = new Date(pjViewportStart.getFullYear(), pjViewportStart.getMonth() + 3, 1); pjRenderGantt()" title="向右滚动3个月">▶</button>
+        <button class="btn btn-outline" @click="pjJumpToToday()" style="font-size:11px;padding:4px 10px;">回到今天</button>
+        <button class="btn btn-outline" @click="pjJumpToNextMilestone()" style="font-size:11px;padding:4px 10px;">下一节点</button>
+      </template>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+        <span v-if="pjViewMode==='gantt'" style="font-size:13px;color:var(--color-muted-foreground);font-weight:600;white-space:nowrap;">{{ pjFormatDate(new Date()) }}</span>
+        <div class="status-filter">
+          <span class="sf-chip" :class="{active: pjFilter===''}" @click="pjFilter=''">全部</span>
+          <span class="sf-chip" :class="{active: pjFilter==='on_track'}" @click="pjFilter='on_track'">进行中</span>
+          <span class="sf-chip" :class="{active: pjFilter==='completed'}" @click="pjFilter='completed'">已完成</span>
+          <span class="sf-chip" :class="{active: pjFilter==='at_risk'}" @click="pjFilter='at_risk'">卡点</span>
+        </div>
       </div>
     </div>
 
@@ -920,8 +937,7 @@ input[type="range"] {
     <div class="gantt-tooltip" v-if="pjTooltip" :style="{left:pjTooltip.x+'px',top:pjTooltip.y+'px'}">
       <div style="font-weight:700;margin-bottom:2px;">{{ pjTooltip.name }}</div>
       <div style="font-size:11px;color:var(--color-muted-foreground);">{{ pjPhaseName(pjTooltip.phase) }}</div>
-      <div style="font-size:11px;margin-top:2px;">最快: {{ pjTooltip.fs }} → {{ pjTooltip.fe }}</div>
-      <div style="font-size:11px;">最慢: {{ pjTooltip.ss }} → {{ pjTooltip.se }}</div>
+      <div style="font-size:11px;margin-top:2px;">计划: {{ pjTooltip.ps }} → {{ pjTooltip.pe }}</div>
       <div style="font-size:11px;margin-top:2px;">状态: {{ pjStatusLabel(pjTooltip.status) }}</div>
     </div>
 
@@ -944,8 +960,8 @@ input[type="range"] {
     </div>
 
     <!-- Create Project Modal -->
-    <div class="modal-overlay" v-if="pjShowCreate" @click.self="pjShowCreate=false">
-      <div class="modal-card">
+    <div class="modal-overlay" v-if="pjShowCreate" @click.self="pjCloseCreate">
+      <div class="modal-card" :class="{ wide: pjShowPreview }">
         <h3>新建项目档案</h3>
         <label>项目名称</label>
         <input v-model="pjForm.name" placeholder="如 AMG-001">
@@ -967,8 +983,36 @@ input[type="range"] {
         </select>
         <label>适应症</label>
         <input v-model="pjForm.indication" placeholder="如 非小细胞肺癌">
-        <div class="modal-actions">
-          <button class="btn btn-outline" @click="pjShowCreate=false">取消</button>
+
+        <!-- Preview Table -->
+        <div v-if="pjShowPreview && pjPreviewProject" ref="previewSection" style="margin-top:20px;border-top:2px solid var(--color-border);padding-top:16px;">
+          <h4 style="margin-bottom:8px;font-size:15px;">里程碑日期预览 — 可直接修改计划日期</h4>
+          <table class="preview-table">
+            <thead><tr><th style="width:18%;">阶段</th><th style="width:20%;">里程碑</th><th style="width:18%;">计划开始</th><th style="width:18%;">计划完成</th><th style="width:26%;">官方参考</th></tr></thead>
+            <tbody>
+              <template v-for="phase in pjPreviewProject.phases" :key="phase.id">
+                <tr class="phase-row"><td colspan="5">{{ phase.name }}</td></tr>
+                <tr v-for="m in phase.milestones" :key="m.id">
+                  <td></td>
+                  <td style="font-weight:500;">{{ m.name }}</td>
+                  <td><input type="date"
+                    :value="(pjPreviewDates[m.id]?.planned_start ?? m.planned_start ?? '').slice(0,10)"
+                    @change="e => setPrevDate(m.id, 'planned_start', e.target.value)"></td>
+                  <td><input type="date"
+                    :value="(pjPreviewDates[m.id]?.planned_end ?? m.planned_end ?? '').slice(0,10)"
+                    @change="e => setPrevDate(m.id, 'planned_end', e.target.value)"></td>
+                  <td><span class="ref-duration">最快 {{ m.fastest_days }} 工作日 · 最慢 {{ m.slowest_days }} 工作日</span></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-actions" style="margin-top:20px;">
+          <button class="btn btn-outline" @click="pjPreviewCreate" :disabled="pjPreviewLoading || !pjForm.name">
+            {{ pjPreviewLoading ? '计算中...' : '预览里程碑' }}
+          </button>
+          <button class="btn btn-outline" @click="pjCloseCreate">取消</button>
           <button class="btn btn-primary" @click="pjCreateProject">创建项目</button>
         </div>
       </div>
@@ -991,6 +1035,25 @@ input[type="range"] {
           </select>
         </div>
         <div class="drawer-field">
+          <label>计划开始</label>
+          <input type="date" :value="pjDrawer.milestone.planned_start || pjDrawer.milestone.slowest_start" @change="pjDrawer.milestone.planned_start = $event.target.value; pjUpdatePlannedDates(pjDrawer.project.id, pjDrawer.milestone)" style="width:100%;padding:8px 12px;border:1.5px solid var(--color-border);border-radius:var(--radius-sm);font-size:14px;">
+        </div>
+        <div class="drawer-field">
+          <label>计划完成</label>
+          <input type="date" :value="pjDrawer.milestone.planned_end || pjDrawer.milestone.slowest_end" @change="pjDrawer.milestone.planned_end = $event.target.value; pjUpdatePlannedDates(pjDrawer.project.id, pjDrawer.milestone)" style="width:100%;padding:8px 12px;border:1.5px solid var(--color-border);border-radius:var(--radius-sm);font-size:14px;">
+        </div>
+        <div class="drawer-field">
+          <label>官方参考时长</label>
+          <div class="val" style="color:var(--color-muted-foreground);font-size:13px;">最快 {{ pjDrawer.milestone.fastest_days }} 工作日 · 最慢 {{ pjDrawer.milestone.slowest_days }} 工作日</div>
+        </div>
+        <div class="drawer-field" style="font-size:11px;color:var(--color-muted-foreground);margin-top:-4px;">
+          <details>
+            <summary style="cursor:pointer;color:#94A3B8;">内部计算参考</summary>
+            <div style="margin-top:4px;">最快: {{ pjDrawer.milestone.fastest_start }} &rarr; {{ pjDrawer.milestone.fastest_end }}</div>
+            <div>最慢: {{ pjDrawer.milestone.slowest_start }} &rarr; {{ pjDrawer.milestone.slowest_end }}</div>
+          </details>
+        </div>
+        <div class="drawer-field">
           <label>依赖的前置里程碑</label>
           <div v-for="depId in pjDrawer.milestone.depends_on" :key="depId" style="display:flex;align-items:center;gap:8px;margin:4px 0;font-size:13px;">
             <span>{{ pjMilestoneName(pjDrawer.project, depId) }}</span>
@@ -1000,14 +1063,6 @@ input[type="range"] {
             <option value="">+ 添加依赖...</option>
             <option v-for="m in pjAvailableDependencies(pjDrawer.project, pjDrawer.milestone)" :value="m.id">{{ m.name }}</option>
           </select>
-        </div>
-        <div class="drawer-field">
-          <label>最快路径</label>
-          <div class="val">{{ pjDrawer.milestone.fastest_start }} → {{ pjDrawer.milestone.fastest_end }} ({{ pjDrawer.milestone.fastest_days }}工作日)</div>
-        </div>
-        <div class="drawer-field">
-          <label>最慢路径</label>
-          <div class="val">{{ pjDrawer.milestone.slowest_start }} → {{ pjDrawer.milestone.slowest_end }} ({{ pjDrawer.milestone.slowest_days }}工作日)</div>
         </div>
         <div class="drawer-field" v-if="pjDrawer.milestone.actual_start">
           <label>实际开始</label><div class="val">{{ pjDrawer.milestone.actual_start }}</div>
@@ -1279,9 +1334,27 @@ createApp({
     const pjTriggerFile = ref(null);
     const pjDrawer = ref(null);
     const pjZoom = ref('month');
+    const pjViewportStart = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+    const pjVisibleMonths = computed(() => ({ month: 12, quarter: 36, year: 60 }[pjZoom.value] || 12));
     const pjTooltip = ref(null);
     const pjDragState = ref(null);
+    function pjFormatDate(date) { return date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日'; }
     const pjForm = reactive({ name: '', cas_number: '', nda_date: '', target_class: 'kinase', mechanism: 'inhibitor', chemical_class: 'small_molecule', indication: '' });
+    const pjShowPreview = ref(false);
+    const pjPreviewProject = ref(null);
+    const pjPreviewLoading = ref(false);
+    const pjPreviewDates = reactive({});
+    const previewSection = ref(null);
+    function setPrevDate(mid, field, val) {
+      if (!pjPreviewDates[mid]) pjPreviewDates[mid] = {};
+      pjPreviewDates[mid][field] = val || null;
+    }
+    function pjCloseCreate() {
+      pjShowCreate.value = false;
+      pjShowPreview.value = false;
+      pjPreviewProject.value = null;
+      for (const k of Object.keys(pjPreviewDates)) delete pjPreviewDates[k];
+    }
     const pjTargetClasses = ['kinase','gpcr','ion_channel','nuclear_receptor','protease','transporter','cytokine','growth_factor','immune_checkpoint','cox','opioid_receptor','sodium_channel','histamine_receptor','leukotriene_receptor','beta_adrenoceptor','muscarinic_receptor','bacterial_target','viral_target','fungal_target','tnf_superfamily','complement','integrin','other'];
     const pjMechanisms = ['inhibitor','activator','agonist','antagonist','modulator','blocker','antibody','fusion_protein','gene_therapy','antisense','vaccine','other'];
     const pjChemicalClasses = ['small_molecule','monoclonal_antibody','antibody_fragment','bispecific_antibody','antibody_drug_conjugate','fusion_protein','peptide','oligonucleotide','mrna','sirna','other'];
@@ -1304,8 +1377,8 @@ createApp({
       } catch(e) { console.error('Load projects failed:', e); }
     }
 
-    async function pjCreateProject() {
-      const body = {
+    function buildPjBody() {
+      return {
         name: pjForm.name,
         cas_number: pjForm.cas_number || null,
         nda_date: pjForm.nda_date || null,
@@ -1320,10 +1393,58 @@ createApp({
           }
         }
       };
+    }
+
+    async function pjPreviewCreate() {
+      if (!pjForm.name) return;
+      pjPreviewLoading.value = true;
+      const body = buildPjBody();
+      try {
+        const res = await fetch('/api/v1/projects/preview', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+        if (!res.ok) throw new Error(await res.text());
+        pjPreviewProject.value = await res.json();
+        pjShowPreview.value = true;
+        for (const phase of pjPreviewProject.value.phases || []) {
+          for (const m of phase.milestones || []) {
+            pjPreviewDates[m.id] = {
+              planned_start: (m.planned_start || '').slice(0, 10),
+              planned_end: (m.planned_end || '').slice(0, 10),
+            };
+          }
+        }
+        await Vue.nextTick();
+        if (previewSection.value) {
+          previewSection.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch (e) { alert('预览失败: ' + e.message); }
+      finally { pjPreviewLoading.value = false; }
+    }
+
+    async function pjCreateProject() {
+      const body = buildPjBody();
+      if (pjShowPreview.value && pjPreviewProject.value) {
+        const overrides = [];
+        for (const phase of pjPreviewProject.value.phases || []) {
+          for (const m of phase.milestones || []) {
+            const edits = pjPreviewDates[m.id];
+            if (!edits) continue;
+            const origS = (m.planned_start || '').slice(0, 10);
+            const origE = (m.planned_end || '').slice(0, 10);
+            if ((edits.planned_start ?? '') !== origS || (edits.planned_end ?? '') !== origE) {
+              overrides.push({
+                milestone_id: m.id,
+                planned_start: edits.planned_start || null,
+                planned_end: edits.planned_end || null,
+              });
+            }
+          }
+        }
+        if (overrides.length > 0) body.milestone_overrides = overrides;
+      }
       try {
         const res = await fetch('/api/v1/projects/', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
         if (!res.ok) throw new Error(await res.text());
-        pjShowCreate.value = false;
+        pjCloseCreate();
         Object.assign(pjForm, { name:'', cas_number:'', indication:'' });
         await pjLoadProjects();
       } catch(e) { alert('创建失败: '+e.message); }
@@ -1366,6 +1487,40 @@ createApp({
       pending: '#94A3B8', in_progress: '#3B82F6',
       completed: '#10B981', blocked: '#EF4444',
     };
+    const ROW_LABELS = ['CAS申请', 'INN命名', '中文名（+药典委）', '商标'];
+    const PHASE_TO_ROW = { cas_application:0, inn_naming:1, chinese_submission:2, pharmacopoeia_review:2, trademark:3 };
+    const SUB_LANE_OFFSET = { chinese_submission: -6, pharmacopoeia_review: 6 };
+    const ROW_H = 36;
+    const ROWS_PER_PROJECT = 4;
+    const PJ_HEADER_H = 32;
+    const PROJECT_GAP = 12;
+
+    function pjRowMilestones(project, rowIdx) {
+      const result = [];
+      for (const phase of (project.phases || [])) {
+        if (PHASE_TO_ROW[phase.id] !== rowIdx) continue;
+        for (const m of (phase.milestones || [])) {
+          if (phase.id === 'pharmacopoeia_review') {
+            if (project.active_path === 'A' && m.id === 'pharm_tech_review') continue;
+            if (project.active_path === 'B' && m.id === 'pharm_auto_notice') continue;
+          }
+          result.push({ milestone: m, phase: phase });
+        }
+      }
+      return result;
+    }
+
+    function pjActiveRows(project) {
+      // Return logical row indices that have milestones for this project.
+      // If CAS is known, skip row 0 (CAS申请).
+      const hasCasPhase = (project.phases || []).some(p => p.id === 'cas_application');
+      if (hasCasPhase) return [0, 1, 2, 3];
+      return [1, 2, 3];
+    }
+
+    function pjProjectHeight(project) {
+      return PJ_HEADER_H + pjActiveRows(project).length * ROW_H + PROJECT_GAP;
+    }
 
     function pjRenderGantt() {
       const canvas = pjCanvas.value;
@@ -1376,37 +1531,25 @@ createApp({
       const projects = pjFiltered.value;
       if (projects.length === 0) return;
 
-      let minDate = new Date();
-      let maxDate = new Date();
-      maxDate.setMonth(maxDate.getMonth() + 6);
-      for (const p of projects) {
-        for (const ph of (p.phases || [])) {
-          for (const m of (ph.milestones || [])) {
-            for (const d of [m.fastest_start, m.fastest_end, m.slowest_start, m.slowest_end]) {
-              if (!d) continue;
-              const dt = new Date(d);
-              if (dt < minDate) minDate = dt;
-              if (dt > maxDate) maxDate = dt;
-            }
-          }
-        }
-      }
-      minDate = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
-      maxDate = new Date(maxDate.getFullYear(), maxDate.getMonth() + 2, 0);
-      const totalDays = Math.ceil((maxDate - minDate) / (1000*60*60*24));
+      // Viewport-based date range (not compressed by project duration)
+      const viewportStart = new Date(pjViewportStart.value);
+      const visibleMonths = pjVisibleMonths.value;
+      const viewportEnd = new Date(viewportStart);
+      viewportEnd.setMonth(viewportEnd.getMonth() + visibleMonths);
+      const viewportTotalDays = Math.ceil((viewportEnd - viewportStart) / (1000 * 60 * 60 * 24));
 
       const leftPad = 160;
-      const rowH = 56;
-      const phaseH = 16;
       const headerH = 40;
       const topPad = headerH + 10;
-      const rowsPerProject = 2;
-      const projectGap = 8;
-      const totalH = topPad + projects.length * (rowsPerProject * rowH + phaseH + projectGap) + 20;
+      // Per-project height (depends on whether CAS申请 row is present)
+      let totalH = topPad;
+      for (const p of projects) totalH += pjProjectHeight(p);
+      totalH += 20;
       const contentW = Math.max((wrap.clientWidth || 800) - leftPad - 20, 400);
-      const dayW = contentW / Math.max(totalDays, 1);
-      const zoomMul = { month: 1.0, quarter: 0.4, year: 0.15 }[pjZoom.value] || 1.0;
-      const effectiveDayW = dayW * zoomMul;
+      const effectiveDayW = contentW / Math.max(viewportTotalDays, 1);
+
+      const dateToX = (d) => leftPad + ((d - viewportStart) / (1000 * 60 * 60 * 24)) * effectiveDayW;
+      const daysToW = (days) => Math.max(days * effectiveDayW, 2);
 
       pjCanvasWidth.value = leftPad + contentW + 20;
       pjCanvasHeight.value = totalH;
@@ -1423,77 +1566,55 @@ createApp({
         ctx.clearRect(0, 0, canvas2.width, canvas2.height);
         const _hits = [];
 
-        // Month / Quarter / Year headers
+        // ---- Time headers ----
         ctx.font = '600 13px "Noto Sans", sans-serif';
-        let cursor = new Date(minDate);
-        const months = [];
-        while (cursor <= maxDate) {
-          months.push(new Date(cursor));
-          cursor.setMonth(cursor.getMonth() + 1);
-        }
 
         if (pjZoom.value === 'month') {
-          for (let mi = 0; mi < months.length; mi++) {
-            const mStart = months[mi];
-            const mEnd = new Date(mStart.getFullYear(), mStart.getMonth()+1, 0);
-            const x = leftPad + Math.ceil((mStart - minDate) / (1000*60*60*24)) * effectiveDayW;
-            const w = (Math.ceil((mEnd - mStart) / (1000*60*60*24)) + 1) * effectiveDayW;
-            // Current month highlight
+          let cursor = new Date(viewportStart);
+          let mi = 0;
+          while (cursor <= viewportEnd) {
+            const mStart = new Date(cursor);
+            const mEnd = new Date(mStart.getFullYear(), mStart.getMonth() + 1, 0);
+            const x = dateToX(mStart);
+            const w = daysToW(Math.ceil((mEnd - mStart) / (1000 * 60 * 60 * 24)) + 1);
             const now = new Date();
             const isCurrentMonth = mStart.getFullYear() === now.getFullYear() && mStart.getMonth() === now.getMonth();
             ctx.fillStyle = isCurrentMonth ? '#E8F0FE' : (mi % 2 === 0) ? '#F8FAFC' : '#FFFFFF';
             ctx.fillRect(x, 0, w, totalH);
             ctx.fillStyle = '#94A3B8';
-            ctx.fillText(mStart.getFullYear() + '/' + (mStart.getMonth()+1), x + 6, headerH - 10);
-            // Thicker line at year boundary
+            ctx.fillText(mStart.getFullYear() + '/' + (mStart.getMonth() + 1), x + 6, headerH - 10);
             if (mStart.getMonth() === 0 && mi > 0) {
-              ctx.strokeStyle = '#64748B';
-              ctx.lineWidth = 2;
-              ctx.beginPath();
-              ctx.moveTo(x, headerH);
-              ctx.lineTo(x, totalH);
-              ctx.stroke();
+              ctx.strokeStyle = '#64748B'; ctx.lineWidth = 2;
+              ctx.beginPath(); ctx.moveTo(x, headerH); ctx.lineTo(x, totalH); ctx.stroke();
               ctx.fillStyle = '#0F172A';
               ctx.font = '600 12px "Noto Sans", sans-serif';
               ctx.fillText(String(mStart.getFullYear()), x + 6, headerH - 22);
               ctx.font = '600 13px "Noto Sans", sans-serif';
             } else {
-              ctx.strokeStyle = '#E2E8F0';
-              ctx.lineWidth = 0.5;
-              ctx.beginPath();
-              ctx.moveTo(x, headerH);
-              ctx.lineTo(x, totalH);
-              ctx.stroke();
+              ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 0.5;
+              ctx.beginPath(); ctx.moveTo(x, headerH); ctx.lineTo(x, totalH); ctx.stroke();
             }
+            mi++;
+            cursor.setMonth(cursor.getMonth() + 1);
           }
         } else if (pjZoom.value === 'quarter') {
-          // Group months into quarters
           const qLabels = ['Q1', 'Q2', 'Q3', 'Q4'];
           let qi = 0;
-          let qStart = new Date(minDate);
-          while (qStart <= maxDate) {
+          let qStart = new Date(viewportStart.getFullYear(), Math.floor(viewportStart.getMonth() / 3) * 3, 1);
+          while (qStart <= viewportEnd) {
             const qEnd = new Date(qStart.getFullYear(), qStart.getMonth() + 3, 0);
-            const x = leftPad + Math.ceil((qStart - minDate) / (1000*60*60*24)) * effectiveDayW;
-            const w = Math.max((Math.ceil((qEnd - qStart) / (1000*60*60*24)) + 1) * effectiveDayW, 1);
+            const x = dateToX(qStart);
+            const w = Math.max(daysToW(Math.ceil((qEnd - qStart) / (1000 * 60 * 60 * 24)) + 1), 1);
             const qIdx = Math.floor(qStart.getMonth() / 3);
             ctx.fillStyle = (qi % 2 === 0) ? '#F8FAFC' : '#FFFFFF';
             ctx.fillRect(x, 0, w, totalH);
             ctx.fillStyle = '#94A3B8';
             ctx.fillText(qStart.getFullYear() + ' ' + qLabels[qIdx], x + 6, headerH - 10);
-            ctx.strokeStyle = '#E2E8F0';
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            ctx.moveTo(x, headerH);
-            ctx.lineTo(x, totalH);
-            ctx.stroke();
-            // Thicker line at year boundary
+            ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.moveTo(x, headerH); ctx.lineTo(x, totalH); ctx.stroke();
             if (qStart.getMonth() === 0 && qi > 0) {
-              ctx.strokeStyle = '#64748B';
-              ctx.lineWidth = 2;
-              ctx.beginPath();
-              ctx.moveTo(x, headerH);
-              ctx.lineTo(x, totalH);
-              ctx.stroke();
+              ctx.strokeStyle = '#64748B'; ctx.lineWidth = 2;
+              ctx.beginPath(); ctx.moveTo(x, headerH); ctx.lineTo(x, totalH); ctx.stroke();
               ctx.fillStyle = '#0F172A';
               ctx.font = '600 12px "Noto Sans", sans-serif';
               ctx.fillText(String(qStart.getFullYear()), x + 6, headerH - 22);
@@ -1504,40 +1625,32 @@ createApp({
           }
         } else if (pjZoom.value === 'year') {
           let yi = 0;
-          let yStart = new Date(minDate.getFullYear(), 0, 1);
-          while (yStart <= maxDate) {
+          let yStart = new Date(viewportStart.getFullYear(), 0, 1);
+          while (yStart <= viewportEnd) {
             const yEnd = new Date(yStart.getFullYear(), 11, 31);
-            const x = leftPad + Math.ceil((yStart - minDate) / (1000*60*60*24)) * effectiveDayW;
-            const w = Math.max((Math.ceil((yEnd - yStart) / (1000*60*60*24)) + 1) * effectiveDayW, 1);
+            const x = dateToX(yStart);
+            const w = Math.max(daysToW(Math.ceil((yEnd - yStart) / (1000 * 60 * 60 * 24)) + 1), 1);
             ctx.fillStyle = (yi % 2 === 0) ? '#F8FAFC' : '#FFFFFF';
             ctx.fillRect(x, 0, w, totalH);
             ctx.fillStyle = '#94A3B8';
             ctx.fillText(String(yStart.getFullYear()), x + 6, headerH - 10);
-            ctx.strokeStyle = '#E2E8F0';
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            ctx.moveTo(x, headerH);
-            ctx.lineTo(x, totalH);
-            ctx.stroke();
+            ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.moveTo(x, headerH); ctx.lineTo(x, totalH); ctx.stroke();
             yi++;
             yStart = new Date(yStart.getFullYear() + 1, 0, 1);
           }
         }
 
-        // NDA date marker
+        // ---- NDA marker ----
         for (let pi = 0; pi < projects.length; pi++) {
           const project = projects[pi];
           if (project.nda_date) {
             const nda = new Date(project.nda_date);
-            if (nda >= minDate && nda <= maxDate) {
-              const nx = leftPad + Math.ceil((nda - minDate) / (1000*60*60*24)) * effectiveDayW;
-              ctx.strokeStyle = '#3B82F6';
-              ctx.lineWidth = 2;
+            if (nda >= viewportStart && nda <= viewportEnd) {
+              const nx = dateToX(nda);
+              ctx.strokeStyle = '#3B82F6'; ctx.lineWidth = 2;
               ctx.setLineDash([4, 3]);
-              ctx.beginPath();
-              ctx.moveTo(nx, headerH);
-              ctx.lineTo(nx, totalH);
-              ctx.stroke();
+              ctx.beginPath(); ctx.moveTo(nx, headerH); ctx.lineTo(nx, totalH); ctx.stroke();
               ctx.setLineDash([]);
               ctx.fillStyle = '#3B82F6';
               ctx.font = '600 11px "Noto Sans", sans-serif';
@@ -1546,163 +1659,184 @@ createApp({
           }
         }
 
-        // Today line
+        // ---- Today line ----
         const today = new Date();
-        if (today >= minDate && today <= maxDate) {
-          const tx = leftPad + Math.ceil((today - minDate) / (1000*60*60*24)) * effectiveDayW;
-          ctx.strokeStyle = '#EF4444';
-          ctx.lineWidth = 1;
+        if (today >= viewportStart && today <= viewportEnd) {
+          const tx = dateToX(today);
+          ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 1;
           ctx.setLineDash([4, 4]);
-          ctx.beginPath();
-          ctx.moveTo(tx, headerH);
-          ctx.lineTo(tx, totalH);
-          ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(tx, headerH); ctx.lineTo(tx, totalH); ctx.stroke();
           ctx.setLineDash([]);
           ctx.fillStyle = '#EF4444';
           ctx.fillText('今天', tx + 4, headerH - 4);
         }
 
-        // Render each project
+        // ---- Render each project (dynamic-row single-track) ----
+        let cumY = topPad;
         for (let pi = 0; pi < projects.length; pi++) {
           const project = projects[pi];
-          const baseY = topPad + pi * (rowsPerProject * rowH + phaseH + projectGap);
+          const baseY = cumY;
+          const activeRows = pjActiveRows(project);
+          cumY += pjProjectHeight(project);
 
-          // Project name
+          // Project name + CAS
           ctx.fillStyle = '#0F172A';
-          ctx.font = '600 13px "Noto Sans", sans-serif';
-          ctx.fillText(project.name, 8, baseY + 20);
-
-          // Phase background bands
-          for (const phase of (project.phases || [])) {
-            const color = PHASE_COLORS[phase.id] || '#F1F5FD';
-            const firstM = phase.milestones[0];
-            const lastM = phase.milestones[phase.milestones.length - 1];
-            if (!firstM || !lastM) continue;
-            const pStart = new Date(firstM.fastest_start || minDate);
-            const pEnd = new Date(lastM.fastest_end || maxDate);
-            const px = leftPad + Math.ceil((pStart - minDate) / (1000*60*60*24)) * effectiveDayW;
-            const pw = Math.max(Math.ceil((pEnd - pStart) / (1000*60*60*24)) * effectiveDayW, 20);
-            const py = baseY - 2;
-            const ph = rowsPerProject * rowH + 4;
-            ctx.fillStyle = color;
-            ctx.fillRect(px, py, pw, ph);
+          ctx.font = '600 12px "Noto Sans", sans-serif';
+          ctx.fillText(project.name, 8, baseY + 12);
+          if (project.cas_number) {
+            ctx.fillStyle = '#64748B';
+            ctx.font = '10px "Noto Sans", sans-serif';
+            ctx.fillText('CAS ' + project.cas_number, 8, baseY + 24);
           }
 
-          // Path visualization label for Phase 4 (pharmacopoeia_review)
+          // Phase background bands (one per active row)
+          for (let vi = 0; vi < activeRows.length; vi++) {
+            const ri = activeRows[vi];
+            const rowMs = pjRowMilestones(project, ri);
+            if (rowMs.length === 0) continue;
+            const color = PHASE_COLORS[rowMs[0].phase.id] || '#F1F5FD';
+            let pStart = null, pEnd = null;
+            for (const { milestone: m } of rowMs) {
+              const ps = m.planned_start || m.slowest_start;
+              const pe = m.planned_end || m.slowest_end;
+              if (ps && (!pStart || new Date(ps) < pStart)) pStart = new Date(ps);
+              if (pe && (!pEnd || new Date(pe) > pEnd)) pEnd = new Date(pe);
+            }
+            if (!pStart || !pEnd || pEnd < viewportStart || pStart > viewportEnd) continue;
+            if (pStart < viewportStart) pStart = new Date(viewportStart);
+            if (pEnd > viewportEnd) pEnd = new Date(viewportEnd);
+            const px = dateToX(pStart);
+            const pw = Math.max(daysToW(Math.ceil((pEnd - pStart) / (1000 * 60 * 60 * 24))), 20);
+            const py = baseY + PJ_HEADER_H + vi * ROW_H;
+            ctx.fillStyle = color;
+            ctx.fillRect(px, py, pw, ROW_H);
+          }
+
+          // Row labels (only active rows)
+          ctx.fillStyle = '#64748B';
+          ctx.font = '11px "Noto Sans", sans-serif';
+          for (let vi = 0; vi < activeRows.length; vi++) {
+            const ri = activeRows[vi];
+            const ry = baseY + PJ_HEADER_H + vi * ROW_H + ROW_H / 2 + 4;
+            ctx.fillText(ROW_LABELS[ri], 8, ry);
+          }
+
+          // Active path label for pharmacopoeia on row 2
           if (project.active_path === 'A' || project.active_path === 'B') {
             const ph4 = (project.phases || []).find(ph => ph.id === 'pharmacopoeia_review');
             if (ph4) {
-              const firstM = ph4.milestones[0];
-              const lastM = ph4.milestones[ph4.milestones.length - 1];
-              if (firstM && lastM) {
-                const pStart = new Date(firstM.fastest_start || minDate);
-                const px = leftPad + Math.ceil((pStart - minDate) / (1000*60*60*24)) * effectiveDayW;
-                ctx.fillStyle = '#7C3AED';
-                ctx.font = 'italic 10px "Noto Sans", sans-serif';
-                ctx.fillText('路径' + project.active_path, px, baseY - 6);
+              const activeM = ph4.milestones.find(m =>
+                (project.active_path === 'A' && m.id === 'pharm_auto_notice') ||
+                (project.active_path === 'B' && m.id === 'pharm_tech_review')
+              );
+              if (activeM) {
+                const pStart = activeM.planned_start || activeM.slowest_start;
+                if (pStart) {
+                  const ds = new Date(pStart);
+                  if (ds <= viewportEnd) {
+                    const lx = Math.max(dateToX(ds), leftPad);
+                    ctx.fillStyle = '#7C3AED';
+                    ctx.font = 'italic 10px "Noto Sans", sans-serif';
+                    const pathVi = activeRows.indexOf(2);
+                    const lry = baseY + PJ_HEADER_H + pathVi * ROW_H + ROW_H * 0.45 + 14;
+                    ctx.fillText('路径' + project.active_path, lx, lry);
+                  }
+                }
               }
             }
           }
 
-          // Fastest path (green solid)
-          const fy = baseY + 10;
-          ctx.strokeStyle = '#10B981';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          let firstF = true;
-          for (const phase of (project.phases || [])) {
-            // Dimming for pharmacopoeia_review path B: dim pharm_auto_notice
-            let alphaOverride = null;
-            if (phase.id === 'pharmacopoeia_review') {
-              if (project.active_path === 'A') {
-                // For path A: dim pharm_tech_review
-              } else if (project.active_path === 'B') {
-                // For path B: dim pharm_auto_notice
-              }
+          // Render each active row's timeline
+          for (let vi = 0; vi < activeRows.length; vi++) {
+            const ri = activeRows[vi];
+            const rowMs = pjRowMilestones(project, ri);
+            if (rowMs.length === 0) continue;
+
+            const ry = baseY + PJ_HEADER_H + vi * ROW_H;
+
+            // Group by phase for sub-lane rendering
+            const byPhase = {};
+            for (const { milestone, phase } of rowMs) {
+              if (!byPhase[phase.id]) byPhase[phase.id] = { phase, milestones: [] };
+              byPhase[phase.id].milestones.push(milestone);
             }
-            for (const m of (phase.milestones || [])) {
-              if (!m.fastest_start || !m.fastest_end) continue;
-              const mx = leftPad + Math.ceil((new Date(m.fastest_start) - minDate) / (1000*60*60*24)) * effectiveDayW;
-              const my = fy + rowH/2;
-              if (firstF) { ctx.moveTo(mx, my); firstF = false; }
-              else ctx.lineTo(mx, my);
-              const ex = leftPad + Math.ceil((new Date(m.fastest_end) - minDate) / (1000*60*60*24)) * effectiveDayW;
-              ctx.lineTo(ex, my);
 
-              // Path visualization dimming
-              if (phase.id === 'pharmacopoeia_review') {
-                if (project.active_path === 'A' && m.name === '形式审查') {
-                  // pharm_tech_review dimmed for path A — draw with lower alpha
-                  continue; // skip drawing this node on fastest path for path A
-                }
-                if (project.active_path === 'B' && (m.name === '公示' || m.name === '自动受理')) {
-                  // pharm_auto_notice dimmed for path B — draw with lower alpha
-                  continue; // skip drawing this node on fastest path for path B
-                }
-              }
+            for (const phaseId of Object.keys(byPhase)) {
+              const { phase, milestones } = byPhase[phaseId];
+              const sorted = [...milestones].sort((a, b) => a.order - b.order);
+              const hasLane = SUB_LANE_OFFSET[phaseId] !== undefined;
+              const laneY = ry + ROW_H / 2 + (hasLane ? SUB_LANE_OFFSET[phaseId] : 0);
 
-              ctx.fillStyle = STATUS_COLORS[m.status] || '#94A3B8';
+              const lineColor = phaseId === 'pharmacopoeia_review' ? '#7C3AED' : '#3B82F6';
+
+              ctx.strokeStyle = lineColor;
+              ctx.lineWidth = 2.5;
+              if (phaseId === 'pharmacopoeia_review') ctx.setLineDash([5, 4]);
+
               ctx.beginPath();
-              ctx.arc(ex, my, 6, 0, Math.PI*2);
-              ctx.fill();
-              ctx.strokeStyle = '#FFFFFF';
-              ctx.lineWidth = 2;
+              let first = true;
+              for (const m of sorted) {
+                const ps = m.planned_start || m.slowest_start;
+                const pe = m.planned_end || m.slowest_end;
+                if (!ps || !pe) continue;
+
+                const msDate = new Date(ps);
+                const meDate = new Date(pe);
+                if (meDate < viewportStart || msDate > viewportEnd) continue;
+
+                let sx = dateToX(msDate);
+                let ex = dateToX(meDate);
+                const extendsLeft = msDate < viewportStart;
+                const extendsRight = meDate > viewportEnd;
+
+                if (extendsLeft) {
+                  sx = leftPad;
+                  ctx.fillStyle = STATUS_COLORS[m.status] || '#94A3B8';
+                  ctx.beginPath(); ctx.moveTo(leftPad, laneY); ctx.lineTo(leftPad + 7, laneY - 3); ctx.lineTo(leftPad + 7, laneY + 3); ctx.closePath(); ctx.fill();
+                  ctx.strokeStyle = lineColor; ctx.lineWidth = 2.5;
+                  if (phaseId === 'pharmacopoeia_review') ctx.setLineDash([5, 4]);
+                }
+                if (extendsRight) {
+                  ex = leftPad + contentW;
+                  ctx.fillStyle = STATUS_COLORS[m.status] || '#94A3B8';
+                  ctx.beginPath(); ctx.moveTo(leftPad + contentW, laneY); ctx.lineTo(leftPad + contentW - 7, laneY - 3); ctx.lineTo(leftPad + contentW - 7, laneY + 3); ctx.closePath(); ctx.fill();
+                  ctx.strokeStyle = lineColor; ctx.lineWidth = 2.5;
+                  if (phaseId === 'pharmacopoeia_review') ctx.setLineDash([5, 4]);
+                }
+
+                if (first) { ctx.moveTo(sx, laneY); first = false; }
+                else { ctx.lineTo(sx, laneY); }
+                ctx.lineTo(ex, laneY);
+
+                ctx.fillStyle = STATUS_COLORS[m.status] || '#94A3B8';
+                ctx.beginPath();
+                ctx.arc(ex, laneY, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2;
+                ctx.setLineDash([]);
+                ctx.stroke();
+                ctx.strokeStyle = lineColor; ctx.lineWidth = 2.5;
+                if (phaseId === 'pharmacopoeia_review') ctx.setLineDash([5, 4]);
+
+                _hits.push({ x: ex, y: laneY, r: 8, project, milestone: m });
+
+                if (pjZoom.value === 'month' && meDate <= viewportEnd) {
+                  ctx.fillStyle = '#334155';
+                  ctx.font = '9px "Noto Sans", sans-serif';
+                  ctx.fillText(m.name, ex + 8, laneY + 3);
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(ex, laneY);
+              }
               ctx.stroke();
-              ctx.strokeStyle = '#10B981';
-              ctx.lineWidth = 3;
-              _hits.push({ x: ex, y: my, r: 8, project, milestone: m });
-
-              // Label next to node
-              if (pjZoom.value === 'month') {
-                ctx.fillStyle = '#334155';
-                ctx.font = '9px "Noto Sans", sans-serif';
-                ctx.fillText(m.name, ex + 8, my + 3);
-              }
-
-              ctx.beginPath();
-              ctx.moveTo(ex, my);
+              ctx.setLineDash([]);
             }
           }
-          ctx.stroke();
-
-          // Slowest path (gray dashed)
-          const sy = fy + rowH;
-          ctx.strokeStyle = '#94A3B8';
-          ctx.lineWidth = 2;
-          ctx.setLineDash([6, 4]);
-          ctx.beginPath();
-          let firstS = true;
-          for (const phase of (project.phases || [])) {
-            for (const m of (phase.milestones || [])) {
-              if (!m.slowest_start || !m.slowest_end) continue;
-              const mx = leftPad + Math.ceil((new Date(m.slowest_start) - minDate) / (1000*60*60*24)) * effectiveDayW;
-              const my = sy + rowH/2;
-              if (firstS) { ctx.moveTo(mx, my); firstS = false; }
-              else ctx.lineTo(mx, my);
-              const ex = leftPad + Math.ceil((new Date(m.slowest_end) - minDate) / (1000*60*60*24)) * effectiveDayW;
-              ctx.lineTo(ex, my);
-              ctx.fillStyle = '#CBD5E1';
-              ctx.beginPath();
-              ctx.arc(ex, my, 4, 0, Math.PI*2);
-              ctx.fill();
-              _hits.push({ x: ex, y: my, r: 8, project, milestone: m });
-              ctx.beginPath();
-              ctx.moveTo(ex, my);
-            }
-          }
-          ctx.stroke();
-          ctx.setLineDash([]);
-
-          // Legend
-          ctx.fillStyle = '#10B981';
-          ctx.font = '10px "Noto Sans", sans-serif';
-          ctx.fillText('最快', 8, fy + rowH/2 + 4);
-          ctx.fillStyle = '#94A3B8';
-          ctx.fillText('最慢', 8, sy + rowH/2 + 4);
         }
 
         canvas2._hits = _hits;
-        canvas2._minDate = minDate;
+        canvas2._viewportStart = new Date(viewportStart);
         canvas2._effectiveDayW = effectiveDayW;
       }, 50);
     }
@@ -1745,6 +1879,37 @@ createApp({
       } catch(e) { alert('更新失败: '+e.message); }
     }
 
+    async function pjUpdatePlannedDates(projectId, milestone) {
+      try {
+        const res = await fetch(`/api/v1/projects/${projectId}/milestones/${milestone.id}`, {
+          method: 'PATCH', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            planned_start: milestone.planned_start || null,
+            planned_end: milestone.planned_end || null,
+          })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const recRes = await fetch(`/api/v1/projects/${projectId}/recalculate`, { method: 'POST' });
+        if (recRes.ok) {
+          const updated = await recRes.json();
+          const idx = pjProjects.value.findIndex(p => p.id === projectId);
+          if (idx >= 0) {
+            pjProjects.value[idx] = updated;
+            pjProjects.value = [...pjProjects.value];
+            for (const ph of updated.phases || []) {
+              for (const m of ph.milestones || []) {
+                if (m.id === milestone.id) {
+                  pjDrawer.value = { project: updated, milestone: m };
+                  break;
+                }
+              }
+            }
+          }
+          pjRenderGantt();
+        }
+      } catch(e) { alert('日期更新失败: '+e.message); }
+    }
+
     function pjCanvasMouseMove(e) {
       const canvas = pjCanvas.value;
       if (!canvas || !canvas._hits) { pjTooltip.value = null; return; }
@@ -1762,8 +1927,8 @@ createApp({
         pjTooltip.value = {
           x: e.clientX - rect.left + 14, y: e.clientY - rect.top - 10,
           name: m.name, phase: m.phase,
-          fs: m.fastest_start, fe: m.fastest_end,
-          ss: m.slowest_start, se: m.slowest_end,
+          ps: m.planned_start || m.slowest_start,
+          pe: m.planned_end || m.slowest_end,
           status: m.status
         };
         canvas.style.cursor = 'pointer';
@@ -1784,7 +1949,7 @@ createApp({
         if (Math.sqrt((mx-hit.x)**2 + (my-hit.y)**2) <= hit.r) {
           pjDragState.value = {
             project: hit.project, milestone: hit.milestone,
-            startX: mx, origDate: hit.milestone.fastest_start,
+            startX: mx, origDate: hit.milestone.planned_start || hit.milestone.slowest_start,
             canvas: canvas
           };
           canvas.style.cursor = 'grabbing';
@@ -1792,6 +1957,41 @@ createApp({
           return;
         }
       }
+    }
+
+    function pjJumpToToday() {
+      const today = new Date();
+      pjViewportStart.value = new Date(today.getFullYear(), today.getMonth(), 1);
+      pjRenderGantt();
+    }
+
+    function pjJumpToNextMilestone() {
+      const today = new Date();
+      const visibleMonths = pjVisibleMonths.value;
+      let nearestDate = null;
+      for (const p of pjFiltered.value) {
+        for (const ph of (p.phases || [])) {
+          for (const m of (ph.milestones || [])) {
+            if (m.status === 'completed') continue;
+            const ps = m.planned_start || m.slowest_start;
+            if (!ps) continue;
+            const d = new Date(ps);
+            if (d < today) continue;
+            if (!nearestDate || d < nearestDate) nearestDate = d;
+          }
+        }
+      }
+      if (nearestDate) {
+        const offsetMonths = Math.floor(visibleMonths * 0.15);
+        const newStart = new Date(nearestDate);
+        newStart.setMonth(newStart.getMonth() - offsetMonths);
+        newStart.setDate(1);
+        pjViewportStart.value = newStart;
+      } else {
+        const t = new Date();
+        pjViewportStart.value = new Date(t.getFullYear(), t.getMonth(), 1);
+      }
+      pjRenderGantt();
     }
 
     async function pjCanvasMouseUp(e) {
@@ -1802,7 +2002,7 @@ createApp({
       const mx = e.clientX - rect.left;
       const dx = mx - ds.startX;
 
-      if (canvas._minDate && canvas._effectiveDayW && Math.abs(dx) > 3) {
+      if (canvas._viewportStart && canvas._effectiveDayW && Math.abs(dx) > 3) {
         const dayDelta = Math.round(dx / canvas._effectiveDayW);
         if (dayDelta !== 0) {
           const oldDate = new Date(ds.origDate);
@@ -1813,7 +2013,7 @@ createApp({
           try {
             await fetch(`/api/v1/projects/${ds.project.id}/milestones/${ds.milestone.id}`, {
               method: 'PATCH', headers: {'Content-Type':'application/json'},
-              body: JSON.stringify({ fastest_start: isoStr })
+              body: JSON.stringify({ planned_start: isoStr })
             });
             const res = await fetch(`/api/v1/projects/${ds.project.id}/recalculate`, { method: 'POST' });
             if (res.ok) {
@@ -1929,11 +2129,14 @@ createApp({
       pjForm, pjTargetClasses, pjMechanisms, pjChemicalClasses,
       pjFiltered, pjPhaseName, pjStatusLabel, pjStatusBadgeClass,
       pjLoadProjects, pjCreateProject, pjImportCsv, pjDeleteProject,
+      pjShowPreview, pjPreviewProject, pjPreviewLoading, pjPreviewDates,
+      pjPreviewCreate, setPrevDate, pjCloseCreate, previewSection,
       pjCanvas, pjCanvasWrap, pjCanvasWidth, pjCanvasHeight,
-      pjRenderGantt, pjCanvasClick, pjUpdateMilestone,
-      pjZoom, pjTooltip, pjDragState,
+      pjRenderGantt, pjCanvasClick, pjUpdateMilestone, pjUpdatePlannedDates,
+      pjZoom, pjViewportStart, pjTooltip, pjDragState,
       pjCanvasMouseMove, pjCanvasMouseDown, pjCanvasMouseUp,
       pjMilestoneName, pjAvailableDependencies, pjAddDependency, pjRemoveDependency,
+      pjJumpToToday, pjJumpToNextMilestone, pjFormatDate,
       evalPrefix, evalStem, evalInfix, evalStemInfo, showInfixField,
       evalPreviewName, evalThreshold, evalProgress, evalLoading, evalResult, runEvaluate,
       recLoading, recError, recStep, recTargetClass, recMechanism, recChemicalClass,

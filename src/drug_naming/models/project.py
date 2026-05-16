@@ -27,6 +27,8 @@ class Milestone(BaseModel):
     slowest_end: date | None = None
     actual_start: date | None = None
     actual_end: date | None = None
+    planned_start: date | None = None
+    planned_end: date | None = None
     depends_on: list[str] = Field(default_factory=list)
     parallel_with: str | None = None
     notes: str = ""
@@ -57,9 +59,17 @@ class Project(BaseModel):
     current_phase: str = ""
     current_milestone: str = ""
     overall_status: ProjectStatus = ProjectStatus.ON_TRACK
+    nda_date: date | None = None
+    active_path: str = ""
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     csv_source: str | None = None
+
+
+class MilestoneDateOverride(BaseModel):
+    milestone_id: str
+    planned_start: date | None = None
+    planned_end: date | None = None
 
 
 def build_default_phases(has_cas: bool) -> list[Phase]:
@@ -91,14 +101,12 @@ def build_default_phases(has_cas: bool) -> list[Phase]:
         name="INN命名",
         order=phase2_order,
         milestones=[
-            Milestone(id="inn_stem_matching", name="词干匹配", phase="inn_naming", order=1, fastest_days=1, slowest_days=3),
-            Milestone(id="inn_name_generation", name="名称生成", phase="inn_naming", order=2, fastest_days=2, slowest_days=5, depends_on=["inn_stem_matching"]),
-            Milestone(id="inn_poca_screening", name="POCA筛选", phase="inn_naming", order=3, fastest_days=1, slowest_days=2, depends_on=["inn_name_generation"]),
-            Milestone(id="inn_submission", name="INN申请提交", phase="inn_naming", order=4, fastest_days=5, slowest_days=10, depends_on=["inn_poca_screening"]),
-            Milestone(id="inn_consultation", name="INN会议", phase="inn_naming", order=5, fastest_days=60, slowest_days=120, depends_on=["inn_submission"]),
-            Milestone(id="inn_pinn_published", name="pINN公示", phase="inn_naming", order=6, fastest_days=60, slowest_days=80, depends_on=["inn_consultation"]),
-            Milestone(id="inn_pinn_objection", name="pINN反对期", phase="inn_naming", order=7, fastest_days=80, slowest_days=80, depends_on=["inn_pinn_published"]),
-            Milestone(id="inn_rinn", name="rINN时间", phase="inn_naming", order=8, fastest_days=100, slowest_days=120, depends_on=["inn_pinn_objection"]),
+            Milestone(id="inn_name_determined", name="确定申报名", phase="inn_naming", order=1, fastest_days=4, slowest_days=10),
+            Milestone(id="inn_submission", name="INN申请提交", phase="inn_naming", order=2, fastest_days=5, slowest_days=10, depends_on=["inn_name_determined"]),
+            Milestone(id="inn_consultation", name="INN会议", phase="inn_naming", order=3, fastest_days=0, slowest_days=0, depends_on=["inn_submission"]),
+            Milestone(id="inn_pinn_published", name="pINN公示", phase="inn_naming", order=4, fastest_days=60, slowest_days=80, depends_on=["inn_consultation"]),
+            Milestone(id="inn_pinn_objection", name="pINN反对期", phase="inn_naming", order=5, fastest_days=80, slowest_days=80, depends_on=["inn_pinn_published"]),
+            Milestone(id="inn_rinn", name="rINN时间", phase="inn_naming", order=6, fastest_days=100, slowest_days=120, depends_on=["inn_pinn_objection"]),
         ],
     ))
 

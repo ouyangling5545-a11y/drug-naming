@@ -12,7 +12,7 @@ from ..models.molecule import (
 )
 from ..models.project import (
     Project, Phase, Milestone, MilestoneStatus,
-    ProjectStatus, build_default_phases,
+    ProjectStatus, build_default_phases, MilestoneDateOverride,
 )
 from ..engines.date_calculator import recalculate_project_dates
 
@@ -45,7 +45,22 @@ def _save(projects: dict[UUID, Project]) -> None:
 class CreateProjectBody(BaseModel):
     name: str
     cas_number: str | None = None
+    nda_date: date | None = None
     molecule: MoleculeInput
+    milestone_overrides: list[MilestoneDateOverride] | None = None
+
+
+def _apply_milestone_overrides(project: Project, overrides: list[MilestoneDateOverride]) -> None:
+    """Apply milestone planned-date overrides to a project after recalculation."""
+    override_map = {o.milestone_id: o for o in overrides}
+    for phase in project.phases:
+        for m in phase.milestones:
+            if m.id in override_map:
+                ov = override_map[m.id]
+                if ov.planned_start is not None:
+                    m.planned_start = ov.planned_start
+                if ov.planned_end is not None:
+                    m.planned_end = ov.planned_end
 
 
 @router.post("/", response_model=Project)
@@ -57,12 +72,33 @@ def create_project(body: CreateProjectBody) -> Project:
     project = Project(
         name=body.name,
         cas_number=body.cas_number.strip() if body.cas_number else None,
+        nda_date=body.nda_date,
         molecule=body.molecule,
         phases=phases,
     )
     recalculate_project_dates(project)
+    if body.milestone_overrides:
+        _apply_milestone_overrides(project, body.milestone_overrides)
     projects[project.id] = project
     _save(projects)
+    return project
+
+
+@router.post("/preview", response_model=Project)
+def preview_project(body: CreateProjectBody) -> Project:
+    """Preview milestone dates for a new project without saving."""
+    has_cas = bool(body.cas_number and body.cas_number.strip())
+    phases = build_default_phases(has_cas)
+    project = Project(
+        name=body.name,
+        cas_number=body.cas_number.strip() if body.cas_number else None,
+        nda_date=body.nda_date,
+        molecule=body.molecule,
+        phases=phases,
+    )
+    recalculate_project_dates(project)
+    if body.milestone_overrides:
+        _apply_milestone_overrides(project, body.milestone_overrides)
     return project
 
 
@@ -122,6 +158,9 @@ class UpdateMilestoneBody(BaseModel):
     fastest_end: date | None = None
     slowest_start: date | None = None
     slowest_end: date | None = None
+    planned_start: date | None = None
+    planned_end: date | None = None
+    depends_on: list[str] | None = None
     notes: str | None = None
 
 
