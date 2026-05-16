@@ -541,6 +541,16 @@ input[type="range"] {
 .gantt-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; font-size: 11px; color: var(--color-muted-foreground); }
 .gantt-legend span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .modal-actions { display: flex; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-6); }
+.path-selector { display: flex; gap: 8px; margin-top: 2px; }
+.path-option {
+  flex: 1; padding: 8px 10px; border: 2px solid var(--color-border); border-radius: var(--radius);
+  cursor: pointer; text-align: center; transition: var(--transition-fast);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.path-option:hover { border-color: var(--color-secondary); }
+.path-option.active { border-color: var(--color-primary); background: var(--surface-blue); }
+.path-option .path-label { font-size: 13px; font-weight: 600; }
+.path-option .path-desc { font-size: 11px; color: var(--color-muted-foreground); line-height: 1.3; }
 .drawer-overlay {
   position: fixed; inset: 0; background: rgba(15,23,42,0.3); z-index: 200;
 }
@@ -977,6 +987,24 @@ input[type="range"] {
         <input v-model="pjForm.cas_number" placeholder="如 123456-78-9">
         <label>计划NDA提交日期 <span style="font-weight:400;">(用于判断核名路径)</span></label>
         <input type="date" v-model="pjForm.nda_date">
+        <label>药典委核名路径</label>
+        <div class="path-selector">
+          <label class="path-option" :class="{ active: pjForm.manual_path === 'auto' }">
+            <input type="radio" v-model="pjForm.manual_path" value="auto" style="display:none;">
+            <span class="path-label">自动</span>
+            <span class="path-desc">根据NDA日期自动判断</span>
+          </label>
+          <label class="path-option" :class="{ active: pjForm.manual_path === 'A' }">
+            <input type="radio" v-model="pjForm.manual_path" value="A" style="display:none;">
+            <span class="path-label">路径A</span>
+            <span class="path-desc">NDA ≥ pINN+11月，药典委自动公示，无CDE审评</span>
+          </label>
+          <label class="path-option" :class="{ active: pjForm.manual_path === 'B' }">
+            <input type="radio" v-model="pjForm.manual_path" value="B" style="display:none;">
+            <span class="path-label">路径B</span>
+            <span class="path-desc">NDA &lt; pINN+11月，CDE受理后药典委技术审评</span>
+          </label>
+        </div>
         <label>靶点分类</label>
         <select v-model="pjForm.target_class">
           <option v-for="t in pjTargetClasses" :value="t">{{ t }}</option>
@@ -1357,7 +1385,7 @@ createApp({
     const pjTooltip = ref(null);
     const pjDragState = ref(null);
     function pjFormatDate(date) { return date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日'; }
-    const pjForm = reactive({ name: '', cas_number: '', nda_date: '', target_class: 'kinase', mechanism: 'inhibitor', chemical_class: 'small_molecule', indication: '' });
+    const pjForm = reactive({ name: '', cas_number: '', nda_date: '', target_class: 'kinase', mechanism: 'inhibitor', chemical_class: 'small_molecule', indication: '', manual_path: 'auto' });
     const pjShowPreview = ref(false);
     const pjPreviewProject = ref(null);
     const pjPreviewLoading = ref(false);
@@ -1371,6 +1399,7 @@ createApp({
       pjShowCreate.value = false;
       pjShowPreview.value = false;
       pjPreviewProject.value = null;
+      pjForm.manual_path = 'auto';
       for (const k of Object.keys(pjPreviewDates)) delete pjPreviewDates[k];
     }
     const pjTargetClasses = ['kinase','gpcr','ion_channel','nuclear_receptor','protease','transporter','cytokine','growth_factor','immune_checkpoint','cox','opioid_receptor','sodium_channel','histamine_receptor','leukotriene_receptor','beta_adrenoceptor','muscarinic_receptor','bacterial_target','viral_target','fungal_target','tnf_superfamily','complement','integrin','other'];
@@ -1409,7 +1438,8 @@ createApp({
             chemical_class: pjForm.chemical_class,
             indication: pjForm.indication,
           }
-        }
+        },
+        manual_path: pjForm.manual_path === 'auto' ? null : pjForm.manual_path,
       };
     }
 
@@ -2007,7 +2037,25 @@ createApp({
 
     function pjCanvasMouseMove(e) {
       const canvas = pjCanvas.value;
-      if (!canvas || !canvas._hits) { pjTooltip.value = null; return; }
+      if (!canvas) { pjTooltip.value = null; return; }
+
+      // Pan mode: update viewport based on mouse delta
+      if (pjDragState.value?.mode === 'pan') {
+        const ds = pjDragState.value;
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const dx = mx - ds.startX;
+        if (canvas._viewportStart && canvas._effectiveDayW) {
+          const dayDelta = Math.round(-dx / canvas._effectiveDayW);
+          const newStart = new Date(ds.startViewport);
+          newStart.setDate(newStart.getDate() + dayDelta);
+          pjViewportStart.value = newStart;
+          pjRenderGantt();
+        }
+        return;
+      }
+
+      if (!canvas._hits) { pjTooltip.value = null; return; }
       const rect = canvas.getBoundingClientRect();
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
@@ -2030,7 +2078,6 @@ createApp({
       } else {
         pjTooltip.value = null;
         canvas.style.cursor = pjDragState.value ? 'grabbing' : 'default';
-        if (!pjDragState.value) canvas.style.cursor = 'default';
       }
     }
 
@@ -2043,6 +2090,7 @@ createApp({
       for (const hit of canvas._hits) {
         if (Math.sqrt((mx-hit.x)**2 + (my-hit.y)**2) <= hit.r) {
           pjDragState.value = {
+            mode: 'milestone',
             project: hit.project, milestone: hit.milestone,
             startX: mx, origDate: hit.milestone.planned_start || hit.milestone.slowest_start,
             canvas: canvas
@@ -2052,6 +2100,15 @@ createApp({
           return;
         }
       }
+      // Empty space → start panning
+      pjDragState.value = {
+        mode: 'pan',
+        startX: mx,
+        startViewport: new Date(pjViewportStart.value),
+        canvas: canvas
+      };
+      canvas.style.cursor = 'grabbing';
+      e.preventDefault();
     }
 
     function pjJumpToToday() {
@@ -2092,6 +2149,15 @@ createApp({
     async function pjCanvasMouseUp(e) {
       if (!pjDragState.value) return;
       const ds = pjDragState.value;
+
+      // Pan mode: viewport already updated during mousemove, just clean up
+      if (ds.mode === 'pan') {
+        pjDragState.value = null;
+        if (pjCanvas.value) pjCanvas.value.style.cursor = 'default';
+        return;
+      }
+
+      // Milestone drag mode
       const canvas = ds.canvas;
       const rect = canvas.getBoundingClientRect();
       const mx = e.clientX - rect.left;

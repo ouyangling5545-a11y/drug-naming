@@ -48,6 +48,7 @@ class CreateProjectBody(BaseModel):
     nda_date: date | None = None
     molecule: MoleculeInput
     milestone_overrides: list[MilestoneDateOverride] | None = None
+    manual_path: str | None = None  # 'A', 'B', or None (auto-detect via NDA date)
 
 
 def _apply_milestone_overrides(project: Project, overrides: list[MilestoneDateOverride]) -> None:
@@ -77,6 +78,8 @@ def create_project(body: CreateProjectBody) -> Project:
         phases=phases,
     )
     recalculate_project_dates(project)
+    if body.manual_path and body.manual_path in ('A', 'B'):
+        project.active_path = body.manual_path
     if body.milestone_overrides:
         _apply_milestone_overrides(project, body.milestone_overrides)
     projects[project.id] = project
@@ -97,6 +100,8 @@ def preview_project(body: CreateProjectBody) -> Project:
         phases=phases,
     )
     recalculate_project_dates(project)
+    if body.manual_path and body.manual_path in ('A', 'B'):
+        project.active_path = body.manual_path
     if body.milestone_overrides:
         _apply_milestone_overrides(project, body.milestone_overrides)
     return project
