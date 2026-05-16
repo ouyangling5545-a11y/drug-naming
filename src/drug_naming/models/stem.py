@@ -23,6 +23,7 @@ class INNStem(BaseModel):
     category: StemCategory
     meaning: str = Field(description="What the stem indicates, e.g. 'tyrosine kinase inhibitor'")
     who_definition: str | None = None
+    chinese: str = Field(default="", description="Chinese translation, e.g. '替尼' for '-tinib'")
     target_classes: list[str] = Field(default_factory=list)
     mechanisms: list[str] = Field(default_factory=list)
     chemical_classes: list[str] = Field(default_factory=list)

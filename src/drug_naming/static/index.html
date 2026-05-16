@@ -996,12 +996,12 @@ input[type="range"] {
           </label>
           <label class="path-option" :class="{ active: pjForm.manual_path === 'A' }">
             <input type="radio" v-model="pjForm.manual_path" value="A" style="display:none;">
-            <span class="path-label">路径A</span>
+            <span class="path-label">路径A：</span>
             <span class="path-desc">NDA ≥ pINN+11月，药典委自动公示，无CDE审评</span>
           </label>
           <label class="path-option" :class="{ active: pjForm.manual_path === 'B' }">
             <input type="radio" v-model="pjForm.manual_path" value="B" style="display:none;">
-            <span class="path-label">路径B</span>
+            <span class="path-label">路径B：</span>
             <span class="path-desc">NDA &lt; pINN+11月，CDE受理后药典委技术审评</span>
           </label>
         </div>

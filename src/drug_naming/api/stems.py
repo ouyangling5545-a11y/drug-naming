@@ -25,7 +25,7 @@ class InMemoryStemProvider:
 _REFERENCE_STEMS: list[INNStem] = [
 
     INNStem(
-        stem='-ac',
+        stem='-ac', chinese='酸',
         position='suffix',
         category='mechanism_stem',
         meaning='anti-inflammatory agents, ibufenac derivatives',
@@ -59,7 +59,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-afil',
+        stem='-afil', chinese='那非',
         position='suffix',
         category='mechanism_stem',
         meaning='inhibitors of phosphodiesterase PDE5 with vasodilator action',
@@ -83,7 +83,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-anib',
+        stem='-anib', chinese='尼布',
         position='suffix',
         category='mechanism_stem',
         meaning='angiogenesis inhibitors',
@@ -138,7 +138,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-arit',
+        stem='-arit', chinese='利',
         position='suffix',
         category='mechanism_stem',
         meaning='antiarthritic substances, acting like clobuzarit and lobenzarit, (mechanism different from antiinflammatory type substances, e.g. -fenamates or',
@@ -179,7 +179,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-ast',
+        stem='-ast', chinese='司特',
         position='suffix',
         category='mechanism_stem',
         meaning='anti-allergic or anti-inflammatory, not acting as',
@@ -190,7 +190,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-azenil',
+        stem='-azenil', chinese='西尼',
         position='suffix',
         category='target_class_stem',
         meaning='benzodiazepine receptor antagonists/agonists (benzodiazepine derivatives)',
@@ -201,7 +201,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-azepam',
+        stem='-azepam', chinese='西泮',
         position='suffix',
         category='mechanism_stem',
         meaning='diazepam derivatives',
@@ -221,7 +221,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-bamate',
+        stem='-bamate', chinese='氨酯',
         position='suffix',
         category='mechanism_stem',
         meaning='tranquillizers, propanediol and pentanediol derivatives',
@@ -266,7 +266,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-bersat',
+        stem='-bersat', chinese='博沙',
         position='suffix',
         category='mechanism_stem',
         meaning='anticonvulsants, benzoylamino-benzpyran derivatives',
@@ -311,7 +311,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-bufen',
+        stem='-bufen', chinese='布芬',
         position='suffix',
         category='mechanism_stem',
         meaning='non-steroidal anti-inflammatory agents, arylbutanoic acid derivatives',
@@ -335,7 +335,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-buzone',
+        stem='-buzone', chinese='布宗',
         position='suffix',
         category='mechanism_stem',
         meaning='anti-inflammatory analgesics, phenylbutazone derivatives',
@@ -357,7 +357,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-caine',
+        stem='-caine', chinese='卡因',
         position='suffix',
         category='mechanism_stem',
         meaning='local anaesthetics',
@@ -410,7 +410,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-ciclib',
+        stem='-ciclib', chinese='西利',
         position='suffix',
         category='target_class_stem',
         meaning='cyclin dependant kinase inhibitors',
@@ -422,7 +422,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-cillin',
+        stem='-cillin', chinese='西林',
         position='suffix',
         category='mechanism_stem',
         meaning='antibiotics, 6-aminopenicillanic acid derivatives',
@@ -434,7 +434,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-clone',
+        stem='-clone', chinese='克隆',
         position='suffix',
         category='mechanism_stem',
         meaning='hypnotic tranquillizers',
@@ -468,7 +468,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-conazole',
+        stem='-conazole', chinese='康唑',
         position='suffix',
         category='mechanism_stem',
         meaning='systemic antifungal agents, miconazole derivatives',
@@ -479,7 +479,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-coxib',
+        stem='-coxib', chinese='昔布',
         position='suffix',
         category='mechanism_stem',
         meaning='selective cyclo-oxygenase inhibitors',
@@ -511,7 +511,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-cycline',
+        stem='-cycline', chinese='环素',
         position='suffix',
         category='mechanism_stem',
         meaning='antibiotics, protein-synthesis inhibitors, tetracycline derivatives',
@@ -523,7 +523,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-dan',
+        stem='-dan', chinese='旦',
         position='suffix',
         category='mechanism_stem',
         meaning='cardiac stimulants, pimobendan derivatives',
@@ -556,7 +556,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-dipine',
+        stem='-dipine', chinese='地平',
         position='suffix',
         category='target_class_stem',
         meaning='calcium channel blockers, nifedipine derivatives',
@@ -613,7 +613,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-eridine',
+        stem='-eridine', chinese='利定',
         position='suffix',
         category='target_class_stem',
         meaning='analgesics, pethidine derivatives and other synthetic small molecule µ-opioid receptor agonists',
@@ -649,7 +649,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-frine',
+        stem='-frine', chinese='福林',
         position='suffix',
         category='mechanism_stem',
         meaning='sympathomimetic, phenethyl derivatives',
@@ -671,7 +671,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-fylline',
+        stem='-fylline', chinese='茶碱',
         position='suffix',
         category='mechanism_stem',
         meaning='N-methylated xanthine derivatives',
@@ -681,7 +681,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-gliflozin',
+        stem='-gliflozin', chinese='格列净',
         position='suffix',
         category='mechanism_stem',
         meaning='sodium glucose co-transporter inhibitors, phlorizin derivatives',
@@ -692,7 +692,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-gliptin',
+        stem='-gliptin', chinese='格列汀',
         position='suffix',
         category='mechanism_stem',
         meaning='dipeptidyl aminopeptidase–IV inhibitors',
@@ -738,7 +738,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-ium',
+        stem='-ium', chinese='铵',
         position='suffix',
         category='mechanism_stem',
         meaning='quaternary ammonium compounds',
@@ -771,7 +771,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-lisib',
+        stem='-lisib', chinese='利西',
         position='suffix',
         category='target_class_stem',
         meaning='phosphatidylinositol 3-kinase inhibitors, antineoplastics',
@@ -784,7 +784,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-lukast',
+        stem='-lukast', chinese='鲁司特',
         position='suffix',
         category='target_class_stem',
         meaning='leukotriene receptor antagonists',
@@ -796,7 +796,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-mab',
+        stem='-mab', chinese='单抗',
         position='suffix',
         category='chemical_class_stem',
         meaning='monoclonal antibodies (previous naming scheme)',
@@ -830,7 +830,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-micin',
+        stem='-micin', chinese='米星',
         position='suffix',
         category='mechanism_stem',
         meaning='aminoglycosides, antibiotics obtained from various Micromonospora',
@@ -842,7 +842,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-milast',
+        stem='-milast', chinese='米司特',
         position='suffix',
         category='mechanism_stem',
         meaning='Phosphodiesterase-4 (PDE4) inhibitors',
@@ -865,7 +865,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-mycin',
+        stem='-mycin', chinese='霉素',
         position='suffix',
         category='mechanism_stem',
         meaning='antibiotics, produced by Streptomyces strains (see also -kacin)',
@@ -913,7 +913,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-nidazole',
+        stem='-nidazole', chinese='硝唑',
         position='suffix',
         category='mechanism_stem',
         meaning='antiprotozoals and radiosensitizers, metronidazole derivatives',
@@ -935,7 +935,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-olol',
+        stem='-olol', chinese='洛尔',
         position='suffix',
         category='target_class_stem',
         meaning='β-adrenoreceptor antagonists',
@@ -978,7 +978,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-oxacin',
+        stem='-oxacin', chinese='沙星',
         position='suffix',
         category='mechanism_stem',
         meaning='antibacterials, nalidixic acid derivatives',
@@ -990,7 +990,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-oxetine',
+        stem='-oxetine', chinese='西汀',
         position='suffix',
         category='mechanism_stem',
         meaning='serotonin and/or norepinephrine reuptake inhibitors, fluoxetine derivatives',
@@ -1002,7 +1002,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-pamil',
+        stem='-pamil', chinese='帕米',
         position='suffix',
         category='target_class_stem',
         meaning='calcium channel blocker, verapamil derivatives',
@@ -1014,7 +1014,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-parib',
+        stem='-parib', chinese='帕利',
         position='suffix',
         category='chemical_class_stem',
         meaning='poly-ADP-Ribose polymerase inhibitors',
@@ -1048,7 +1048,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-perone',
+        stem='-perone', chinese='哌隆',
         position='suffix',
         category='mechanism_stem',
         meaning='tranquillizers, neuroleptics, 4’-fluoro-4piperidinobutyrophenone derivatives',
@@ -1059,7 +1059,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-platin',
+        stem='-platin', chinese='铂',
         position='suffix',
         category='mechanism_stem',
         meaning='antineoplastic agents, platinum derivatives',
@@ -1090,7 +1090,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-pramine',
+        stem='-pramine', chinese='帕明',
         position='suffix',
         category='mechanism_stem',
         meaning='substances of the imipramine group',
@@ -1100,7 +1100,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-prazole',
+        stem='-prazole', chinese='拉唑',
         position='suffix',
         category='mechanism_stem',
         meaning='antiulcer, benzimidazole derivatives',
@@ -1121,7 +1121,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-pride',
+        stem='-pride', chinese='必利',
         position='suffix',
         category='mechanism_stem',
         meaning='sulpiride derivatives and analogues',
@@ -1131,7 +1131,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-pril',
+        stem='-pril', chinese='普利',
         position='suffix',
         category='target_class_stem',
         meaning='angiotensin-converting enzyme inhibitors',
@@ -1143,7 +1143,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-profen',
+        stem='-profen', chinese='洛芬',
         position='suffix',
         category='mechanism_stem',
         meaning='anti-inflammatory agents, ibuprofen derivatives',
@@ -1154,7 +1154,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-relin',
+        stem='-relin', chinese='瑞林',
         position='suffix',
         category='chemical_class_stem',
         meaning='pituitary hormone-release stimulating peptides',
@@ -1174,7 +1174,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-sartan',
+        stem='-sartan', chinese='沙坦',
         position='suffix',
         category='target_class_stem',
         meaning='angiotensin II receptor antagonists, antihypertensive (non-peptidic)',
@@ -1207,7 +1207,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-setron',
+        stem='-setron', chinese='司琼',
         position='suffix',
         category='target_class_stem',
         meaning='serotonin receptor antagonists (5-HT3) not fitting into other established groups of serotonin receptor antagonists',
@@ -1219,7 +1219,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-spirone',
+        stem='-spirone', chinese='螺酮',
         position='suffix',
         category='mechanism_stem',
         meaning='anxiolytics, buspirone derivatives',
@@ -1241,7 +1241,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-steride',
+        stem='-steride', chinese='雄胺',
         position='suffix',
         category='mechanism_stem',
         meaning='androgens/anabolic steroids',
@@ -1272,7 +1272,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-tant',
+        stem='-tant', chinese='坦',
         position='suffix',
         category='target_class_stem',
         meaning='neurokinin (tachykinin) receptor antagonists',
@@ -1305,7 +1305,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-tiazem',
+        stem='-tiazem', chinese='硫卓',
         position='suffix',
         category='target_class_stem',
         meaning='calcium channel blockers, diltiazem derivatives',
@@ -1317,7 +1317,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-tide',
+        stem='-tide', chinese='肽',
         position='suffix',
         category='chemical_class_stem',
         meaning='peptides and glycopeptides (for special groups of peptides see -actide, -pressin, -relin, -tocin)',
@@ -1326,7 +1326,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-tidine',
+        stem='-tidine', chinese='替丁',
         position='suffix',
         category='target_class_stem',
         meaning='histamine-H2-receptor antagonists, cimetidine derivatives',
@@ -1338,7 +1338,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-tinib',
+        stem='-tinib', chinese='替尼',
         position='suffix',
         category='target_class_stem',
         meaning='tyrosine kinase inhibitors',
@@ -1359,7 +1359,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-tocin',
+        stem='-tocin', chinese='缩宫素',
         position='suffix',
         category='mechanism_stem',
         meaning='oxytocin derivatives',
@@ -1369,7 +1369,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-toin',
+        stem='-toin', chinese='妥英',
         position='suffix',
         category='mechanism_stem',
         meaning='antiepileptics, hydantoin derivatives',
@@ -1437,7 +1437,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-vir',
+        stem='-vir', chinese='韦',
         position='suffix',
         category='mechanism_stem',
         meaning='antivirals (undefined group)',
@@ -1585,7 +1585,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-alol',
+        stem='-alol', chinese='洛尔',
         position='suffix',
         category='mechanism_stem',
         meaning='aromatic ring related to -olols',
@@ -1605,7 +1605,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-amivir',
+        stem='-amivir', chinese='米韦',
         position='suffix',
         category='mechanism_stem',
         meaning='neuraminidase inhibitors',
@@ -1628,7 +1628,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-azepide',
+        stem='-azepide', chinese='西匹',
         position='suffix',
         category='target_class_stem',
         meaning='cholecystokinin receptor antagonists, benzodiazepine derivatives',
@@ -1640,7 +1640,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-azocine',
+        stem='-azocine', chinese='佐辛',
         position='suffix',
         category='mechanism_stem',
         meaning='narcotic antagonists/agonists related to 6,7-benzomorphan',
@@ -1719,7 +1719,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-butazone',
+        stem='-butazone', chinese='布宗',
         position='suffix',
         category='mechanism_stem',
         meaning='anti-inflammatory analgesics, phenylbutazone derivatives',
@@ -1753,7 +1753,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-carnil',
+        stem='-carnil', chinese='卡尔',
         position='suffix',
         category='target_class_stem',
         meaning='benzodiazepine receptor antagonists/agonists (carboline derivatives)',
@@ -2022,7 +2022,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-dilol',
+        stem='-dilol', chinese='地洛',
         position='suffix',
         category='mechanism_stem',
         meaning='vasodilators',
@@ -2033,7 +2033,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-dismase',
+        stem='-dismase', chinese='地普酶',
         position='suffix',
         category='target_class_stem',
         meaning='enzymes with superoxide dismutase activity, see',
@@ -2043,7 +2043,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-distim',
+        stem='-distim', chinese='司亭',
         position='suffix',
         category='mechanism_stem',
         meaning='combination of two different types of colony stimulating factors',
@@ -2198,7 +2198,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-fenamate',
+        stem='-fenamate', chinese='芬那酯',
         position='suffix',
         category='mechanism_stem',
         meaning='“fenamic acid” derivatives',
@@ -2220,7 +2220,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-fenine',
+        stem='-fenine', chinese='非宁',
         position='suffix',
         category='mechanism_stem',
         meaning='analgesics, glafenine derivatives (subgroup of fenamic acid group)',
@@ -2301,7 +2301,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-flurane',
+        stem='-flurane', chinese='氟烷',
         position='suffix',
         category='mechanism_stem',
         meaning='halogenated compounds used as general inhalation anaesthetics',
@@ -2322,7 +2322,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-fradil',
+        stem='-fradil', chinese='地尔',
         position='suffix',
         category='target_class_stem',
         meaning='calcium channel blockers acting as vasodilators',
@@ -2437,7 +2437,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-glurant',
+        stem='-glurant', chinese='谷兰',
         position='suffix',
         category='target_class_stem',
         meaning='metabotropic glutamate receptor antagonists/ negative allosteric modulators',
@@ -2494,7 +2494,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-gramostim',
+        stem='-gramostim', chinese='莫司亭',
         position='suffix',
         category='mechanism_stem',
         meaning='granulocyte macrophage colony stimulating factor (GM-CSF) types substances',
@@ -2504,7 +2504,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-grastim',
+        stem='-grastim', chinese='格司亭',
         position='suffix',
         category='mechanism_stem',
         meaning='granulocyte colony stimulating factor (G-CSF) type substances',
@@ -2514,7 +2514,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-icam',
+        stem='-icam', chinese='昔康',
         position='suffix',
         category='mechanism_stem',
         meaning='anti-inflammatory, isoxicam derivatives',
@@ -2603,7 +2603,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-isant',
+        stem='-isant', chinese='生',
         position='suffix',
         category='target_class_stem',
         meaning='histamine H3 receptor antagonists',
@@ -2648,7 +2648,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-kacin',
+        stem='-kacin', chinese='卡星',
         position='suffix',
         category='mechanism_stem',
         meaning='antibiotics, kanamycin and bekanamycin derivatives (obtained from Streptomyces kanamyceticus)',
@@ -2810,7 +2810,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-meran',
+        stem='-meran', chinese='美仑',
         position='suffix',
         category='mechanism_stem',
         meaning='messenger RNA (mRNA)',
@@ -2864,7 +2864,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-morelin',
+        stem='-morelin', chinese='瑞林',
         position='suffix',
         category='chemical_class_stem',
         meaning='growth hormone release-stimulating peptides',
@@ -3006,7 +3006,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-nixin',
+        stem='-nixin', chinese='尼辛',
         position='suffix',
         category='mechanism_stem',
         meaning='anti-inflammatory, anilinonicotinic acid derivatives (-)nonacog (see -cog) blood factor IX octakin (see -kin) interleukin-8 analogues and derivatives',
@@ -3041,7 +3041,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-orexant',
+        stem='-orexant', chinese='雷生',
         position='suffix',
         category='target_class_stem',
         meaning='orexin receptor antagonists',
@@ -3161,7 +3161,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-peridone',
+        stem='-peridone', chinese='哌酮',
         position='suffix',
         category='mechanism_stem',
         meaning='antipsychotics, risperidone derivatives',
@@ -3172,7 +3172,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-pidem',
+        stem='-pidem', chinese='匹坦',
         position='suffix',
         category='mechanism_stem',
         meaning='hypnotics/sedatives, zolpidem derivatives',
@@ -3183,7 +3183,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-piprazole',
+        stem='-piprazole', chinese='哌唑',
         position='suffix',
         category='mechanism_stem',
         meaning='psychotropics, phenylpiperazine derivatives',
@@ -3272,7 +3272,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-plestim',
+        stem='-plestim', chinese='司亭',
         position='suffix',
         category='mechanism_stem',
         meaning='interleukin-3 analogues and derivatives',
@@ -3283,7 +3283,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-plon',
+        stem='-plon', chinese='普隆',
         position='suffix',
         category='mechanism_stem',
         meaning='imidazopyrimidine or pyrazolopyrimidine derivatives, used as anxiolytics, sedatives, hypnotics',
@@ -3376,7 +3376,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-prostil',
+        stem='-prostil', chinese='前列素',
         position='suffix',
         category='mechanism_stem',
         meaning='prostaglandins, anti-ulcer',
@@ -3407,7 +3407,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-quinil',
+        stem='-quinil', chinese='喹尼',
         position='suffix',
         category='target_class_stem',
         meaning='benzodiazepine receptor agonists, also partial or inverse (quinoline derivatives)',
@@ -3418,7 +3418,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-racetam',
+        stem='-racetam', chinese='西坦',
         position='suffix',
         category='mechanism_stem',
         meaning='amide type nootrope agents, piracetam type',
@@ -3506,7 +3506,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-rinone',
+        stem='-rinone', chinese='力农',
         position='suffix',
         category='mechanism_stem',
         meaning='cardiac stimulants, amrinone derivatives',
@@ -3585,7 +3585,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-sermin',
+        stem='-sermin', chinese='舍明',
         position='suffix',
         category='mechanism_stem',
         meaning='insulin-like growth factors',
@@ -3619,7 +3619,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-siran',
+        stem='-siran', chinese='西兰',
         position='suffix',
         category='mechanism_stem',
         meaning='small interfering RNA including siRNA, miRNA and piRNA',
@@ -3728,7 +3728,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-tecan',
+        stem='-tecan', chinese='替康',
         position='suffix',
         category='mechanism_stem',
         meaning='antineoplastics, topoisomerase I inhibitors',
@@ -3920,7 +3920,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-triptan',
+        stem='-triptan', chinese='曲坦',
         position='suffix',
         category='target_class_stem',
         meaning='serotonin (5HT1) receptor agonists, sumatriptan derivatives',
@@ -4001,7 +4001,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-zafone',
+        stem='-zafone', chinese='扎封',
         position='suffix',
         category='mechanism_stem',
         meaning='alozafone derivatives',
@@ -4055,7 +4055,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-zotan',
+        stem='-zotan', chinese='佐坦',
         position='suffix',
         category='target_class_stem',
         meaning='5-HT1A receptor agonists / antagonists acting primarily as neuroprotectors Acknowledgements The INN Secretariat extends its thanks to Dr R. Boudet-Dalbin, France, for the graphic representations of the chemical formulae in this document.',
@@ -4088,7 +4088,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='barb',
+        stem='barb', chinese='巴比',
         position='infix',
         category='mechanism_stem',
         meaning='hypnotics, barbituric acid derivatives',
@@ -4110,7 +4110,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='cef-',
+        stem='cef-', chinese='头孢',
         position='prefix',
         category='mechanism_stem',
         meaning='antibiotics, cefalosporanic acid derivatives',
@@ -4174,7 +4174,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='gest',
+        stem='gest', chinese='孕',
         position='infix',
         category='mechanism_stem',
         meaning='steroids, progestogens',
@@ -4185,7 +4185,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='gli',
+        stem='gli', chinese='格列',
         position='infix',
         category='mechanism_stem',
         meaning='antihyperglycaemics',
@@ -4251,7 +4251,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='nal-',
+        stem='nal-', chinese='纳',
         position='prefix',
         category='target_class_stem',
         meaning='opioid receptor antagonists/agonists related to normorphine',
@@ -4273,7 +4273,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='orphan',
+        stem='orphan', chinese='啡烷',
         position='infix',
         category='target_class_stem',
         meaning='opioid receptor antagonists/agonists, morphinan derivatives',
@@ -4285,7 +4285,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='pred',
+        stem='pred', chinese='泼',
         position='infix',
         category='mechanism_stem',
         meaning='prednisone and prednisolone derivatives',
@@ -4415,7 +4415,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-adom',
+        stem='-adom', chinese='朵',
         position='suffix',
         category='mechanism_stem',
         meaning='analgesics, tifluadom derivatives',
@@ -4570,7 +4570,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-curium',
+        stem='-curium', chinese='库铵',
         position='suffix',
         category='mechanism_stem',
         meaning='curare-like substances',
@@ -4691,7 +4691,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-ermin',
+        stem='-ermin', chinese='明',
         position='suffix',
         category='mechanism_stem',
         meaning='growth factors',
@@ -4729,7 +4729,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-fenamic acid',
+        stem='-fenamic acid', chinese='芬那酸',
         position='suffix',
         category='mechanism_stem',
         meaning='anti-inflammatory, anthranilic acid derivatives',
@@ -4749,7 +4749,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-fentanil',
+        stem='-fentanil', chinese='芬太尼',
         position='suffix',
         category='target_class_stem',
         meaning='opioid receptor agonists, analgesics, fentanyl derivatives',
@@ -4771,7 +4771,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-formin',
+        stem='-formin', chinese='福明',
         position='suffix',
         category='mechanism_stem',
         meaning='antihyperglycaemics, phenformin derivatives',
@@ -4950,7 +4950,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-metacin',
+        stem='-metacin', chinese='美辛',
         position='suffix',
         category='mechanism_stem',
         meaning='anti-inflammatory, indometacin derivatives',
@@ -5060,7 +5060,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-ol',
+        stem='-ol', chinese='洛尔',
         position='suffix',
         category='mechanism_stem',
         meaning='for alcohols and phenols (deleted from General Principles in 14th Report)',
@@ -5079,7 +5079,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-onium',
+        stem='-onium', chinese='铵',
         position='suffix',
         category='mechanism_stem',
         meaning='quaternary ammonium compounds',
@@ -5213,7 +5213,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-prenaline',
+        stem='-prenaline', chinese='特罗',
         position='suffix',
         category='mechanism_stem',
         meaning='bronchodilators, phenethylamine derivatives',
@@ -5222,7 +5222,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-prilat',
+        stem='-prilat', chinese='普利拉',
         position='suffix',
         category='target_class_stem',
         meaning='angiotensin-converting enzyme inhibitors',
@@ -5242,7 +5242,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='-restat',
+        stem='-restat', chinese='司他',
         position='suffix',
         category='mechanism_stem',
         meaning='aldose reductase inhibitors',
@@ -5562,7 +5562,7 @@ _REFERENCE_STEMS: list[INNStem] = [
     ),
 
     INNStem(
-        stem='sulfa-',
+        stem='sulfa-', chinese='磺胺',
         position='prefix',
         category='mechanism_stem',
         meaning='anti-infectives, sulfonamides',
