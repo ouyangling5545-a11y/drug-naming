@@ -86,6 +86,7 @@ class CSVStemDataSource(DataSource[INNStem]):
             category=StemCategory(row.get("category", "target_class_stem").strip().lower()),
             meaning=row.get("meaning", "").strip(),
             who_definition=row.get("who_definition", "").strip() or None,
+            chinese=row.get("chinese", "").strip() or "",
             target_classes=split_list(row.get("target_classes", "")),
             mechanisms=split_list(row.get("mechanisms", "")),
             chemical_classes=split_list(row.get("chemical_classes", "")),
@@ -95,6 +96,7 @@ class CSVStemDataSource(DataSource[INNStem]):
             allowed_infixes=split_list(row.get("allowed_infixes", "")),
             exclusion_rules=split_list(row.get("exclusion_rules", "")),
             priority=int(row.get("priority", "0")),
+            source=row.get("source", "WHO INN Programme").strip(),
         )
 
 
