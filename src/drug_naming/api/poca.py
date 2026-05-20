@@ -305,7 +305,33 @@ def evaluate_name(
         worst_score = metaphone_poca
     compositional_score = worst_detail.compositional_score if worst_detail else 0.0
 
-    # 3. 多语言名称变体（拉丁/法语/西语查询+推导，中文音译）
+    # 5. Re-score similar names with the requested phonetic method
+    #    Batch screening used Metaphone for speed; now update phonetic scores
+    #    so the table reflects the active method (ALINE or Metaphone).
+    if similar_names and phonetic_method != "metaphone":
+        engine.phonetic_method = phonetic_method
+        pe = engine._get_phonetic_encoder()
+        for detail in similar_names:
+            _, new_ph = pe.compute_phonetics(name_clean, detail.reference_name)
+            detail.phonetic_score = new_ph
+            # Recompute FDA combined: (phon + ortho) / 2
+            detail.overall_poca_score = (new_ph + detail.orthographic_score) / 2.0
+            # Update alert level
+            if detail.overall_poca_score >= engine.weights.high_alert_threshold:
+                detail.alert_level = "REJECT"
+                detail.is_safety_alert = True
+            elif detail.overall_poca_score >= engine.weights.safety_threshold:
+                detail.alert_level = "REVIEW"
+                detail.is_safety_alert = True
+            else:
+                detail.alert_level = "PASS"
+                detail.is_safety_alert = False
+            # Update phonetic detail fields for display
+            detail.phonetic.phonetic_score = new_ph
+        # Re-sort by new scores
+        similar_names.sort(key=lambda r: r.overall_poca_score, reverse=True)
+
+    # 6. 多语言名称变体（拉丁/法语/西语查询+推导，中文音译）
     language_variants: list[LanguageNameVariant] = []
 
     # 拉丁名：优先查 INN 数据库，否则用尾缀规则推导
