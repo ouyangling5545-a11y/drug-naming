@@ -123,7 +123,7 @@ class LanguageNameVariant(BaseModel):
 
 class NameEvaluationResponse(BaseModel):
     proposed_name: str
-    poca_score: float  # worst (highest) FDA 2D score
+    poca_score: float  # worst (highest) FDA 2D score = (Phon+Orth)/2
     poca_assessment: str  # PASS / REVIEW / REJECT
     phonetic_score: float
     orthographic_score: float
@@ -132,6 +132,7 @@ class NameEvaluationResponse(BaseModel):
     poca_detail: POCAScoreDetail | None = None
     chinese_suggestions: list[ChineseNameCandidate] = Field(default_factory=list, description="Deprecated: use Tab A Chinese naming instead")
     similar_names: list[POCAScoreDetail] = Field(default_factory=list)
+    similar_names_aline: list[POCAScoreDetail] = Field(default_factory=list)
     similar_count: int = 0
     total_references: int = 0
     threshold: float = 0.55
@@ -140,15 +141,11 @@ class NameEvaluationResponse(BaseModel):
     risks: list[str] = Field(default_factory=list)
     language_variants: list[LanguageNameVariant] = Field(default_factory=list)
     phonetic_method: str = "metaphone"
-    # Alternate method results for instant sub-tab switching
+    # Pre-computed scores for instant sub-tab switching
     aline_phonetic_score: float = 0.0
     aline_poca_score: float = 0.0
-    aline_similar_count: int = 0
-    aline_worst_comparison: str = ""
     metaphone_phonetic_score: float = 0.0
     metaphone_poca_score: float = 0.0
-    metaphone_similar_count: int = 0
-    metaphone_worst_comparison: str = ""
 
 def _describe_latin_taboos(flags: list[str]) -> str:
     if not flags:
@@ -274,62 +271,57 @@ def evaluate_name(
     name_clean = proposed_name.strip()
     name_lower = name_clean.lower()
 
-    # 1. Fast batch screening with Metaphone (always) — ALINE is too slow for 13K names
+    # 1. Fast batch screening with Metaphone (always)
     engine.phonetic_method = "metaphone"
     all_refs = sorted(inn_db.english_names) if inn_db else []
     similar_names = engine.score_batch_fda(name_clean, all_refs, threshold=threshold / 100.0, max_results=max_similar)
 
-    # 2. Worst comparison from Metaphone screening
-    worst_detail = similar_names[0] if similar_names else None
-    worst_comparison = worst_detail.reference_name if worst_detail else ""
+    # 2. Build ALINE version of similar_names (re-score phonetic, keep ortho)
+    #    This is the expensive part — done once, both tables returned for instant switch.
+    aline_encoder = engine._phonetic_aline
+    similar_names_aline: list[POCAScoreDetail] = []
+    for sn in similar_names:
+        _, aline_ph = aline_encoder.compute_phonetics(name_clean, sn.reference_name)
+        aline_poca_2d = (aline_ph + sn.orthographic_score) / 2.0
+        aline_alert = "PASS"
+        if aline_poca_2d >= engine.weights.high_alert_threshold:
+            aline_alert = "REJECT"
+        elif aline_poca_2d >= engine.weights.safety_threshold:
+            aline_alert = "REVIEW"
+        aline_detail = sn.model_copy(deep=True)
+        aline_detail.phonetic_score = aline_ph
+        aline_detail.overall_poca_score = aline_poca_2d
+        aline_detail.alert_level = aline_alert
+        aline_detail.is_safety_alert = aline_alert in ("REVIEW", "REJECT")
+        aline_detail.phonetic.phonetic_score = aline_ph
+        similar_names_aline.append(aline_detail)
+    similar_names_aline.sort(key=lambda r: r.overall_poca_score, reverse=True)
 
-    # 3. Compute BOTH methods' scores for the worst pair only (avoids ALINE O(N) cost)
-    engine.phonetic_method = "metaphone"
-    meta_detail = engine.score_pair(name_clean, worst_comparison) if worst_comparison else None
-    metaphone_phonetic = meta_detail.phonetic_score if meta_detail else 0.0
-    metaphone_poca = meta_detail.overall_poca_score if meta_detail else 0.0
+    # 3. Primary display scores (use requested method)
+    # Metaphone summary (from batch — already FDA 2D)
+    meta_worst = similar_names[0] if similar_names else None
+    metaphone_phonetic = meta_worst.phonetic_score if meta_worst else 0.0
+    metaphone_poca = meta_worst.overall_poca_score if meta_worst else 0.0
 
-    engine.phonetic_method = "aline"
-    aline_detail = engine.score_pair(name_clean, worst_comparison) if worst_comparison else None
-    aline_phonetic = aline_detail.phonetic_score if aline_detail else 0.0
-    aline_poca = aline_detail.overall_poca_score if aline_detail else 0.0
+    # ALINE summary (from ALINE table)
+    aline_worst = similar_names_aline[0] if similar_names_aline else None
+    aline_phonetic = aline_worst.phonetic_score if aline_worst else 0.0
+    aline_poca = aline_worst.overall_poca_score if aline_worst else 0.0
 
-    # 4. Use requested method's scores as primary display
+    # Active method's primary scores
     if phonetic_method == "aline":
+        worst_detail = aline_worst
         phonetic_score = aline_phonetic
-        orthographic_score = worst_detail.orthographic_score if worst_detail else 0.0
         worst_score = aline_poca
+        worst_comparison = aline_worst.reference_name if aline_worst else ""
+        orthographic_score = aline_worst.orthographic_score if aline_worst else 0.0
     else:
+        worst_detail = meta_worst
         phonetic_score = metaphone_phonetic
-        orthographic_score = worst_detail.orthographic_score if worst_detail else 0.0
         worst_score = metaphone_poca
+        worst_comparison = meta_worst.reference_name if meta_worst else ""
+        orthographic_score = meta_worst.orthographic_score if meta_worst else 0.0
     compositional_score = worst_detail.compositional_score if worst_detail else 0.0
-
-    # 5. Re-score similar names with the requested phonetic method
-    #    Batch screening used Metaphone for speed; now update phonetic scores
-    #    so the table reflects the active method (ALINE or Metaphone).
-    if similar_names and phonetic_method != "metaphone":
-        engine.phonetic_method = phonetic_method
-        pe = engine._get_phonetic_encoder()
-        for detail in similar_names:
-            _, new_ph = pe.compute_phonetics(name_clean, detail.reference_name)
-            detail.phonetic_score = new_ph
-            # Recompute FDA combined: (phon + ortho) / 2
-            detail.overall_poca_score = (new_ph + detail.orthographic_score) / 2.0
-            # Update alert level
-            if detail.overall_poca_score >= engine.weights.high_alert_threshold:
-                detail.alert_level = "REJECT"
-                detail.is_safety_alert = True
-            elif detail.overall_poca_score >= engine.weights.safety_threshold:
-                detail.alert_level = "REVIEW"
-                detail.is_safety_alert = True
-            else:
-                detail.alert_level = "PASS"
-                detail.is_safety_alert = False
-            # Update phonetic detail fields for display
-            detail.phonetic.phonetic_score = new_ph
-        # Re-sort by new scores
-        similar_names.sort(key=lambda r: r.overall_poca_score, reverse=True)
 
     # 6. 多语言名称变体（拉丁/法语/西语查询+推导，中文音译）
     language_variants: list[LanguageNameVariant] = []
@@ -532,6 +524,7 @@ def evaluate_name(
         poca_detail=worst_detail,
         chinese_suggestions=[],
         similar_names=similar_names[:max_similar],
+        similar_names_aline=similar_names_aline[:max_similar],
         similar_count=len(similar_names),
         total_references=len(all_refs),
         threshold=threshold / 100.0,
@@ -542,10 +535,6 @@ def evaluate_name(
         phonetic_method=phonetic_method,
         aline_phonetic_score=aline_phonetic,
         aline_poca_score=aline_poca,
-        aline_similar_count=len(similar_names),
-        aline_worst_comparison=worst_comparison,
         metaphone_phonetic_score=metaphone_phonetic,
         metaphone_poca_score=metaphone_poca,
-        metaphone_similar_count=len(similar_names),
-        metaphone_worst_comparison=worst_comparison,
     )

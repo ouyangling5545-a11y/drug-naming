@@ -784,8 +784,8 @@ input[type="range"] {
       </div>
 
       <!-- Similar names above threshold -->
-      <div class="card" v-if="evalResult && evalResult.similar_names.length">
-        <h3>超过阈值的相似名称 <span class="badge badge-amber">{{ evalResult.similar_names.length }} 个</span></h3>
+      <div class="card" v-if="evalResult && evalSimilarNames.length">
+        <h3>超过阈值的相似名称 <span class="badge badge-amber">{{ evalSimilarNames.length }} 个</span></h3>
         <div class="subtab-row" style="margin-bottom:12px;">
           <span style="font-size:11px;color:var(--color-muted-foreground);margin-right:8px;line-height:22px;">语音评分引擎</span>
           <span class="subtab" :class="{active:evalPhoneticMethod==='aline'}" @click="switchPhoneticMethod('aline')">ALINE</span>
@@ -794,7 +794,7 @@ input[type="range"] {
         <div v-if="evalPhoneticMethod==='aline'" class="subtab-note">ALINE (Kondrak 2000)：基于调音特征向量（辅音/元音、发音部位、方式、浊化等7维）的音素对齐算法，可捕获部分前缀差异下的后缀重叠（如不同前缀的 -tinib），计算精确但较慢</div>
         <div v-if="evalPhoneticMethod==='metaphone'" class="subtab-note">Metaphone：基于 Double Metaphone 编码 + 音节数 + 重音模式的快速听觉评分，涵盖英语主要发音规则，响应快</div>
         <div style="max-height:420px;overflow-y:auto;">
-          <div v-for="sn in evalResult.similar_names" :key="sn.reference_name"
+          <div v-for="sn in evalSimilarNames" :key="sn.reference_name"
                style="padding:6px 0;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:8px;font-size:12px;">
             <span style="cursor:pointer;font-size:13px;flex-shrink:0;" @click="speakName(sn.reference_name)" title="听发音">🔊</span>
             <span style="font-family:var(--font-mono);font-weight:500;max-width:150px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1;">{{ sn.reference_name }}</span>
@@ -1316,11 +1316,19 @@ createApp({
       return r.metaphone_poca_score ?? r.poca_score;
     });
 
+    // Computed: active method's similar names table (instant switch, pre-computed server-side)
+    const evalSimilarNames = Vue.computed(() => {
+      if (!evalResult.value) return [];
+      if (evalPhoneticMethod.value === 'aline') {
+        return evalResult.value.similar_names_aline || evalResult.value.similar_names || [];
+      }
+      return evalResult.value.similar_names || [];
+    });
+
     function switchPhoneticMethod(method) {
       if (evalPhoneticMethod.value === method) return;
-      if (evalLoading.value) return;  // already loading
       evalPhoneticMethod.value = method;
-      runEvaluate();  // re-fetch with the new method
+      // Instant switch — both tables are pre-computed in the response
     }
 
     async function runEvaluate() {
@@ -2636,7 +2644,7 @@ createApp({
       pjJumpToToday, pjJumpToNextMilestone, pjFormatDate,
       evalPrefix, evalStem, evalInfix, evalStemInfo, showInfixField,
       evalPreviewName, evalLanguageVariants, evalThreshold, evalProgress, evalLoading, evalResult, runEvaluate,
-      evalPhoneticMethod, evalPhoneticScore, evalPocaScore, switchPhoneticMethod,
+      evalPhoneticMethod, evalPhoneticScore, evalPocaScore, switchPhoneticMethod, evalSimilarNames,
       speakName,
       recLoading, recError, recStep, recTargetClass, recMechanism, recChemicalClass,
       recIndication, recSubstructure, recScaffold, recArea, recTargetMeaning,
