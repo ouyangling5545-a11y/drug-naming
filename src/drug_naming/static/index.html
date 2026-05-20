@@ -744,15 +744,19 @@ input[type="range"] {
 
         <h3 style="margin-top:18px;">FDA POCA 二维度评分（Phonetic + Orthographic）</h3>
         <div class="score-bar">
-          <span class="label">语音 <span style="font-weight:400;font-size:10px;">({{ evalPhoneticMethod === 'aline' ? 'ALINE' : 'Metaphone' }})</span></span><div class="bar-wrap"><div class="bar-fill" :class="evalPhoneticScore < 0.70 ? 'pass' : evalPhoneticScore < 0.85 ? 'review' : 'reject'" :style="{width:(evalPhoneticScore*100)+'%'}"></div></div>
-          <span class="val">{{ (evalPhoneticScore*100).toFixed(0) }}%</span>
+          <span class="label">语音 ALINE</span><div class="bar-wrap"><div class="bar-fill" :class="(evalResult.aline_phonetic_score ?? evalResult.phonetic_score) < 0.70 ? 'pass' : (evalResult.aline_phonetic_score ?? evalResult.phonetic_score) < 0.85 ? 'review' : 'reject'" :style="{width:((evalResult.aline_phonetic_score ?? evalResult.phonetic_score)*100)+'%'}"></div></div>
+          <span class="val">{{ ((evalResult.aline_phonetic_score ?? evalResult.phonetic_score)*100).toFixed(0) }}%</span>
+        </div>
+        <div class="score-bar">
+          <span class="label">语音 Metaphone</span><div class="bar-wrap"><div class="bar-fill" :class="(evalResult.metaphone_phonetic_score ?? evalResult.phonetic_score) < 0.70 ? 'pass' : (evalResult.metaphone_phonetic_score ?? evalResult.phonetic_score) < 0.85 ? 'review' : 'reject'" :style="{width:((evalResult.metaphone_phonetic_score ?? evalResult.phonetic_score)*100)+'%'}"></div></div>
+          <span class="val">{{ ((evalResult.metaphone_phonetic_score ?? evalResult.phonetic_score)*100).toFixed(0) }}%</span>
         </div>
         <div class="score-bar">
           <span class="label">字形</span><div class="bar-wrap"><div class="bar-fill" :class="evalResult.orthographic_score < 0.70 ? 'pass' : evalResult.orthographic_score < 0.85 ? 'review' : 'reject'" :style="{width:(evalResult.orthographic_score*100)+'%'}"></div></div>
           <span class="val">{{ (evalResult.orthographic_score*100).toFixed(0) }}%</span>
         </div>
         <div class="score-bar" style="margin-top:6px;">
-          <span class="label">综合 <span style="font-weight:400;font-size:10px;">(Phon+Orth)/2</span></span><div class="bar-wrap"><div class="bar-fill" :class="evalPocaScore < 0.70 ? 'pass' : evalPocaScore < 0.85 ? 'review' : 'reject'" :style="{width:(evalPocaScore*100)+'%'}"></div></div>
+          <span class="label">综合 {{ evalPhoneticMethod === 'aline' ? 'ALINE' : 'Metaphone' }}</span><div class="bar-wrap"><div class="bar-fill" :class="evalPocaScore < 0.70 ? 'pass' : evalPocaScore < 0.85 ? 'review' : 'reject'" :style="{width:(evalPocaScore*100)+'%'}"></div></div>
           <span class="val" style="font-weight:700;">{{ (evalPocaScore*100).toFixed(0) }}%</span>
         </div>
 
@@ -1314,8 +1318,9 @@ createApp({
 
     function switchPhoneticMethod(method) {
       if (evalPhoneticMethod.value === method) return;
+      if (evalLoading.value) return;  // already loading
       evalPhoneticMethod.value = method;
-      // Both methods' scores are pre-computed in the response — instant switch
+      runEvaluate();  // re-fetch with the new method
     }
 
     async function runEvaluate() {
