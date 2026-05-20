@@ -677,10 +677,10 @@ input[type="range"] {
       </div>
 
       <!-- 多语言名称变体（基于输入的候选名变换） -->
-      <div class="card" v-if="evalResult && evalResult.language_variants && evalResult.language_variants.length">
+      <div class="card" v-if="evalLanguageVariants.length">
         <h3>多语言名称变体</h3>
         <div style="font-size:11px;color:var(--color-muted-foreground);margin-bottom:10px;">基于输入名称”{{ evalPreviewName }}”在不同语言中的对应形式，含规则推导与禁忌筛查</div>
-        <div v-for="(lv, idx) in evalResult.language_variants" :key="(lv.language||'') + '_' + idx"
+        <div v-for="(lv, idx) in evalLanguageVariants" :key="(lv.language||'') + '_' + idx"
              style="padding:10px 0;border-bottom:1px solid var(--color-border);">
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="badge" :class="lv.source === 'not_available' ? 'badge-amber' : lv.source === 'derived' || lv.source === 'transliteration' ? 'badge-blue' : 'badge-green'"
@@ -701,17 +701,7 @@ input[type="range"] {
         </div>
       </div>
 
-      <!-- Chinese name suggestions -->
-      <div class="card" v-if="evalResult && evalResult.chinese_suggestions.length">
-        <h3>中文名建议</h3>
-        <div style="font-size:11px;color:var(--color-muted-foreground);margin-bottom:10px;">基于分子性质与语义偏好的组合式中文命名方案</div>
-        <div v-for="cn in evalResult.chinese_suggestions.slice(0,4)" :key="cn.chinese_name"
-             style="padding:10px 0;border-bottom:1px solid var(--color-border);">
-          <span class="chinese-chars">{{ cn.chinese_name }}</span>
-          <span style="font-size:12px;color:var(--color-muted-foreground);margin-left:10px;">{{ cn.pinyin }}</span>
-          <span style="font-size:11px;color:var(--color-muted-foreground);margin-left:6px;">{{ cn.meaning_gloss }}</span>
-        </div>
-      </div>
+      <!-- Chinese name suggestions removed — use Tab A for property-aware Chinese naming -->
 
     </div>
 
@@ -746,7 +736,7 @@ input[type="range"] {
         </div>
         <div class="meta-row">
           <span>超过阈值的相似名称数</span>
-          <span>{{ evalResult.similar_count }} 个（全库 {{ evalResult.similar_count }} / 9378）</span>
+          <span>{{ evalResult.similar_count }} 个（全库 {{ evalResult.total_references || evalResult.similar_count }} 个 INN 名称）</span>
         </div>
 
         <h3 style="margin-top:18px;">评估理由</h3>
@@ -1245,6 +1235,14 @@ createApp({
       return name;
     });
 
+    // Reorder language variants: Chinese transliterations first, then latin/french/spanish
+    const evalLanguageVariants = Vue.computed(() => {
+      const variants = (evalResult.value && evalResult.value.language_variants) || [];
+      const cn = variants.filter(v => v.language === 'chinese_transliteration');
+      const other = variants.filter(v => v.language !== 'chinese_transliteration');
+      return [...cn, ...other];
+    });
+
     // Load known suffix stems from API
     async function loadStems() {
       try {
@@ -1278,7 +1276,7 @@ createApp({
         if (currentCount === nameEvalCount.value) evalResult.value = await res.json();
       } catch(e) {
         if (currentCount === nameEvalCount.value)
-          evalResult.value = { verdict: '评估失败', reasons: [e.message], risks: [], poca_assessment: 'REJECT', poca_score:0, phonetic_score:0, orthographic_score:0, compositional_score:0, worst_comparison:'', chinese_suggestions:[], language_variants:[] };
+          evalResult.value = { verdict: '评估失败', reasons: [e.message], risks: [], poca_assessment: 'REJECT', poca_score:0, phonetic_score:0, orthographic_score:0, compositional_score:0, worst_comparison:'', similar_count:0, total_references:0, language_variants:[] };
       } finally { if (currentCount === nameEvalCount.value) evalLoading.value = false; }
     }
 
@@ -2578,7 +2576,7 @@ createApp({
       pjMilestoneName, pjAvailableDependencies, pjAddDependency, pjRemoveDependency,
       pjJumpToToday, pjJumpToNextMilestone, pjFormatDate,
       evalPrefix, evalStem, evalInfix, evalStemInfo, showInfixField,
-      evalPreviewName, evalThreshold, evalProgress, evalLoading, evalResult, runEvaluate,
+      evalPreviewName, evalLanguageVariants, evalThreshold, evalProgress, evalLoading, evalResult, runEvaluate,
       speakName,
       recLoading, recError, recStep, recTargetClass, recMechanism, recChemicalClass,
       recIndication, recSubstructure, recScaffold, recArea, recTargetMeaning,

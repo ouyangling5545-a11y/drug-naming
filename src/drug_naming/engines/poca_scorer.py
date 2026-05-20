@@ -66,11 +66,6 @@ class POCAScoringEngine:
                 + self.weights.compositional_weight * compositional_score
             )
 
-        # Length penalty for very short names (< 5 chars)
-        max_len = max(len(proposed), len(reference))
-        if max_len < 5:
-            overall *= max_len / 5.0
-
         overall = min(1.0, overall)
 
         if overall >= self.weights.high_alert_threshold:

@@ -2,9 +2,8 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 from fastapi import APIRouter, Request
 from ..models.poca import POCARequest, POCAResponse, POCAWeights, POCAScoreDetail, POCAScoreDetail
-from ..models.chinese import ChineseNameCandidate, ChineseNameRequest
+from ..models.chinese import ChineseNameCandidate
 from ..engines.poca_scorer import POCAScoringEngine
-from ..engines.chinese_name import ChineseNameEngine
 from ..data.inn_reference import get_inn_reference_db
 from ..engines.latin_name import (
     derive_latin_name,
@@ -131,9 +130,10 @@ class NameEvaluationResponse(BaseModel):
     compositional_score: float
     worst_comparison: str
     poca_detail: POCAScoreDetail | None = None
-    chinese_suggestions: list[ChineseNameCandidate] = Field(default_factory=list)
+    chinese_suggestions: list[ChineseNameCandidate] = Field(default_factory=list, description="Deprecated: use Tab A Chinese naming instead")
     similar_names: list[POCAScoreDetail] = Field(default_factory=list)
     similar_count: int = 0
+    total_references: int = 0
     threshold: float = 0.55
     verdict: str
     reasons: list[str] = Field(default_factory=list)
@@ -271,20 +271,7 @@ def evaluate_name(
     orthographic_score = worst_detail.orthographic_score if worst_detail else 0.0
     compositional_score = worst_detail.compositional_score if worst_detail else 0.0
 
-    # 3. Chinese name suggestions
-    chinese_engine = ChineseNameEngine(approved_names_db=[])
-    chinese_request = ChineseNameRequest(
-        inn_name=name_clean,
-        pharmacological_properties={},
-        max_candidates=4,
-    )
-    try:
-        chinese_response = chinese_engine.suggest(chinese_request)
-        chinese_suggestions = chinese_response.candidates[:4]
-    except Exception:
-        chinese_suggestions = []
-
-    # 3.5. 多语言名称变体（拉丁/法语/西语查询+推导，中文音译）
+    # 3. 多语言名称变体（拉丁/法语/西语查询+推导，中文音译）
     language_variants: list[LanguageNameVariant] = []
 
     # 拉丁名：优先查 INN 数据库，否则用尾缀规则推导
@@ -483,9 +470,10 @@ def evaluate_name(
         compositional_score=compositional_score,
         worst_comparison=worst_comparison,
         poca_detail=worst_detail,
-        chinese_suggestions=chinese_suggestions,
+        chinese_suggestions=[],
         similar_names=similar_names[:max_similar],
         similar_count=len(similar_names),
+        total_references=len(all_refs),
         threshold=threshold / 100.0,
         verdict=verdict,
         reasons=reasons,

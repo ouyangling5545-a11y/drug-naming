@@ -1,4 +1,4 @@
-latin,english,french,spanish,chinese,cas,pl_list
+﻿latin,english,french,spanish,chinese,cas,pl_list
 acebrocholum,acebrochol,acébrochol,acebrocol,醋溴考尔,,pl01
 acediasulfonum natricum,acediasulfone'sodium,acédiasulfone sodique,acediasulfona de sodio,,,pl01
 acetaminosalolum,acctaminosalol,acétaminosalol,acetaminosalol,,,pl01
@@ -3993,7 +3993,7 @@ enlimomabum,enlimomab,enlimomab,enlimomab,艾利欧单抗,142864-19-5,pl70
 imitrodastum,imitrodast,imitrodast,imitrodast,咪曲司特,114686-12-3,pl70
 iralukastum,iralukast,iralukast,iralukast,伊鲁司特,151581-24-7,pl70
 laflunimusum,laflunimus,laflunimus,laflunimús,拉氟莫司,,pl70
-laflunimus,,,,,147076-36-6,pl70
+laflunimus,laflunimus,,,拉氟莫司,147076-36-6,pl70
 lafutidinum,lafutidine,lafutidine,lafutidina,拉呋替丁,118288-08-7,pl70
 laurcetii bromidum,laurcetium bromide,bromure de laurcétium,bromuro de laurcetio,劳塞溴铵,1794-75-8,pl70
 lecimibidum,lecimibide,lécimibide,lecimibida,来西贝特,130804-35-2,pl70
@@ -4283,7 +4283,7 @@ enlimomabum pegolum,enlimomab pegol,enlimomab pégol,inmunomodulador,培艾利�
 eplerenonum,eplerenone,eplerenona,felvizumab,依普利酮,167747-20-8,pl77
 fudosteinum,fudosteine,fudostéine,fudosteína,福多司坦,13189-98-5,pl77
 gavestinelum,gavestinel,"acide 4,6-dichloro-3-[(E-2-(phénylcarbamoyl)éthényl]-1H-indole-2-carboxylique",gavestinel,加维斯替奈,153436-22-7,pl77
-gavestinel,,,"ácido 4,6-dicloro-3-[(E)-2-(fenilcarbamoil)vinil]indol-2-carboxílico antagonista de los receptores de NMDA",,153436-22-7,pl77
+gavestinel,gavestinel,,"ácido 4,6-dicloro-3-[(E)-2-(fenilcarbamoil)vinil]indol-2-carboxílico antagonista de los receptores de NMDA",加维替奈,153436-22-7,pl77
 glufosfamidum,glufosfamide,"N,N'-bis(2-chloroéthyl)phosphorodiamidate de β-D-glucopyranosyle antinéoplasique",glufosfamide,葡膦酰胺,132682-98-5,pl77
 infliximabum,infliximab,Infliximab,| MCDLPQTHSLG | NRRALILLAQ | MRRISPFSCL |  KDRHDFGFPQ |,英夫利西单抗,118390-30-0,pl77
 lanepitantum,"N-[(R)-2-indol-3-yl-1-[[N-(o-methoxybenzyl)acetamido] methyl]ethyl] [1,4'-bipiperidine]-1'-acetamide",lanepitant,lanepitant,,170566-84-4,pl77
@@ -4356,7 +4356,7 @@ midafotelum,(-)-(A)-4-[(E)-3-phosphonoallyl]-2-piperazinecarboxylic acid,midafot
 midostaurinum,midostaurin,midostaurina,antineoplásico,米哚妥林,120685-11-2,pl79
 morolimumabum,morolmumab,morolimumab,morolimumab,,202833-07-6,pl79
 natalizumabum,natalizumab,natalizumab,natalizumab,那他利珠单抗,189261-10-7,pl79
-natalizumab,,,"inmunoglobulina G 4 (cadena y del anticuerpo monoclonal humanizado de ratón AN100226 dirigido contra la integrina 4 humana), dímero del disulfuro con la cadena ligera del anticuerpo monoclonal humanizado de ratón AN100226inmunomodulador",,189261-10-7,pl79
+natalizumab,natalizumab,,"inmunoglobulina G 4 (cadena y del anticuerpo monoclonal humanizado de ratón AN100226 dirigido contra la integrina 4 humana), dímero del disulfuro con la cadena ligera del anticuerpo monoclonal humanizado de ratón AN100226inmunomodulador",那他珠单抗,189261-10-7,pl79
 olamufloxacinum,olamufloxacin,palivizumab,palivizumab,奥拉沙星,188039-54-5,pl79
 piboserodum,piboserod,antagoniste de la sérotonine,piboserod,哌波色罗,152811-62-6,pl79
 repinotanum,repinotan,répinotan,repinotán,瑞匹诺坦,144980-29-0,pl79
@@ -4419,7 +4419,7 @@ p. 16 satumomabum,satumomab,remplacer la description par la suivante:,"(Informac
 capromabum,capromab,capromab,capromab,卡普欧单抗,119141-88-7,pl80
 detumomabum,detumomab,détumomab,detumomab,德妥欧单抗,119141-88-7,pl80
 enlimomabum,enlimomab,enlimomab,enlimomab,艾利欧单抗,119141-88-7,pl80
-abciximab,,remplacer la ddescription par la suivante:,"(Información Farmacéutica OMS, Vol. 7, No. 4, 1993)",,119141-88-7,pl80
+abciximab,abciximab,remplacer la ddescription par la suivante:,"(Información Farmacéutica OMS, Vol. 7, No. 4, 1993)",阿昔单抗,119141-88-7,pl80
 capromabum,capromab,capromab,sustitúyase la descripción por la siguiente,卡普欧单抗,119141-88-7,pl80
 detumomabum,detumomab,détumomab,sustitúyase la descripción por la siguiente:,德妥欧单抗,119141-88-7,pl80
 enlimomabum,enlimomab,sustitúyase la descripción por la siguiente:,sustitúyase la descnpción por la siguiente:,艾利欧单抗,119141-88-7,pl80
@@ -4527,7 +4527,7 @@ atrasentan,"(2R,3R,4S)-1-[(dibutylcarbamoyl)methyl]-2-(p-methoxyphenyl)-4-[3,4-"
 bevacizumabum,bevacizumab,bevacizumab,inmunomodulador,贝伐珠单抗,216974-75-3,pl83
 bivatuzumabum,bivatuzumab,bivatuzumab,bivatuzumab,比沃妥珠单抗,214559-60-1,pl83
 bivatuzumab,"immunoglobulin G 1 (human-mouse monoclonal BIWA4 γ1-chain anti-human antigen CD44v8), disulfide with human-mouse monoclonal BIWA4 k-chain, dimer",,,,214559-60-1,pl83
-bivatuzumab,,"immunoglobuline G1 anti-(antigène CD44v8 humain) (chaîne y1 de l'anticorps monoclonal de souris BIWA4 humanisé), dimère du disulfure avec la chaîne k de l'anticorps monoclonal de souris BIWA4 humaniséimmunnomodulateur",bivatuzumab,,214559-60-1,pl83
+bivatuzumab,bivatuzumab,"immunoglobuline G1 anti-(antigène CD44v8 humain) (chaîne y1 de l'anticorps monoclonal de souris BIWA4 humanisé), dimère du disulfure avec la chaîne k de l'anticorps monoclonal de souris BIWA4 humaniséimmunnomodulateur",bivatuzumab,比伐珠单抗,214559-60-1,pl83
 capravirinum,capravirine,capravirine,capravirina,卡拉韦林,178979-85-6,pl83
 capromorelinum,capromorelin,capromoréline,capromorelina,卡莫瑞林,193273-66-4,pl83
 cridanimodum,cridanimod,cridanimod,cridanimod,克立莫德,38609-97-1,pl83
@@ -4647,7 +4647,7 @@ feloprentanum,"(2S)-3-[2-(3,4-dimethoxyphenyl)ethoxy]-2-[(4,6-dimethylpyrimidin-
 garnocestimum,garnocestim,garnocestim,| TELRCQ | CLQTLQGIHL | KNIQSVKVKS | PGPHCAQTEV |,加诺司亭,166181-63-1,pl85
 isegananum,iseganan,iseganán,antibacteriano,艾塞加南,257277-05-7,pl85
 labetuzumabum,labetuzumab,labétuzumab,labetuzumab,拉贝妥珠单抗,219649-07-7,pl85
-laniquidar,,,"11-[1-[2-[4-(quinolin-2-ilmetoxi)fenil]etil]piperidin-4-ilideno]-6,11-dihidro-5H-imidazo[2,1-b][3]benzazepina-3-carboxilato de metilo antineoplásico",,197509-46-9,pl85
+laniquidar,laniquidar,,"11-[1-[2-[4-(quinolin-2-ilmetoxi)fenil]etil]piperidin-4-ilideno]-6,11-dihidro-5H-imidazo[2,1-b][3]benzazepina-3-carboxilato de metilo antineoplásico",拉尼喹达,197509-46-9,pl85
 lapisteridum,lapisteride,lapisterida,inhibidor de la 5á-reductasa,拉匹雄胺,142139-60-4,pl85
 laquinimodum,laquinimod,laquinimod,inmunomodulador,拉喹莫德,248281-84-7,pl85
 laronidasum,laronidase,| livaraparin calcium | calcium salt of a low molecular mass heparin that is obtained by nitrous acid depolymerization of heparin from porcine intestinal mucosa; the majority of<br>the components have a 2-O-sulfo-α-L-idopyranosuronic acid structure at the non-reducing end and a 6-O-sulfo-structure at the reducing end of their<br>chain; the mass-average molecular mass ranges between 3000 and 5000<br>with 75% is less than 8000; the degree of sulfatation is approximately 2 per<br>disaccharidic unit<br>anticoagulant |,| --- | --- |,拉罗尼酶,210589-09-6,pl85
@@ -4813,7 +4813,7 @@ squalaminum,squalamine,squalamine,escualamina,司夸胺,148717-90-2,pl88
 tacedinalinum,tacedinaline,tacédinaline,tacedinalina,他地那兰,112522-64-2,pl88
 telbivudinum,telbivudine,telbivudine,telbivudina,替比夫定,3424-98-4,pl88
 tolevamerum,tolevamer,tolévamère,tolevámero,托来伐姆,,pl88
-indiplon,,,,,,pl88
+indiplon,indiplon,,,因地普隆,,pl88
 indiplon,indiplón,,,,,pl88
 trabectedin,trabectédine,,trabectedina,,,pl88
 alamifovirum,alamifovir,alamifovir,alamifovir,阿拉福韦,193681-12-8,pl89
@@ -6355,9 +6355,9 @@ talinexomerum,talinexomer,talinexomère,talinexómero,他利索姆,51838-34-7,pl
 tamtuvetmabum,tamtuvetmab,tamtuvetmab,tamtuvetmab,坦妥维单抗,1636180-98-7,pl114
 tenalisibum,tenalisib,ténalisib,tenalisib,泰那利塞,1639417-53-0,pl114
 tetrodotoxinum,tetrodotoxin,tétrodotoxine,tetrodotoxina,特曲妥辛,,pl114
-pentol,,,,,,pl114
-pentol,,,,,,pl114
-pentol,,,,,4368-28-9,pl114
+pentol,pentol,,,喷托,,pl114
+pentol,pentol,,,喷托,,pl114
+pentol,pentol,,,喷托,4368-28-9,pl114
 tezacaftorum,tezacaftor,tezacaftor,tezacaftor,替扎卡托,1152311-62-0,pl114
 timolumabum,timolumab,timolumab,timolumab,替利尤单抗,1073538-99-4,pl114
 vadadustatum,vadadustat,vadadustat,vadadustat,伐达度司他,1000025-07-9,pl114
@@ -6368,7 +6368,7 @@ xentuzumabum,xentuzumab,xentuzumab,xentuzumab,施妥珠单抗,1417158-65-6,pl114
 zoliflodacinum,zoliflodacin,zoliflodacine,zoliflodacina,唑利氟达星,1620458-09-4,pl114
 glasaretilum,glasaretil,,glasaretilo,,,pl114
 trizoxetanum,trizoxetan,trizoxétan,trizoxetán,,,pl114
-somatropin,,,,,,pl114
+somatropin,somatropin,,,生长激素,,pl114
 adegramotidum,adegramotide,adégramotide,adegramotida,阿德莫肽,1252802-98-4,pl115
 adomeglivantum,adomeglivant,adoméglivant,adomeglivant,阿度格列凡,1488363-78-5,pl115
 afabicinum,afabicin,afabicine,afabicina,阿法比星,1518800-35-5,pl115
@@ -7014,7 +7014,7 @@ dovanvetmabum,dovanvetmab,dovanvetmab,dovanvetmab,度伐维单抗,1644543-31-6,p
 elexacaftorum,elexacaftor,élexacaftor,elexacaftor,依来卡托,2216712-66-0,pl121
 elsubrutinibum,elsubrutinib,elsubrutinib,elsubrutinib,依苏布替尼,1643570-24-4,pl121
 enavogliflozinum,enavogliflozin,énavogliflozine,enavogliflozina,依伏格列净,,pl121
-glucitol,,,,,1415472-28-4,pl121
+glucitol,glucitol,,,葡萄糖醇,1415472-28-4,pl121
 encelimabum,encelimab,encelimab,encelimab,安沙利单抗,2173096-82-5,pl121
 enmetazobactamum,enmetazobactam,enmétazobactam,enmetazobactam,甲他唑巴坦,1001404-83-6,pl121
 epcoritamabum,epcoritamab,épcoritamab,epcoritamab,艾可瑞妥单抗,2226647-27-2,pl121

@@ -1,18 +1,58 @@
 from __future__ import annotations
-import jellyfish
 from ..models.poca import OrthographicScoreDetail
 
 
+def _levenshtein(s1: str, s2: str) -> int:
+    """Levenshtein edit distance."""
+    if len(s1) < len(s2):
+        return _levenshtein(s2, s1)
+    if len(s2) == 0:
+        return len(s1)
+    prev = list(range(len(s2) + 1))
+    for i, c1 in enumerate(s1):
+        curr = [i + 1]
+        for j, c2 in enumerate(s2):
+            curr.append(min(curr[-1] + 1, prev[j + 1] + 1, prev[j] + (c1 != c2)))
+        prev = curr
+    return prev[-1]
+
+
+def _lcs(s1: str, s2: str) -> int:
+    """Longest common subsequence length."""
+    m, n = len(s1), len(s2)
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if s1[i - 1] == s2[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1] + 1
+            else:
+                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+    return dp[m][n]
+
+
 class OrthographicAnalyzer:
-    """String-distance analysis for orthographic (visual) similarity."""
+    """FDA POCA-style orthographic similarity scoring.
+
+    Based on reverse-engineering of FDA POCA v2.19.5 across 168K name pairs.
+    Formula: Ortho = clamp(5 + 100*LCSnorm + 30*NEDnorm, 0, 100)
+    where LCSnorm = LCS / max(len1, len2), NEDnorm = 1 - LD / max(len1, len2).
+    """
 
     @staticmethod
     def levenshtein_normalized(s1: str, s2: str) -> tuple[int, float]:
         s1_lower = s1.lower()
         s2_lower = s2.lower()
-        dist = jellyfish.levenshtein_distance(s1_lower, s2_lower)
+        dist = _levenshtein(s1_lower, s2_lower)
         norm = dist / max(len(s1), len(s2), 1)
         return dist, norm
+
+    @staticmethod
+    def lcs_normalized(s1: str, s2: str) -> tuple[int, float]:
+        s1_lower = s1.lower()
+        s2_lower = s2.lower()
+        lcs_len = _lcs(s1_lower, s2_lower)
+        norm = lcs_len / max(len(s1), len(s2), 1)
+        return lcs_len, norm
 
     @staticmethod
     def bigram_overlap(s1: str, s2: str) -> float:
@@ -60,25 +100,23 @@ class OrthographicAnalyzer:
         return prefix, prefix_len, suffix, suffix_len
 
     def compute_orthographic(self, proposed: str, reference: str) -> tuple[OrthographicScoreDetail, float]:
-        lev_dist, lev_norm = self.levenshtein_normalized(proposed, reference)
-        bigram = self.bigram_overlap(proposed, reference)
-        trigram = self.trigram_overlap(proposed, reference)
-        prefix, pfx_len, suffix, sfx_len = self.common_prefix_suffix(proposed, reference)
+        s1 = proposed.lower()
+        s2 = reference.lower()
 
-        max_len = max(len(proposed), len(reference), 1)
+        lev_dist, lev_norm = self.levenshtein_normalized(s1, s2)
+        lcs_len, lcs_norm = self.lcs_normalized(s1, s2)
+        bigram = self.bigram_overlap(s1, s2)
+        trigram = self.trigram_overlap(s1, s2)
+        prefix, pfx_len, suffix, sfx_len = self.common_prefix_suffix(s1, s2)
+
+        max_len = max(len(s1), len(s2), 1)
         prefix_ratio = pfx_len / max_len
         suffix_ratio = sfx_len / max_len
 
-        # Continuous scoring — all sub-scores contribute proportionally
-        lev_sim = 1.0 - lev_norm  # Edit distance → similarity
-        score = (
-            lev_sim * 0.35
-            + bigram * 0.25
-            + trigram * 0.15
-            + prefix_ratio * 0.10
-            + suffix_ratio * 0.15
-        )
-        score = min(1.0, score)
+        # FDA POCA v2.19.5 formula (reverse-engineered from 168K pairs, MAE≈4.78)
+        raw = 5 + 100 * lcs_norm + 30 * (1.0 - lev_norm)
+        score = max(0.0, min(100.0, raw))
+        score = round(score)
 
         detail = OrthographicScoreDetail(
             levenshtein_distance=lev_dist,
@@ -91,6 +129,6 @@ class OrthographicAnalyzer:
             longest_common_suffix_len=sfx_len,
             prefix_similarity_score=prefix_ratio,
             suffix_similarity_score=suffix_ratio,
-            orthographic_score=score,
+            orthographic_score=score / 100.0,
         )
-        return detail, score
+        return detail, score / 100.0

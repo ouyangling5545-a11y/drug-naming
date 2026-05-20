@@ -15,7 +15,13 @@ def get_inn_reference_db() -> InnReferenceDB:
 
 
 class InnReferenceDB:
-    """Fast in-memory reference database of 9378 real INN names from WHO PL01-PL134."""
+    """Fast in-memory reference database of ~13.6K real INN names from WHO PL01-PL134."""
+
+    # Stem fragments and non-drug descriptors from early PL lists — not real INN names
+    _SKIP_ENGLISH: set[str] = {
+        "caine", "sulfone", "toin", "stigmine", "quine", "crine", "dione",
+        "andr", "contrast medi", "steroids, androgens",
+    }
 
     def __init__(self, csv_path: str | Path | None = None) -> None:
         self._names: list[dict] = []
@@ -28,6 +34,7 @@ class InnReferenceDB:
         self._english_to_latin: dict[str, str] = {}
         self._english_to_french: dict[str, str] = {}
         self._english_to_spanish: dict[str, str] = {}
+        self._english_to_chinese: dict[str, str] = {}
 
         if csv_path is None:
             csv_path = Path(__file__).parent / "inn_reference.csv"
@@ -37,11 +44,14 @@ class InnReferenceDB:
     def _load(self, csv_path: str | Path) -> None:
         with open(csv_path, encoding="utf-8-sig") as f:
             for row in csv.DictReader(f):
-                self._names.append(row)
                 eng = row["english"].strip().lower()
+                if eng in self._SKIP_ENGLISH:
+                    continue
                 lat = row["latin"].strip().lower()
                 fre = row["french"].strip().lower()
                 spa = row["spanish"].strip().lower()
+                chn = row["chinese"].strip()
+                self._names.append(row)
                 if eng:
                     self._english_set.add(eng)
                     if lat:
@@ -50,6 +60,8 @@ class InnReferenceDB:
                         self._english_to_french[eng] = fre
                     if spa:
                         self._english_to_spanish[eng] = spa
+                    if chn:
+                        self._english_to_chinese[eng] = chn
                 if lat:
                     self._latin_set.add(lat)
                 if fre:
@@ -98,6 +110,10 @@ class InnReferenceDB:
     def spanish_names(self) -> set[str]:
         return self._spanish_set
 
+    @property
+    def chinese_names(self) -> dict[str, str]:
+        return dict(self._english_to_chinese)
+
     def lookup_latin(self, english_name: str) -> str | None:
         return self._english_to_latin.get(english_name.strip().lower())
 
@@ -106,6 +122,9 @@ class InnReferenceDB:
 
     def lookup_spanish(self, english_name: str) -> str | None:
         return self._english_to_spanish.get(english_name.strip().lower())
+
+    def lookup_chinese(self, english_name: str) -> str | None:
+        return self._english_to_chinese.get(english_name.strip().lower())
 
     def exists(self, name: str) -> bool:
         """Check if a name (English or Latin) already exists in the INN database."""

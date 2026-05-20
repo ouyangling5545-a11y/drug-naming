@@ -51,8 +51,8 @@ class POCAWeights(BaseModel):
     phonetic_weight: float = Field(default=0.40, ge=0.0, le=1.0)
     orthographic_weight: float = Field(default=0.35, ge=0.0, le=1.0)
     compositional_weight: float = Field(default=0.25, ge=0.0, le=1.0)
-    safety_threshold: float = Field(default=0.70, ge=0.0, le=1.0)
-    high_alert_threshold: float = Field(default=0.85, ge=0.0, le=1.0)
+    safety_threshold: float = Field(default=0.55, ge=0.0, le=1.0, description="FDA threshold: ≥55 → REVIEW")
+    high_alert_threshold: float = Field(default=0.70, ge=0.0, le=1.0, description="FDA threshold: ≥70 → REJECT")
 
 
 class POCAScoreDetail(BaseModel):
