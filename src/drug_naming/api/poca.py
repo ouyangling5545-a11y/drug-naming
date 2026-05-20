@@ -139,6 +139,16 @@ class NameEvaluationResponse(BaseModel):
     reasons: list[str] = Field(default_factory=list)
     risks: list[str] = Field(default_factory=list)
     language_variants: list[LanguageNameVariant] = Field(default_factory=list)
+    phonetic_method: str = "metaphone"
+    # Alternate method results for instant sub-tab switching
+    aline_phonetic_score: float = 0.0
+    aline_poca_score: float = 0.0
+    aline_similar_count: int = 0
+    aline_worst_comparison: str = ""
+    metaphone_phonetic_score: float = 0.0
+    metaphone_poca_score: float = 0.0
+    metaphone_similar_count: int = 0
+    metaphone_worst_comparison: str = ""
 
 def _describe_latin_taboos(flags: list[str]) -> str:
     if not flags:
@@ -260,22 +270,39 @@ def evaluate_name(
                      captures partial phonetic overlap across prefix boundaries).
     """
     engine = _get_poca_engine(request)
-    if phonetic_method in ("metaphone", "aline"):
-        engine.phonetic_method = phonetic_method
     inn_db = get_inn_reference_db()
     name_clean = proposed_name.strip()
     name_lower = name_clean.lower()
 
-    # 1. Get all INN reference names and run FDA 2D scoring with threshold
+    # 1. Fast batch screening with Metaphone (always) — ALINE is too slow for 13K names
+    engine.phonetic_method = "metaphone"
     all_refs = sorted(inn_db.english_names) if inn_db else []
     similar_names = engine.score_batch_fda(name_clean, all_refs, threshold=threshold / 100.0, max_results=max_similar)
 
-    # 2. Determine worst comparison and scores
+    # 2. Worst comparison from Metaphone screening
     worst_detail = similar_names[0] if similar_names else None
-    worst_score = worst_detail.overall_poca_score if worst_detail else 0.0
     worst_comparison = worst_detail.reference_name if worst_detail else ""
-    phonetic_score = worst_detail.phonetic_score if worst_detail else 0.0
-    orthographic_score = worst_detail.orthographic_score if worst_detail else 0.0
+
+    # 3. Compute BOTH methods' scores for the worst pair only (avoids ALINE O(N) cost)
+    engine.phonetic_method = "metaphone"
+    meta_detail = engine.score_pair(name_clean, worst_comparison) if worst_comparison else None
+    metaphone_phonetic = meta_detail.phonetic_score if meta_detail else 0.0
+    metaphone_poca = meta_detail.overall_poca_score if meta_detail else 0.0
+
+    engine.phonetic_method = "aline"
+    aline_detail = engine.score_pair(name_clean, worst_comparison) if worst_comparison else None
+    aline_phonetic = aline_detail.phonetic_score if aline_detail else 0.0
+    aline_poca = aline_detail.overall_poca_score if aline_detail else 0.0
+
+    # 4. Use requested method's scores as primary display
+    if phonetic_method == "aline":
+        phonetic_score = aline_phonetic
+        orthographic_score = worst_detail.orthographic_score if worst_detail else 0.0
+        worst_score = aline_poca
+    else:
+        phonetic_score = metaphone_phonetic
+        orthographic_score = worst_detail.orthographic_score if worst_detail else 0.0
+        worst_score = metaphone_poca
     compositional_score = worst_detail.compositional_score if worst_detail else 0.0
 
     # 3. 多语言名称变体（拉丁/法语/西语查询+推导，中文音译）
@@ -486,4 +513,13 @@ def evaluate_name(
         reasons=reasons,
         risks=risks,
         language_variants=language_variants,
+        phonetic_method=phonetic_method,
+        aline_phonetic_score=aline_phonetic,
+        aline_poca_score=aline_poca,
+        aline_similar_count=len(similar_names),
+        aline_worst_comparison=worst_comparison,
+        metaphone_phonetic_score=metaphone_phonetic,
+        metaphone_poca_score=metaphone_poca,
+        metaphone_similar_count=len(similar_names),
+        metaphone_worst_comparison=worst_comparison,
     )

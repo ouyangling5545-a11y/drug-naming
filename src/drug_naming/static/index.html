@@ -738,24 +738,22 @@ input[type="range"] {
             {{ evalResult.poca_assessment === 'PASS' ? '通过' : evalResult.poca_assessment === 'REVIEW' ? '需审核' : '建议驳回' }}
           </div>
           <div style="font-size:13px;color:var(--color-muted-foreground);">
-            最高相似度 {{ (evalResult.poca_score*100).toFixed(0) }}%（阈值 {{ (evalResult.threshold*100).toFixed(0) }}%）
+            最高相似度 {{ (evalPocaScore*100).toFixed(0) }}%（阈值 {{ (evalResult.threshold*100).toFixed(0) }}%）
           </div>
         </div>
 
         <h3 style="margin-top:18px;">FDA POCA 二维度评分（Phonetic + Orthographic）</h3>
-        <div class="subtab-row">
-          <span style="font-size:11px;color:var(--color-muted-foreground);margin-right:6px;line-height:22px;">语音引擎</span>
-          <span class="subtab" :class="{active:evalPhoneticMethod==='metaphone'}" @click="evalPhoneticMethod='metaphone'; runEvaluate()">Metaphone</span>
-          <span class="subtab" :class="{active:evalPhoneticMethod==='aline'}" @click="evalPhoneticMethod='aline'; runEvaluate()">ALINE</span>
-        </div>
-        <div v-if="evalPhoneticMethod==='aline'" class="subtab-note">ALINE (Kondrak 2000)：基于调音特征向量的音素对齐算法，捕获部分语音重叠（如 -tinib 后缀），计算更精确但较慢</div>
         <div class="score-bar">
-          <span class="label">语音</span><div class="bar-wrap"><div class="bar-fill" :class="evalResult.phonetic_score < 0.70 ? 'pass' : evalResult.phonetic_score < 0.85 ? 'review' : 'reject'" :style="{width:(evalResult.phonetic_score*100)+'%'}"></div></div>
-          <span class="val">{{ (evalResult.phonetic_score*100).toFixed(0) }}%</span>
+          <span class="label">语音 <span style="font-weight:400;font-size:10px;">({{ evalPhoneticMethod === 'aline' ? 'ALINE' : 'Metaphone' }})</span></span><div class="bar-wrap"><div class="bar-fill" :class="evalPhoneticScore < 0.70 ? 'pass' : evalPhoneticScore < 0.85 ? 'review' : 'reject'" :style="{width:(evalPhoneticScore*100)+'%'}"></div></div>
+          <span class="val">{{ (evalPhoneticScore*100).toFixed(0) }}%</span>
         </div>
         <div class="score-bar">
           <span class="label">字形</span><div class="bar-wrap"><div class="bar-fill" :class="evalResult.orthographic_score < 0.70 ? 'pass' : evalResult.orthographic_score < 0.85 ? 'review' : 'reject'" :style="{width:(evalResult.orthographic_score*100)+'%'}"></div></div>
           <span class="val">{{ (evalResult.orthographic_score*100).toFixed(0) }}%</span>
+        </div>
+        <div class="score-bar" style="margin-top:6px;">
+          <span class="label">综合 <span style="font-weight:400;font-size:10px;">(Phon+Orth)/2</span></span><div class="bar-wrap"><div class="bar-fill" :class="evalPocaScore < 0.70 ? 'pass' : evalPocaScore < 0.85 ? 'review' : 'reject'" :style="{width:(evalPocaScore*100)+'%'}"></div></div>
+          <span class="val" style="font-weight:700;">{{ (evalPocaScore*100).toFixed(0) }}%</span>
         </div>
 
         <div v-if="evalResult.worst_comparison" class="meta-row">
@@ -784,6 +782,13 @@ input[type="range"] {
       <!-- Similar names above threshold -->
       <div class="card" v-if="evalResult && evalResult.similar_names.length">
         <h3>超过阈值的相似名称 <span class="badge badge-amber">{{ evalResult.similar_names.length }} 个</span></h3>
+        <div class="subtab-row" style="margin-bottom:12px;">
+          <span style="font-size:11px;color:var(--color-muted-foreground);margin-right:8px;line-height:22px;">语音评分引擎</span>
+          <span class="subtab" :class="{active:evalPhoneticMethod==='aline'}" @click="switchPhoneticMethod('aline')">ALINE</span>
+          <span class="subtab" :class="{active:evalPhoneticMethod==='metaphone'}" @click="switchPhoneticMethod('metaphone')">Metaphone</span>
+        </div>
+        <div v-if="evalPhoneticMethod==='aline'" class="subtab-note">ALINE (Kondrak 2000)：基于调音特征向量（辅音/元音、发音部位、方式、浊化等7维）的音素对齐算法，可捕获部分前缀差异下的后缀重叠（如不同前缀的 -tinib），计算精确但较慢</div>
+        <div v-if="evalPhoneticMethod==='metaphone'" class="subtab-note">Metaphone：基于 Double Metaphone 编码 + 音节数 + 重音模式的快速听觉评分，涵盖英语主要发音规则，响应快</div>
         <div style="max-height:420px;overflow-y:auto;">
           <div v-for="sn in evalResult.similar_names" :key="sn.reference_name"
                style="padding:6px 0;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:8px;font-size:12px;">
@@ -1247,7 +1252,7 @@ createApp({
     const evalResult = ref(null);
     const knownStems = ref([]);       // all stems from API
     const nameEvalCount = ref(0);     // counter to track which eval we're on
-    const evalPhoneticMethod = ref('metaphone');  // 'metaphone' or 'aline'
+    const evalPhoneticMethod = ref('aline');  // 'metaphone' or 'aline', default ALINE
 
     // Computed: full name from parts. Strips leading hyphens from stem for concatenation.
     const evalPreviewName = Vue.computed(() => {
@@ -1293,6 +1298,26 @@ createApp({
     }
     loadStems();
 
+    // Computed: phonetic score for active method (supports instant sub-tab switching)
+    const evalPhoneticScore = Vue.computed(() => {
+      if (!evalResult.value) return 0;
+      const r = evalResult.value;
+      if (evalPhoneticMethod.value === 'aline') return r.aline_phonetic_score ?? r.phonetic_score;
+      return r.metaphone_phonetic_score ?? r.phonetic_score;
+    });
+    const evalPocaScore = Vue.computed(() => {
+      if (!evalResult.value) return 0;
+      const r = evalResult.value;
+      if (evalPhoneticMethod.value === 'aline') return r.aline_poca_score ?? r.poca_score;
+      return r.metaphone_poca_score ?? r.poca_score;
+    });
+
+    function switchPhoneticMethod(method) {
+      if (evalPhoneticMethod.value === method) return;
+      evalPhoneticMethod.value = method;
+      // Both methods' scores are pre-computed in the response — instant switch
+    }
+
     async function runEvaluate() {
       const name = evalPreviewName.value;
       if (!name) return;
@@ -1305,7 +1330,7 @@ createApp({
         if (currentCount === nameEvalCount.value) evalResult.value = await res.json();
       } catch(e) {
         if (currentCount === nameEvalCount.value)
-          evalResult.value = { verdict: '评估失败', reasons: [e.message], risks: [], poca_assessment: 'REJECT', poca_score:0, phonetic_score:0, orthographic_score:0, compositional_score:0, worst_comparison:'', similar_count:0, total_references:0, language_variants:[] };
+          evalResult.value = { verdict: '评估失败', reasons: [e.message], risks: [], poca_assessment: 'REJECT', poca_score:0, phonetic_score:0, orthographic_score:0, compositional_score:0, worst_comparison:'', similar_count:0, total_references:0, language_variants:[], aline_phonetic_score:0, aline_poca_score:0, metaphone_phonetic_score:0, metaphone_poca_score:0 };
       } finally { if (currentCount === nameEvalCount.value) evalLoading.value = false; }
     }
 
@@ -2606,7 +2631,7 @@ createApp({
       pjJumpToToday, pjJumpToNextMilestone, pjFormatDate,
       evalPrefix, evalStem, evalInfix, evalStemInfo, showInfixField,
       evalPreviewName, evalLanguageVariants, evalThreshold, evalProgress, evalLoading, evalResult, runEvaluate,
-      evalPhoneticMethod,
+      evalPhoneticMethod, evalPhoneticScore, evalPocaScore, switchPhoneticMethod,
       speakName,
       recLoading, recError, recStep, recTargetClass, recMechanism, recChemicalClass,
       recIndication, recSubstructure, recScaffold, recArea, recTargetMeaning,
