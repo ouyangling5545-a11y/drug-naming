@@ -17,6 +17,7 @@ from drug_naming.engines.poca_scorer import POCAScoringEngine
 from drug_naming.engines.name_generator import NameGenerationEngine
 from drug_naming.engines.chinese_name import ChineseNameEngine
 from drug_naming.engines.brand_name import BrandNameEngine
+from drug_naming.engines.phonetic_aline import AlineEncoder
 from drug_naming.models.brand import BrandScreenRequest
 
 
@@ -250,3 +251,59 @@ class TestBrandNameEngine:
     def test_marketability_scoring(self):
         score = self.engine._marketability_score("Zelmac")
         assert 0.0 <= score <= 1.0
+
+
+# ── ALINE Phonetic Engine ──
+
+class TestAlineEncoder:
+    def setup_method(self):
+        self.engine = AlineEncoder()
+
+    def test_g2p_produces_phonemes(self):
+        seq = self.engine.to_phonemes("imatinib")
+        assert len(seq) >= 4
+        assert all(p in [
+            "ɪ", "m", "æ", "t", "n", "b", "i", "ə", "k", "s", "d", "f", "l", "r", "ɹ"
+        ] for p in seq)
+
+    def test_g2p_no_infinite_loop(self):
+        # Verify identity-mapping characters don't cause infinite loops
+        for name in ["imatinib", "aspirin", "sildenafil", "tadalafil",
+                      "omeprazole", "erlotinib", "gefitinib", "bob", "dad"]:
+            seq = self.engine.to_phonemes(name)
+            assert isinstance(seq, list)
+            assert len(seq) > 0
+
+    def test_same_name_max_score(self):
+        _, score = self.engine.compute_phonetics("imatinib", "imatinib")
+        assert score > 0.95
+
+    def test_different_names_lower_score(self):
+        _, score = self.engine.compute_phonetics("aspirin", "omeprazole")
+        assert score < 0.80
+
+    def test_metaphone_aline_different(self):
+        """ALINE and Metaphone should produce different scores for the same pair."""
+        from drug_naming.engines.phonetic import PhoneticEncoder
+        meta = PhoneticEncoder()
+        aline = AlineEncoder()
+        pairs = [
+            ("imatinib", "erlotinib"),
+            ("sildenafil", "tadalafil"),
+            ("aspirin", "ibuprofen"),
+        ]
+        for a, b in pairs:
+            _, ms = meta.compute_phonetics(a, b)
+            _, al = aline.compute_phonetics(a, b)
+            diff = abs(ms - al)
+            assert diff > 0.01, f"{a} vs {b}: Meta={ms:.4f} ALINE={al:.4f} diff={diff:.4f}"
+
+    def test_poca_scorer_dispatch(self):
+        """POCAScoringEngine dispatches correctly between Metaphone and ALINE."""
+        engine = POCAScoringEngine()
+        engine.phonetic_method = "metaphone"
+        r1 = engine.score_pair("imatinib", "erlotinib")
+        engine.phonetic_method = "aline"
+        r2 = engine.score_pair("imatinib", "erlotinib")
+        assert abs(r1.phonetic_score - r2.phonetic_score) > 0.01, \
+            f"Dispatch failed: Meta={r1.phonetic_score:.4f} ALINE={r2.phonetic_score:.4f}"

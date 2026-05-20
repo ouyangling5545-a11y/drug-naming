@@ -179,6 +179,8 @@ def _apply_g2p(word: str) -> list[str]:
 
     # Apply context-free rules, longest first
     for pattern, replacement in _G2P_RULES:
+        if pattern == replacement:
+            continue  # skip identity mappings (e.g. b→b) to avoid infinite loop
         while pattern in word:
             word = word.replace(pattern, replacement, 1)
 
