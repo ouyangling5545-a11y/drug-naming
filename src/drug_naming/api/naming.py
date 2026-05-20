@@ -11,6 +11,7 @@ from ..models.naming import (
 from ..engines.stem_matcher import StemMatchingEngine
 from ..engines.name_generator import NameGenerationEngine
 from ..data.inn_reference import get_inn_reference_db
+from ..data.targets import get_target_tree, find_target, flatten_targets
 from .stems import _get_default_provider
 
 router = APIRouter()
@@ -37,3 +38,18 @@ def generate_names(body: GenerateNamesRequest) -> NameGenerationResponse:
         existing_names_to_avoid=body.existing_names_to_avoid,
     )
     return gen_engine.generate(gen_request)
+
+
+@router.get("/targets")
+def get_targets() -> list[dict]:
+    """Return the hierarchical target tree for the frontend dropdown."""
+    return get_target_tree()
+
+
+@router.get("/targets/{target_value}")
+def get_target_info(target_value: str) -> dict | None:
+    """Return metadata for a specific target (for auto-fill)."""
+    t = find_target(target_value)
+    if t:
+        return t.to_dict()
+    return None

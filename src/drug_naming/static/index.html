@@ -673,17 +673,18 @@ input[type="range"] {
           <span v-if="evalLoading" class="spinner"></span>
           {{ evalLoading ? '正在比对 ' + evalProgress + ' 条...' : '评估 ' + evalPreviewName }}
         </button>
+        <button class="btn btn-outline" style="margin-left:8px;font-size:16px;padding:6px 10px;" title="听发音" @click="speakName(evalPreviewName)" :disabled="!evalPreviewName">🔊</button>
       </div>
 
       <!-- 多语言名称变体（基于输入的候选名变换） -->
       <div class="card" v-if="evalResult && evalResult.language_variants && evalResult.language_variants.length">
         <h3>多语言名称变体</h3>
         <div style="font-size:11px;color:var(--color-muted-foreground);margin-bottom:10px;">基于输入名称”{{ evalPreviewName }}”在不同语言中的对应形式，含规则推导与禁忌筛查</div>
-        <div v-for="lv in evalResult.language_variants" :key="lv.language"
+        <div v-for="(lv, idx) in evalResult.language_variants" :key="(lv.language||'') + '_' + idx"
              style="padding:10px 0;border-bottom:1px solid var(--color-border);">
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="badge" :class="lv.source === 'not_available' ? 'badge-amber' : lv.source === 'derived' || lv.source === 'transliteration' ? 'badge-blue' : 'badge-green'"
-                  style="min-width:60px;text-align:center;">{{ lv.language === 'chinese_transliteration' ? 'CN音译' : lv.language.toUpperCase() }}</span>
+                  style="min-width:60px;text-align:center;">{{ lv.language === 'chinese_transliteration' ? 'CN-'+(idx+1) : lv.language.toUpperCase() }}</span>
             <span style="font-family:var(--font-mono);font-size:14px;font-weight:600;">{{ lv.name }}</span>
             <span v-if="lv.source === 'inn_database'" class="badge badge-green" style="font-size:9px;">官方数据</span>
             <span v-else-if="lv.source === 'derived'" class="badge badge-blue" style="font-size:9px;">规则推导</span>
@@ -767,12 +768,24 @@ input[type="range"] {
         <h3>超过阈值的相似名称 <span class="badge badge-amber">{{ evalResult.similar_names.length }} 个</span></h3>
         <div style="max-height:420px;overflow-y:auto;">
           <div v-for="sn in evalResult.similar_names" :key="sn.reference_name"
-               style="padding:7px 0;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:10px;font-size:12px;">
-            <span style="font-family:var(--font-mono);flex:1;font-weight:500;">{{ sn.reference_name }}</span>
-            <div style="width:80px;height:8px;border-radius:4px;background:var(--color-border);overflow:hidden;">
-              <div style="height:100%;border-radius:4px;transition:width 400ms ease-out;" :class="sn.overall_poca_score<0.70?'pass':sn.overall_poca_score<0.85?'review':'reject'" :style="{width:(sn.overall_poca_score*100)+'%'}"></div>
+               style="padding:6px 0;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:8px;font-size:12px;">
+            <span style="cursor:pointer;font-size:13px;flex-shrink:0;" @click="speakName(sn.reference_name)" title="听发音">🔊</span>
+            <span style="font-family:var(--font-mono);font-weight:500;max-width:150px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1;">{{ sn.reference_name }}</span>
+            <span style="font-size:10px;color:var(--color-muted-foreground);flex-shrink:0;">音</span>
+            <div style="width:52px;height:6px;border-radius:3px;background:var(--color-border);overflow:hidden;flex-shrink:0;">
+              <div style="height:100%;border-radius:3px;" :style="{width:(sn.phonetic_score*100)+'%', background: sn.phonetic_score>=0.70 ? 'var(--color-destructive)' : sn.phonetic_score>=0.60 ? 'var(--color-warning)' : 'var(--color-success)'}"></div>
             </div>
-            <span style="width:42px;text-align:right;font-weight:700;font-size:12px;font-variant-numeric:tabular-nums;" :style="{color: sn.overall_poca_score<0.70?'var(--color-success)':sn.overall_poca_score<0.85?'var(--color-warning)':'var(--color-destructive)'}">{{ (sn.overall_poca_score*100).toFixed(0) }}%</span>
+            <span style="width:34px;text-align:right;font-weight:700;font-size:11px;font-variant-numeric:tabular-nums;flex-shrink:0;" :style="{color: sn.phonetic_score>=0.70 ? 'var(--color-destructive)' : sn.phonetic_score>=0.60 ? 'var(--color-warning)' : 'var(--color-success)'}">{{ (sn.phonetic_score*100).toFixed(0) }}%</span>
+            <span style="font-size:10px;color:var(--color-muted-foreground);flex-shrink:0;">形</span>
+            <div style="width:52px;height:6px;border-radius:3px;background:var(--color-border);overflow:hidden;flex-shrink:0;">
+              <div style="height:100%;border-radius:3px;" :style="{width:(sn.orthographic_score*100)+'%', background: sn.orthographic_score>=0.70 ? 'var(--color-destructive)' : sn.orthographic_score>=0.60 ? 'var(--color-warning)' : 'var(--color-success)'}"></div>
+            </div>
+            <span style="width:34px;text-align:right;font-weight:700;font-size:11px;font-variant-numeric:tabular-nums;flex-shrink:0;" :style="{color: sn.orthographic_score>=0.70 ? 'var(--color-destructive)' : sn.orthographic_score>=0.60 ? 'var(--color-warning)' : 'var(--color-success)'}">{{ (sn.orthographic_score*100).toFixed(0) }}%</span>
+            <span style="font-size:10px;color:var(--color-muted-foreground);flex-shrink:0;">综</span>
+            <div style="width:52px;height:6px;border-radius:3px;background:var(--color-border);overflow:hidden;flex-shrink:0;">
+              <div style="height:100%;border-radius:3px;" :style="{width:(sn.overall_poca_score*100)+'%', background: sn.overall_poca_score>=0.70 ? 'var(--color-destructive)' : sn.overall_poca_score>=0.60 ? 'var(--color-warning)' : 'var(--color-success)'}"></div>
+            </div>
+            <span style="width:34px;text-align:right;font-weight:700;font-size:12px;font-variant-numeric:tabular-nums;flex-shrink:0;" :style="{color: sn.overall_poca_score>=0.70 ? 'var(--color-destructive)' : sn.overall_poca_score>=0.60 ? 'var(--color-warning)' : 'var(--color-success)'}">{{ (sn.overall_poca_score*100).toFixed(0) }}%</span>
           </div>
         </div>
       </div>
@@ -787,11 +800,26 @@ input[type="range"] {
 
         <div style="margin-bottom:14px;">
           <label>靶点类别</label>
+          <div v-if="recTargetClass && targetMap[recTargetClass]" style="font-size:12px;color:var(--color-primary);font-weight:600;margin-bottom:4px;">
+            ✓ {{ targetMap[recTargetClass].label }}（{{ targetMap[recTargetClass].cn }}）
+          </div>
           <div class="combo" ref="targetCombo">
-            <input v-model="recTargetClass" placeholder="选择或输入靶点..." @focus="openCombo('target')" @input="filterCombo('target')" @keydown.down.prevent="navCombo('target',1)" @keydown.up.prevent="navCombo('target',-1)" @keydown.enter.prevent="selectCombo('target')" @blur="blurCombo('target')">
+            <input v-model="recTargetClass" placeholder="搜索靶点：如 EGFR, HER2, BTK..." @focus="openCombo('target')" @input="filterCombo('target')" @keydown.down.prevent="navCombo('target',1)" @keydown.up.prevent="navCombo('target',-1)" @keydown.enter.prevent="selectCombo('target')" @blur="blurCombo('target')">
             <span class="arrow">▼</span>
-            <div class="dropdown" :class="{show: comboOpen.target}">
-              <div v-for="(opt,idx) in comboTargetFiltered" :key="opt.v" class="opt" :class="{highlight: idx===comboIdx.target, sep: opt.sep}" @mousedown.prevent="pickCombo('target',opt)">{{ opt.sep ? '— '+opt.label+' —' : opt.label }}</div>
+            <div class="dropdown" :class="{show: comboOpen.target}" style="max-height:360px;overflow-y:auto;">
+              <div v-for="(opt,idx) in comboTargetFiltered" :key="opt.v||opt.sepLabel||idx" class="opt" :class="{highlight: idx===comboIdx.target, sep: opt.sep}" @mousedown.prevent="pickCombo('target',opt)">
+                <template v-if="opt.sep">
+                  <span style="color:var(--color-muted-foreground);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">{{ opt.sepLabel }}</span>
+                </template>
+                <template v-else>
+                  <span :style="{paddingLeft: (opt.indent||0)*16+'px', display:'inline-block'}">
+                    <span style="font-weight:600;">{{ opt.label }}</span>
+                    <span v-if="opt.cn" style="color:var(--color-muted-foreground);margin-left:6px;font-size:11px;">{{ opt.cn }}</span>
+                    <span v-if="opt.stems&&opt.stems.length" style="color:var(--color-primary);font-size:10px;margin-left:6px;">→ {{ opt.stems.slice(0,2).join(', ') }}</span>
+                  </span>
+                </template>
+              </div>
+              <div v-if="!comboTargetFiltered.length" style="padding:10px;color:var(--color-muted-foreground);font-size:12px;text-align:center;">未找到匹配靶点，可直接输入</div>
             </div>
           </div>
         </div>
@@ -830,8 +858,25 @@ input[type="range"] {
         </div>
 
         <div style="margin-bottom:14px;">
-          <label>化学亚结构 <span style="font-weight:400;color:var(--color-muted-foreground);">(可选)</span></label>
-          <input v-model="recSubstructure" placeholder="如 pyrimidine, quinazoline">
+          <label>化学骨架 <span style="font-weight:400;color:var(--color-muted-foreground);">(关键区分维度)</span></label>
+          <div class="combo">
+            <input v-model="recScaffold" placeholder="选择或输入骨架，如 triazine, amide/ester..." @focus="openCombo('scaffold')" @input="filterCombo('scaffold')" @keydown.down.prevent="navCombo('scaffold',1)" @keydown.up.prevent="navCombo('scaffold',-1)" @keydown.enter.prevent="selectCombo('scaffold')" @blur="blurCombo('scaffold')">
+            <span class="arrow">▼</span>
+            <div class="dropdown" :class="{show: comboOpen.scaffold}" style="max-height:280px;overflow-y:auto;">
+              <div v-for="(opt,idx) in comboScaffoldFiltered" :key="opt.v" class="opt" :class="{highlight: idx===comboIdx.scaffold}" @mousedown.prevent="pickCombo('scaffold',opt)">{{ opt.label }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label>治疗领域 <span style="font-weight:400;color:var(--color-muted-foreground);">(ATC分类)</span></label>
+          <div class="combo">
+            <input v-model="recArea" placeholder="选择或输入，如 anticonvulsant..." @focus="openCombo('area')" @input="filterCombo('area')" @keydown.down.prevent="navCombo('area',1)" @keydown.up.prevent="navCombo('area',-1)" @keydown.enter.prevent="selectCombo('area')" @blur="blurCombo('area')">
+            <span class="arrow">▼</span>
+            <div class="dropdown" :class="{show: comboOpen.area}" style="max-height:280px;overflow-y:auto;">
+              <div v-for="(opt,idx) in comboAreaFiltered" :key="opt.v" class="opt" :class="{highlight: idx===comboIdx.area}" @mousedown.prevent="pickCombo('area',opt)">{{ opt.label }}</div>
+            </div>
+          </div>
         </div>
 
         <div style="margin-bottom:14px;">
@@ -865,9 +910,44 @@ input[type="range"] {
 
       <div v-if="recStems.length" class="card">
         <h3>词干匹配 <span class="badge badge-blue">{{ recStems.length }} 条</span></h3>
-        <div class="stem-item" v-for="s in recStems.slice(0,6)" :key="s.stem.stem">
-          <div><div class="stem-name">{{ s.stem.stem }}</div><div class="stem-meaning">{{ s.stem.meaning }}</div></div>
-          <span style="font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;" :style="{color: s.match_score>0.7?'var(--color-success)':s.match_score>0.4?'var(--color-warning)':'var(--color-muted-foreground)'}">{{ (s.match_score*100).toFixed(0) }}%</span>
+        <div style="font-size:12px;color:var(--color-muted-foreground);margin-bottom:12px;">
+          按 INN 决策层级排序：靶点直接匹配 → 靶点+机制 → 化学结构 → 临床适应症
+        </div>
+        <div v-for="s in recStems.slice(0,8)" :key="s.stem.stem"
+             style="border:1px solid var(--color-border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;">
+          <!-- Collapsed row -->
+          <div @click="recToggleStem(s.stem.stem)"
+               style="display:flex;align-items:center;padding:10px 14px;cursor:pointer;background:var(--color-bg);gap:10px;"
+               onmouseover="this.style.background='var(--surface-blue)';" onmouseout="this.style.background='var(--color-bg)';">
+            <span style="font-size:14px;transition:transform 0.2s;" :style="{transform: recExpandedStems[s.stem.stem] ? 'rotate(90deg)' : 'rotate(0deg)'}">▶</span>
+            <span v-if="s.relevance_weight <= 1" class="badge" style="background:#059669;color:#fff;font-size:10px;flex-shrink:0;">T1 靶点</span>
+            <span v-else-if="s.relevance_weight <= 2" class="badge" style="background:#2563EB;color:#fff;font-size:10px;flex-shrink:0;">T2 靶点+机制</span>
+            <span v-else-if="s.relevance_weight <= 3" class="badge" style="background:#7C3AED;color:#fff;font-size:10px;flex-shrink:0;">T3 靶点类</span>
+            <span v-else-if="s.relevance_weight <= 4" class="badge" style="background:#D97706;color:#fff;font-size:10px;flex-shrink:0;">T4 机制+化学</span>
+            <span v-else-if="s.relevance_weight <= 5" class="badge" style="background:#DC2626;color:#fff;font-size:10px;flex-shrink:0;">T5 通用</span>
+            <span v-else class="badge" style="background:var(--color-muted-foreground);color:#fff;font-size:10px;flex-shrink:0;">T{{ Math.floor(s.relevance_weight) }}</span>
+            <span style="font-family:var(--font-mono);font-weight:700;font-size:15px;flex:1;">{{ s.stem.stem }}</span>
+            <span v-if="s.stem.chinese" style="font-size:13px;color:var(--color-primary);font-weight:600;margin-right:8px;">{{ s.stem.chinese }}</span>
+            <div style="width:60px;height:6px;border-radius:3px;background:var(--color-border);overflow:hidden;flex-shrink:0;">
+              <div style="height:100%;border-radius:3px;" :style="{width:(s.match_score*100)+'%', background: s.match_score>0.9?'#059669':s.match_score>0.7?'#2563EB':s.match_score>0.4?'#D97706':'var(--color-muted-foreground)'}"></div>
+            </div>
+            <span style="font-weight:700;font-size:12px;width:36px;text-align:right;flex-shrink:0;" :style="{color: s.match_score>0.9?'var(--color-success)':s.match_score>0.7?'#2563EB':s.match_score>0.4?'var(--color-warning)':'var(--color-muted-foreground)'}">{{ (s.match_score*100).toFixed(0) }}%</span>
+          </div>
+          <!-- Expanded details -->
+          <div v-if="recExpandedStems[s.stem.stem]" style="padding:10px 14px 12px 38px;border-top:1px solid var(--color-border);background:var(--color-bg);font-size:12px;line-height:1.6;">
+            <div v-if="s.stem.meaning"><span style="color:var(--color-muted-foreground);">含义：</span>{{ s.stem.meaning }}</div>
+            <div v-if="s.stem.who_definition"><span style="color:var(--color-muted-foreground);">WHO定义：</span>{{ s.stem.who_definition }}</div>
+            <div style="display:flex;gap:16px;margin-top:4px;">
+              <span><span style="color:var(--color-muted-foreground);">位置：</span>{{ s.stem.position }}</span>
+              <span><span style="color:var(--color-muted-foreground);">类别：</span>{{ s.stem.category }}</span>
+              <span v-if="s.stem.priority"><span style="color:var(--color-muted-foreground);">优先级：</span>{{ s.stem.priority }}</span>
+            </div>
+            <div v-if="s.stem.examples" style="margin-top:2px;"><span style="color:var(--color-muted-foreground);">示例药物：</span>{{ Array.isArray(s.stem.examples) ? s.stem.examples.join(', ') : s.stem.examples }}</div>
+            <div v-if="s.match_reasons && s.match_reasons.length" style="margin-top:4px;padding:6px 8px;background:var(--surface-blue);border-radius:4px;font-size:11px;">
+              <span style="color:var(--color-muted-foreground);font-weight:600;">决策路径：</span>
+              <span v-for="(r,i) in s.match_reasons" :key="r" style="color:var(--color-foreground);">{{ r }}<span v-if="i<s.match_reasons.length-1"> → </span></span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -876,7 +956,9 @@ input[type="range"] {
         <div class="name-grid">
           <span class="name-chip" v-for="c in recInnCandidates" :key="c.name"
                 :class="{selected: recSelectedInn===c.name}"
-                @click="recSelectInn(c.name)">{{ c.name }}</span>
+                @click="recSelectInn(c.name)">{{ c.name }}
+            <span style="cursor:pointer;margin-left:4px;opacity:0.6;" @click.stop="speakName(c.name)" title="听发音">🔊</span>
+          </span>
         </div>
       </div>
 
@@ -1200,38 +1282,108 @@ createApp({
       } finally { if (currentCount === nameEvalCount.value) evalLoading.value = false; }
     }
 
+    let _ttsVoice = null;
+    let _ttsReady = false;
+    function _initTTS() {
+      if (_ttsReady) return;
+      _ttsReady = true;
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) {
+        // Chrome loads voices asynchronously; retry on next call
+        _ttsReady = false;
+        window.speechSynthesis.onvoiceschanged = () => { _ttsReady = true; };
+        return;
+      }
+      // Prefer high-quality English voices
+      const prefs = ['Samantha', 'Alex', 'Daniel', 'Karen', 'Moira', 'Fiona'];
+      for (const pref of prefs) {
+        _ttsVoice = voices.find(v => v.name === pref && v.lang.startsWith('en'));
+        if (_ttsVoice) break;
+      }
+      if (!_ttsVoice) {
+        _ttsVoice = voices.find(v => v.lang.startsWith('en-US') && v.localService) ||
+                    voices.find(v => v.lang.startsWith('en')) ||
+                    voices[0];
+      }
+    }
+    function speakName(name) {
+      if (!window.speechSynthesis) return;
+      _initTTS();
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(name);
+      if (_ttsVoice) u.voice = _ttsVoice;
+      u.lang = 'en-US'; u.rate = 0.80; u.pitch = 1.0;
+      window.speechSynthesis.speak(u);
+    }
+
     // ========== Tab B: Smart Recommendation ==========
     const recLoading = ref(false); const recError = ref(''); const recStep = ref(0);
-    const recTargetClass = ref('kinase');
+    const recTargetClass = ref('egfr');
     const recMechanism = ref('inhibitor');
     const recChemicalClass = ref('small_molecule');
     const recIndication = ref('非小细胞肺癌');
+    const recScaffold = ref('');
+    const recArea = ref('');
     const recSubstructure = ref('');
     const recTargetMeaning = ref('');
     const recStems = ref([]); const recInnCandidates = ref([]);
     const recSelectedInn = ref(''); const recPocaResults = ref([]);
     const recPocaWorstScore = ref(0); const recChineseNames = ref([]);
+    const recExpandedStems = reactive({});
 
     function recStepClass(n) { const s=recStep.value; if(s>n)return'done'; if(s===n)return'current'; return''; }
+    function recToggleStem(key) { recExpandedStems[key] = !recExpandedStems[key]; }
 
     // ========== Combobox system ==========
-    const comboOpen = reactive({ target:false, mechanism:false, chemical:false, indication:false, stem:false });
-    const comboIdx = reactive({ target:0, mechanism:0, chemical:0, indication:0, stem:0 });
+    const comboOpen = reactive({ target:false, mechanism:false, chemical:false, indication:false, scaffold:false, area:false, stem:false });
+    const comboIdx = reactive({ target:0, mechanism:0, chemical:0, indication:0, scaffold:0, area:0, stem:0 });
     const comboStemOptions = [];
     const comboStemFiltered = ref([...comboStemOptions]);
 
-    // Target class options
-    const comboTargetOptions = [
-      {v:'cox',label:'cox — COX酶（镇痛抗炎）'},{v:'opioid_receptor',label:'opioid_receptor — 阿片受体（镇痛）'},
-      {v:'sodium_channel',label:'sodium_channel — 钠离子通道（局麻镇痛）'},{v:'histamine_receptor',label:'histamine_receptor — 组胺受体（呼吸/抗过敏）'},
-      {v:'leukotriene_receptor',label:'leukotriene_receptor — 白三烯受体（呼吸）'},{v:'beta_adrenoceptor',label:'beta_adrenoceptor — β肾上腺素受体（呼吸）'},
-      {v:'muscarinic_receptor',label:'muscarinic_receptor — 毒蕈碱受体（呼吸/COPD）'},{v:'bacterial_target',label:'bacterial_target — 细菌靶点（抗感染）'},
-      {v:'viral_target',label:'viral_target — 病毒靶点（抗感染）'},{v:'fungal_target',label:'fungal_target — 真菌靶点（抗感染）'},
-      {v:'kinase',label:'kinase — 激酶'},{v:'gpcr',label:'gpcr — G蛋白偶联受体'},{v:'ion_channel',label:'ion_channel — 离子通道'},
-      {v:'nuclear_receptor',label:'nuclear_receptor — 核受体'},{v:'protease',label:'protease — 蛋白酶'},{v:'transporter',label:'transporter — 转运体'},
-      {v:'cytokine',label:'cytokine — 细胞因子'},{v:'growth_factor',label:'growth_factor — 生长因子'},{v:'immune_checkpoint',label:'immune_checkpoint — 免疫检查点'},
-      {v:'tnf_superfamily',label:'tnf_superfamily — TNF超家族'},{v:'complement',label:'complement — 补体'},{v:'integrin',label:'integrin — 整合素'},{v:'other',label:'other — 其他'}
-    ];
+    // Target hierarchy — loaded from API
+    const targetTree = ref([]);
+    const targetFlat = ref([]);  // flat list for quick lookup: {v, label, cn, cat, mechanisms, chemClass, indication, stems, substructure}
+    const targetMap = ref({});   // v → metadata
+
+    async function loadTargets() {
+      try {
+        const res = await fetch(API + '/naming/targets');
+        if (!res.ok) throw new Error('Targets API returned ' + res.status);
+        targetTree.value = await res.json();
+        // Flatten: extract leaf nodes (those with a non-category v) + category headers
+        const flat = [];
+        const map = {};
+        function walk(nodes, depth, parentCat) {
+          for (const n of nodes) {
+            if (n.children && n.children.length) {
+              // Category header
+              flat.push({ sep: true, sepLabel: n.label + ' — ' + (n.cn || ''), cat: n.v });
+              for (const c of n.children) {
+                if (c.children && c.children.length) {
+                  // Sub-header
+                  flat.push({ sep: true, sepLabel: '  ' + c.label + ' — ' + (c.cn || ''), cat: n.v, indent: 1 });
+                  for (const cc of c.children) {
+                    flat.push({ v: cc.v, label: cc.label, cn: cc.cn, cat: cc.cat, mechanisms: cc.mechanisms||[], chemClass: cc.chemClass||'small_molecule', indication: cc.indication||'', stems: cc.stems||[], substructure: cc.substructure||'', indent: 2 });
+                    map[cc.v] = flat[flat.length-1];
+                  }
+                } else {
+                  flat.push({ v: c.v, label: c.label, cn: c.cn, cat: c.cat, mechanisms: c.mechanisms||[], chemClass: c.chemClass||'small_molecule', indication: c.indication||'', stems: c.stems||[], substructure: c.substructure||'', indent: 1 });
+                  map[c.v] = flat[flat.length-1];
+                }
+              }
+            } else if (n.v && n.v !== 'other') {
+              flat.push({ v: n.v, label: n.label, cn: n.cn, cat: n.cat, mechanisms: n.mechanisms||[], chemClass: n.chemClass||'small_molecule', indication: n.indication||'', stems: n.stems||[], substructure: n.substructure||'', indent: 0 });
+              map[n.v] = flat[flat.length-1];
+            }
+          }
+        }
+        walk(targetTree.value, 0, '');
+        targetFlat.value = flat;
+        targetMap.value = map;
+        console.log('[Targets] Loaded ' + Object.keys(map).length + ' targets from API');
+      } catch(e) { console.error('[Targets] Failed to load:', e); }
+    }
+    loadTargets();
     const comboMechanismOptions = [
       {v:'inhibitor',label:'inhibitor — 抑制剂'},{v:'antagonist',label:'antagonist — 拮抗剂'},{v:'blocker',label:'blocker — 阻断剂'},
       {v:'agonist',label:'agonist — 激动剂'},{v:'activator',label:'activator — 激活剂'},{v:'modulator',label:'modulator — 调节剂'},
@@ -1256,10 +1408,52 @@ createApp({
       {v:'心力衰竭',label:'心力衰竭'},{v:'类风湿关节炎',label:'类风湿关节炎'},{v:'银屑病',label:'银屑病'},{v:'阿尔茨海默病',label:'阿尔茨海默病'}
     ];
 
-    const comboTargetFiltered = ref([...comboTargetOptions]);
+    const comboScaffoldOptions = [
+      {v:'triazine',label:'triazine — 三嗪类'},
+      {v:'amide/ester',label:'amide/ester — 酰胺/酯类 (局麻药)'},
+      {v:'quinazoline',label:'quinazoline — 喹唑啉'},
+      {v:'pyrimidine',label:'pyrimidine — 嘧啶'},
+      {v:'quinoline',label:'quinoline — 喹啉'},
+      {v:'indolinone',label:'indolinone — 吲哚酮'},
+      {v:'pyrrolopyrimidine',label:'pyrrolopyrimidine — 吡咯并嘧啶'},
+      {v:'pyridopyrimidine',label:'pyridopyrimidine — 吡啶并嘧啶'},
+      {v:'thiazolidinedione',label:'thiazolidinedione — 噻唑烷二酮'},
+      {v:'benzodiazepine',label:'benzodiazepine — 苯二氮卓'},
+      {v:'hydantoin',label:'hydantoin — 乙内酰脲'},
+      {v:'dibenzazepine',label:'dibenzazepine — 二苯并氮卓'},
+      {v:'beta_lactam',label:'beta-lactam — β-内酰胺'},
+      {v:'steroid',label:'steroid — 甾体'},
+      {v:'prostaglandin',label:'prostaglandin — 前列腺素'},
+      {v:'sulfonamide',label:'sulfonamide — 磺酰胺'},
+      {v:'dihydropyridine',label:'dihydropyridine — 二氢吡啶'},
+      {v:'other',label:'other — 其他'},
+    ];
+    const comboAreaOptions = [
+      {v:'anticonvulsant',label:'anticonvulsant — 抗癫痫'},
+      {v:'anesthetic',label:'anesthetic — 麻醉药'},
+      {v:'antineoplastic',label:'antineoplastic — 抗肿瘤'},
+      {v:'anti_infective',label:'anti-infective — 抗感染'},
+      {v:'cardiovascular',label:'cardiovascular — 心血管'},
+      {v:'neurology',label:'neurology — 神经系统'},
+      {v:'analgesic',label:'analgesic — 镇痛'},
+      {v:'anti_inflammatory',label:'anti-inflammatory — 抗炎'},
+      {v:'metabolic',label:'metabolic — 代谢/内分泌'},
+      {v:'respiratory',label:'respiratory — 呼吸系统'},
+      {v:'gastrointestinal',label:'gastrointestinal — 消化系统'},
+      {v:'dermatology',label:'dermatology — 皮肤'},
+      {v:'hematology',label:'hematology — 血液'},
+      {v:'immunology',label:'immunology — 免疫'},
+      {v:'psychiatry',label:'psychiatry — 精神'},
+      {v:'ophthalmology',label:'ophthalmology — 眼科'},
+      {v:'other',label:'other — 其他'},
+    ];
+
+    const comboTargetFiltered = ref([]);
     const comboMechanismFiltered = ref([...comboMechanismOptions]);
     const comboChemicalFiltered = ref([...comboChemicalOptions]);
     const comboIndicationFiltered = ref([...comboIndicationOptions]);
+    const comboScaffoldFiltered = ref([...comboScaffoldOptions]);
+    const comboAreaFiltered = ref([...comboAreaOptions]);
 
     function openCombo(type) { comboOpen[type]=true; comboIdx[type]=0; filterCombo(type); }
     function blurCombo(type) { setTimeout(()=>{comboOpen[type]=false;},150); }
@@ -1272,18 +1466,62 @@ createApp({
         comboIdx.stem = 0;
         return;
       }
-      const source = type==='target'?comboTargetOptions:type==='mechanism'?comboMechanismOptions:type==='chemical'?comboChemicalOptions:comboIndicationOptions;
-      const input = type==='target'?recTargetClass.value:type==='mechanism'?recMechanism.value:type==='chemical'?recChemicalClass.value:recIndication.value;
+      if (type === 'target') {
+        const q = (recTargetClass.value||'').toLowerCase();
+        const all = targetFlat.value;
+        if (!all.length) return;
+        const result = [];
+        const seenCats = new Set();
+        const nonSep = all.filter(o => !o.sep);
+        // Sort: prefix matches first, then contains, then cn matches
+        let filtered;
+        if (!q) {
+          filtered = nonSep;
+        } else {
+          const prefix = []; const contains = []; const cnMatch = [];
+          for (const o of nonSep) {
+            const ol = o.label.toLowerCase();
+            const ov = (o.v||'').toLowerCase();
+            if (ol.startsWith(q) || ov.startsWith(q)) { prefix.push(o); }
+            else if (ol.includes(q) || ov.includes(q) || (o.cat||'').toLowerCase().includes(q)) { contains.push(o); }
+            else if ((o.cn||'').includes(q)) { cnMatch.push(o); }
+          }
+          filtered = [...prefix, ...contains, ...cnMatch];
+        }
+        for (const o of filtered) {
+          const catKey = o.cat;
+          if (catKey && !seenCats.has(catKey)) {
+            const header = all.find(h => h.sep && h.cat === catKey);
+            if (header) result.push(header);
+            seenCats.add(catKey);
+          }
+          result.push(o);
+        }
+        comboTargetFiltered.value = result;
+        comboIdx.target = 0;
+        return;
+      }
+      let source, input, target;
+      if (type==='mechanism')   { source=comboMechanismOptions;   input=recMechanism.value;    target=comboMechanismFiltered; }
+      else if (type==='chemical') { source=comboChemicalOptions;  input=recChemicalClass.value; target=comboChemicalFiltered; }
+      else if (type==='scaffold')  { source=comboScaffoldOptions;  input=recScaffold.value;      target=comboScaffoldFiltered; }
+      else if (type==='area')      { source=comboAreaOptions;      input=recArea.value;          target=comboAreaFiltered; }
+      else                         { source=comboIndicationOptions;input=recIndication.value;    target=comboIndicationFiltered; }
       const q = input.toLowerCase();
       const filtered = source.filter(o => o.label.toLowerCase().includes(q) || o.v.toLowerCase().includes(q));
-      const target = type==='target'?comboTargetFiltered:type==='mechanism'?comboMechanismFiltered:type==='chemical'?comboChemicalFiltered:comboIndicationFiltered;
       target.value = filtered;
       comboIdx[type] = 0;
     }
 
     function navCombo(type, dir) {
-      const target = type==='stem'?comboStemFiltered:
-        type==='target'?comboTargetFiltered:type==='mechanism'?comboMechanismFiltered:type==='chemical'?comboChemicalFiltered:comboIndicationFiltered;
+      let target;
+      if (type==='stem') target=comboStemFiltered;
+      else if (type==='target') target=comboTargetFiltered;
+      else if (type==='mechanism') target=comboMechanismFiltered;
+      else if (type==='chemical') target=comboChemicalFiltered;
+      else if (type==='scaffold') target=comboScaffoldFiltered;
+      else if (type==='area') target=comboAreaFiltered;
+      else target=comboIndicationFiltered;
       const idx = comboIdx[type] + dir;
       if (idx >= 0 && idx < target.value.length) comboIdx[type] = idx;
     }
@@ -1294,7 +1532,13 @@ createApp({
         if (opt) pickCombo('stem', opt);
         return;
       }
-      const target = type==='target'?comboTargetFiltered:type==='mechanism'?comboMechanismFiltered:type==='chemical'?comboChemicalFiltered:comboIndicationFiltered;
+      let target;
+      if (type==='target') target=comboTargetFiltered;
+      else if (type==='mechanism') target=comboMechanismFiltered;
+      else if (type==='chemical') target=comboChemicalFiltered;
+      else if (type==='scaffold') target=comboScaffoldFiltered;
+      else if (type==='area') target=comboAreaFiltered;
+      else target=comboIndicationFiltered;
       const opt = target.value[comboIdx[type]];
       if (opt) pickCombo(type, opt);
     }
@@ -1304,14 +1548,24 @@ createApp({
       if (type === 'stem') {
         evalStem.value = opt.v;
         evalStemInfo.value = opt.obj || null;
-        // Auto-show infix if stem requires it
         if (opt.obj && opt.obj.infix_required) showInfixField.value = true;
         comboOpen[type] = false;
         return;
       }
-      if (type==='target') recTargetClass.value = opt.v;
+      if (type==='target') {
+        recTargetClass.value = opt.v;
+        // Auto-fill from target metadata
+        if (opt.mechanisms && opt.mechanisms.length) recMechanism.value = opt.mechanisms[0];
+        if (opt.chemClass) recChemicalClass.value = opt.chemClass;
+        if (opt.indication) recIndication.value = opt.indication;
+        if (opt.substructure) recSubstructure.value = opt.substructure;
+        if (opt.scaffoldOptions && opt.scaffoldOptions.length) recScaffold.value = opt.scaffoldOptions[0];
+        if (opt.therapeuticArea) recArea.value = opt.therapeuticArea;
+      }
       else if (type==='mechanism') recMechanism.value = opt.v;
       else if (type==='chemical') recChemicalClass.value = opt.v;
+      else if (type==='scaffold') recScaffold.value = opt.v;
+      else if (type==='area') recArea.value = opt.v;
       else recIndication.value = opt.v;
       comboOpen[type] = false;
     }
@@ -1334,30 +1588,53 @@ createApp({
       recLoading.value = true; recError.value = ''; recStep.value = 0;
       recPocaResults.value = []; recChineseNames.value = [];
       try {
-        const mol = {
-          molecule_id: 'REC-' + Date.now(),
-          properties: {
-            target_class: recTargetClass.value || 'other',
-            mechanism: recMechanism.value || 'other',
-            chemical_class: recChemicalClass.value || 'small_molecule',
-            indication: recIndication.value || '',
-            chemical_structure_substructure: recSubstructure.value || null
-          }
+        const props = {
+          target_class: recTargetClass.value || 'other',
+          mechanism: recMechanism.value || 'other',
+          chemical_class: recChemicalClass.value || 'small_molecule',
+          indication: recIndication.value || '',
+          chemical_scaffold: recScaffold.value || null,
+          therapeutic_area: recArea.value || null
         };
-        const p = await apiPost('/projects/', mol);
-        const p1 = await apiPost(`/projects/${p.id}/workflow/stem-matching`, {});
-        recStems.value = p1.stem_matches || []; recStep.value = 1;
 
-        const p2 = await apiPost(`/projects/${p.id}/workflow/generate-inn`, {existing_names:[]});
-        recInnCandidates.value = p2.inn_candidates || []; recStep.value = 2;
+        // Step 1: Generate INN names (includes stem matching)
+        const p1 = await apiPost('/naming/generate', {
+          properties: props,
+          existing_names_to_avoid: [],
+          constraints: {}
+        });
+        recInnCandidates.value = p1.candidates || [];
+        recStep.value = 1;
 
+        // Step 2: Extract unique matched stems from all candidates
+        const seen = new Set();
+        const stems = [];
+        for (const c of (p1.candidates || [])) {
+          for (const sm of (c.stems_used || [])) {
+            const key = sm.stem && sm.stem.stem;
+            if (key && !seen.has(key)) {
+              seen.add(key);
+              stems.push(sm);
+            }
+          }
+        }
+        recStems.value = stems.sort((a,b) => (a.relevance_weight||99) - (b.relevance_weight||99) || b.match_score - a.match_score);
+        recStep.value = 2;
+
+        // Step 3: POCA scoring for the first candidate
         if (recInnCandidates.value.length) {
           recSelectedInn.value = recInnCandidates.value[0].name;
           await recRunPoca();
         }
 
-        const p4 = await apiPostQuery(`/projects/${p.id}/workflow/chinese-naming`, {target_meaning: recTargetMeaning.value||''});
-        recChineseNames.value = p4.chinese_candidates || []; recStep.value = 4;
+        // Step 4: Chinese name suggestions
+        const p4 = await apiPost('/chinese/suggest', {
+          inn_name: recSelectedInn.value || (recInnCandidates.value[0] && recInnCandidates.value[0].name) || '',
+          target_meaning: recTargetMeaning.value || '',
+          max_candidates: 4
+        });
+        recChineseNames.value = p4.candidates || [];
+        recStep.value = 4;
         recStep.value = 5;
       } catch(e) { recError.value = e.message; } finally { recLoading.value = false; }
     }
@@ -2302,13 +2579,17 @@ createApp({
       pjJumpToToday, pjJumpToNextMilestone, pjFormatDate,
       evalPrefix, evalStem, evalInfix, evalStemInfo, showInfixField,
       evalPreviewName, evalThreshold, evalProgress, evalLoading, evalResult, runEvaluate,
+      speakName,
       recLoading, recError, recStep, recTargetClass, recMechanism, recChemicalClass,
-      recIndication, recSubstructure, recTargetMeaning,
+      recIndication, recSubstructure, recScaffold, recArea, recTargetMeaning,
       recStems, recInnCandidates, recSelectedInn, recPocaResults, recPocaWorstScore, recChineseNames,
+      recExpandedStems, recToggleStem,
       recStepClass, runRecommend, recSelectInn,
       comboOpen, comboIdx, comboStemFiltered,
       comboTargetFiltered, comboMechanismFiltered, comboChemicalFiltered, comboIndicationFiltered,
-      openCombo, blurCombo, filterCombo, navCombo, selectCombo, pickCombo
+      comboScaffoldFiltered, comboAreaFiltered,
+      openCombo, blurCombo, filterCombo, navCombo, selectCombo, pickCombo,
+      targetMap
     };
   }
 }).mount('#app');

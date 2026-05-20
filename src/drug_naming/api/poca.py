@@ -20,6 +20,99 @@ from ..engines.chinese_transliteration import (
 )
 from .stems import _get_default_provider
 
+# Alternate syllable→character choices for prefix transliteration variants
+# Each key maps to [primary, alternate1, alternate2]
+_PFX_ALTERNATES: dict[str, list[str]] = {
+    "so": ["索", "苏", "司"], "su": ["苏", "舒", "司"],
+    "ra": ["拉", "雷", "瑞"], "re": ["瑞", "雷", "热"],
+    "fa": ["法", "发", "伐"], "fe": ["非", "费", "芬"], "fi": ["非", "芬", "费"],
+    "pa": ["帕", "派", "巴"], "pe": ["培", "佩", "普"], "pi": ["匹", "皮", "吡"],
+    "ma": ["马", "玛", "麻"], "me": ["美", "梅", "莫"], "mi": ["米", "密", "咪"],
+    "ta": ["他", "它", "塔"], "te": ["特", "忒", "替"], "ti": ["替", "提", "体"],
+    "mo": ["莫", "摩", "模"], "to": ["托", "妥", "拓"],
+    "ni": ["尼", "妮", "匿"], "na": ["那", "纳", "娜"],
+    "ro": ["罗", "洛", "若"], "ri": ["利", "日", "力"],
+    "va": ["伐", "瓦", "万"], "ve": ["维", "韦", "威"], "vi": ["维", "威", "韦"],
+    "si": ["司", "西", "斯"], "sa": ["沙", "萨", "撒"],
+    "ca": ["卡", "咖", "喀"], "co": ["考", "可", "柯"], "ci": ["西", "次", "此"],
+    "ce": ["塞", "色", "策"], "le": ["来", "乐", "勒"],
+    "li": ["利", "里", "力"], "lo": ["洛", "罗", "络"], "la": ["拉", "喇", "腊"],
+    "do": ["多", "度", "朵"], "da": ["达", "大", "答"],
+    "de": ["德", "得", "地"], "di": ["地", "迪", "底"], "du": ["度", "杜", "都"],
+    "be": ["贝", "倍", "北"], "bo": ["博", "波", "泊"],
+    "po": ["泊", "波", "颇"], "pu": ["普", "浦", "扑"],
+    "bu": ["布", "补", "步"], "bi": ["比", "必", "必"],
+    "ga": ["加", "伽", "嘎"], "ge": ["吉", "格", "哥"],
+    "go": ["戈", "果", "过"], "gu": ["古", "谷", "固"],
+    "ha": ["哈", "赫", "海"], "he": ["赫", "合", "和"],
+    "ka": ["卡", "喀", "咖"], "ke": ["可", "克", "科"],
+    "ne": ["奈", "内", "讷"], "no": ["诺", "挪", "娜"],
+    "ru": ["鲁", "如", "汝"], "se": ["司", "色", "瑟"],
+    "za": ["扎", "杂", "匝"], "zo": ["佐", "作", "左"],
+    "an": ["安", "昂", "氨"], "ar": ["阿", "阿尔", "尔"],
+    "es": ["艾司", "伊司", "厄司"], "ex": ["艾克", "伊克", "厄克"],
+}
+
+
+def _transliterate_with_alt(syllable: str, alt_idx: int) -> str:
+    """Get transliteration for a syllable, optionally using an alternate character."""
+    alts = _PFX_ALTERNATES.get(syllable)
+    if alts and alt_idx < len(alts):
+        return alts[alt_idx]
+    # Fall back to standard mapping
+    for syl, ch in SYLLABLE_TO_CHAR:
+        if syl == syllable:
+            return ch
+    return syllable
+
+
+def _transliterate_prefix_variants(prefix: str, n: int = 3) -> list[str]:
+    """Generate N Chinese transliteration variants for a prefix using syllable alternates."""
+    if not prefix:
+        return [""] * max(1, n)
+
+    # Build syllable breakdown using existing greedy algorithm
+    pfx = prefix.lower()
+    syllables: list[str] = []
+    pos = 0
+    while pos < len(pfx):
+        matched = False
+        for syl, ch in SYLLABLE_TO_CHAR:
+            if pfx.startswith(syl, pos):
+                syllables.append(syl)
+                pos += len(syl)
+                matched = True
+                break
+        if not matched:
+            pos += 1
+
+    variants: list[str] = []
+    for vi in range(n):
+        result = ""
+        for syl in syllables:
+            result += _transliterate_with_alt(syl, vi)
+        if result and result not in variants:
+            variants.append(result)
+
+    # Fill remaining slots if not enough unique variants
+    while len(variants) < n:
+        # Try different alternations of first/second syllable
+        attempt = ""
+        seed = len(variants)
+        for i, syl in enumerate(syllables):
+            if i == seed % len(syllables) if syllables else 0:
+                attempt += _transliterate_with_alt(syl, (seed % 2) + 1)
+            else:
+                attempt += _transliterate_with_alt(syl, 0)
+        if attempt not in variants:
+            variants.append(attempt)
+        else:
+            break
+    while len(variants) < n:
+        variants.append(variants[0])
+
+    return variants[:n]
+
 
 class LanguageNameVariant(BaseModel):
     language: str       # "latin", "french", "spanish", "chinese_transliteration"
@@ -260,17 +353,57 @@ def evaluate_name(
             taboo_flags=[],
         ))
 
-    # 中文音译：基于最长音节贪心匹配（与上方语义组合式中文核名不同方法论）
-    chinese_trans = transliterate_to_chinese(name_clean)
-    chinese_taboos = check_chinese_transliteration_taboo(chinese_trans)
-    chinese_note = _describe_chinese_taboos(chinese_taboos)
-    language_variants.append(LanguageNameVariant(
-        language="chinese_transliteration",
-        name=chinese_trans,
-        source="transliteration",
-        commentary=f"将 '{name_clean}' 按 {len(SYLLABLE_TO_CHAR)} 条音节-汉字映射表进行贪心最长匹配音译（优先匹配药物词干如 gliflozin→格列净, tinib→替尼，再逐音节映射）{chinese_note}",
-        taboo_flags=chinese_taboos,
-    ))
+    # 中文音译：后缀词干用 stems.csv 固定中文，前缀音译 ×3 组
+    provider = _get_default_provider()
+    all_stems = provider.get_all_stems()
+
+    # Build stem→chinese lookup, longest first
+    stem_cn_list: list[tuple[str, str, str]] = []  # (core_lower, chinese, original_stem)
+    for s in all_stems:
+        if s.chinese and s.stem:
+            core = s.stem.lstrip("-").lower()
+            cn = s.chinese.lstrip("-").strip()
+            if len(core) >= 2 and cn:
+                stem_cn_list.append((core, cn, s.stem))
+    stem_cn_list.sort(key=lambda x: -len(x[0]))
+
+    # Detect longest matching suffix stem
+    detected_core = ""
+    detected_cn = ""
+    detected_pfx = name_clean
+    for core, cn, orig in stem_cn_list:
+        if name_lower.endswith(core) and len(core) > len(detected_core):
+            detected_core = core
+            detected_cn = cn
+            detected_pfx = name_clean[:len(name_clean) - len(core)].rstrip("-")
+
+    if detected_core and len(detected_pfx) >= 1:
+        # Suffix stem found — generate 3 prefix transliteration variants
+        pfx_variants = _transliterate_prefix_variants(detected_pfx, n=3)
+        for i, pfx_cn in enumerate(pfx_variants):
+            cn_name = pfx_cn + detected_cn
+            cn_taboos = check_chinese_transliteration_taboo(cn_name)
+            cn_note = _describe_chinese_taboos(cn_taboos)
+            label = f"CN-{i+1}"
+            language_variants.append(LanguageNameVariant(
+                language="chinese_transliteration",
+                name=cn_name,
+                source="transliteration",
+                commentary=f"词干 '-{detected_core}' → '{detected_cn}'（stems.csv固定），前缀 '{detected_pfx}' 音译变体{label[-1]}{cn_note}",
+                taboo_flags=cn_taboos,
+            ))
+    else:
+        # No known suffix stem — full-name transliteration
+        chinese_trans = transliterate_to_chinese(name_clean)
+        chinese_taboos = check_chinese_transliteration_taboo(chinese_trans)
+        chinese_note = _describe_chinese_taboos(chinese_taboos)
+        language_variants.append(LanguageNameVariant(
+            language="chinese_transliteration",
+            name=chinese_trans,
+            source="transliteration",
+            commentary=f"未检测到已知词干后缀，将 '{name_clean}' 按 {len(SYLLABLE_TO_CHAR)} 条音节-汉字映射表进行贪心最长匹配音译{chinese_note}",
+            taboo_flags=chinese_taboos,
+        ))
 
     # 4. Build verdict and reasons
     reasons: list[str] = []

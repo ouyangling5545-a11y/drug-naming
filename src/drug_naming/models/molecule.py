@@ -61,13 +61,21 @@ class ChemicalClass(StrEnum):
 
 
 class PharmacologicalProperties(BaseModel):
-    target_class: TargetClass
+    target_class: str = Field(description="Target class or specific gene target, e.g. 'egfr', 'kinase', 'her2'")
     mechanism: Mechanism
     chemical_class: ChemicalClass
-    indication: str = Field(description="Primary therapeutic indication, e.g. 'non-small cell lung cancer'")
+    indication: str = Field(default="", description="Primary therapeutic indication, e.g. 'non-small cell lung cancer'")
+    chemical_scaffold: str | None = Field(
+        default=None,
+        description="Core chemical scaffold, e.g. 'triazine', 'amide/ester', 'quinazoline'"
+    )
+    therapeutic_area: str | None = Field(
+        default=None,
+        description="Therapeutic area / ATC category, e.g. 'anticonvulsant', 'local_anesthetic'"
+    )
     chemical_structure_substructure: str | None = Field(
         default=None,
-        description="Optional chemical substructure identifier, e.g. 'pyrimidine', 'quinazoline'"
+        description="Optional chemical substructure identifier (legacy, prefer chemical_scaffold)"
     )
     additional_targets: list[str] = Field(default_factory=list)
     additional_mechanisms: list[str] = Field(default_factory=list)
