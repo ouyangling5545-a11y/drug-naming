@@ -141,6 +141,28 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+/* Sub-tab for phonetic method switching */
+.subtab-row { display:flex; gap:4px; margin-bottom:10px; }
+.subtab {
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  color: var(--color-muted-foreground);
+  background: var(--color-accent);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+.subtab:hover { color: var(--color-foreground); border-color: var(--color-primary); }
+.subtab.active {
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.subtab-note { font-size:10px; color:var(--color-muted-foreground); margin-bottom:8px; }
+
 /* Layout */
 .panels { display:flex; gap: var(--space-6); }
 .panel-left {
@@ -721,6 +743,12 @@ input[type="range"] {
         </div>
 
         <h3 style="margin-top:18px;">FDA POCA 二维度评分（Phonetic + Orthographic）</h3>
+        <div class="subtab-row">
+          <span style="font-size:11px;color:var(--color-muted-foreground);margin-right:6px;line-height:22px;">语音引擎</span>
+          <span class="subtab" :class="{active:evalPhoneticMethod==='metaphone'}" @click="evalPhoneticMethod='metaphone'; runEvaluate()">Metaphone</span>
+          <span class="subtab" :class="{active:evalPhoneticMethod==='aline'}" @click="evalPhoneticMethod='aline'; runEvaluate()">ALINE</span>
+        </div>
+        <div v-if="evalPhoneticMethod==='aline'" class="subtab-note">ALINE (Kondrak 2000)：基于调音特征向量的音素对齐算法，捕获部分语音重叠（如 -tinib 后缀），计算更精确但较慢</div>
         <div class="score-bar">
           <span class="label">语音</span><div class="bar-wrap"><div class="bar-fill" :class="evalResult.phonetic_score < 0.70 ? 'pass' : evalResult.phonetic_score < 0.85 ? 'review' : 'reject'" :style="{width:(evalResult.phonetic_score*100)+'%'}"></div></div>
           <span class="val">{{ (evalResult.phonetic_score*100).toFixed(0) }}%</span>
@@ -1219,6 +1247,7 @@ createApp({
     const evalResult = ref(null);
     const knownStems = ref([]);       // all stems from API
     const nameEvalCount = ref(0);     // counter to track which eval we're on
+    const evalPhoneticMethod = ref('metaphone');  // 'metaphone' or 'aline'
 
     // Computed: full name from parts. Strips leading hyphens from stem for concatenation.
     const evalPreviewName = Vue.computed(() => {
@@ -1270,7 +1299,7 @@ createApp({
       const currentCount = ++nameEvalCount.value;
       evalLoading.value = true; evalResult.value = null;
       try {
-        const qs = new URLSearchParams({ proposed_name: name, threshold: evalThreshold.value }).toString();
+        const qs = new URLSearchParams({ proposed_name: name, threshold: evalThreshold.value, phonetic_method: evalPhoneticMethod.value }).toString();
         const res = await fetch(API + '/poca/evaluate?' + qs, { method: 'POST' });
         if (!res.ok) throw new Error(await res.text());
         if (currentCount === nameEvalCount.value) evalResult.value = await res.json();
@@ -2577,6 +2606,7 @@ createApp({
       pjJumpToToday, pjJumpToNextMilestone, pjFormatDate,
       evalPrefix, evalStem, evalInfix, evalStemInfo, showInfixField,
       evalPreviewName, evalLanguageVariants, evalThreshold, evalProgress, evalLoading, evalResult, runEvaluate,
+      evalPhoneticMethod,
       speakName,
       recLoading, recError, recStep, recTargetClass, recMechanism, recChemicalClass,
       recIndication, recSubstructure, recScaffold, recArea, recTargetMeaning,

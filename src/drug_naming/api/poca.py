@@ -246,6 +246,7 @@ def evaluate_name(
     proposed_name: str,
     threshold: float = 55.0,
     max_similar: int = 100,
+    phonetic_method: str = "metaphone",
     request: Request = None,
 ) -> NameEvaluationResponse:
     """One-stop name evaluation with FDA-style 2D POCA scoring.
@@ -253,8 +254,14 @@ def evaluate_name(
     Scores the proposed name against the entire INN reference database
     using Phonetic + Orthographic dimensions only (FDA POCA methodology).
     Returns all names scoring at or above the threshold (default 55%), capped at max_similar.
+
+    phonetic_method: 'metaphone' (default, fast Double Metaphone engine) or
+                     'aline' (Kondrak 2000 articulatory feature alignment, slower but
+                     captures partial phonetic overlap across prefix boundaries).
     """
     engine = _get_poca_engine(request)
+    if phonetic_method in ("metaphone", "aline"):
+        engine.phonetic_method = phonetic_method
     inn_db = get_inn_reference_db()
     name_clean = proposed_name.strip()
     name_lower = name_clean.lower()

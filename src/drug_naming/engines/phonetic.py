@@ -30,20 +30,33 @@ def _lcs(s1: str, s2: str) -> int:
 
 
 class PhoneticEncoder:
-    """Encodes names into phonetic representations and computes similarity scores.
+    """Phoneme-driven auditory similarity scoring using Double Metaphone.
 
-    FDA POCA v2.19.5 phonetic formula (reverse-engineered from 168K pairs, MAE≈8.1):
-        Phon = clamp(5 + 70*LCSnorm + 10*NEDnorm, 0, 100)
+    Unlike FDA POCA's "Phonetic" (which reuses the same LCS+NED string features
+    as Ortho with different weights), this engine measures how names actually
+    sound to a human listener:
 
-    NOTE: Despite the name "Phonetic", this formula is NOT pronunciation-based.
-    Both Ortho and Phon use the same string-matching features (LCS + NED), just
-    with different weights. FDA's "Phonetic" is more accurately described as
-    "lexical similarity from a different angle" — a second view on the same
-    string data to reduce single-dimension bias when averaged with Ortho.
+        Primary Metaphone (30%):
+            Exact match → 1.0, near-match squashed (×1.5 penalty on edit distance).
+            Captures the dominant English pronunciation — "phone" and "fone"
+            both map to "FN" and score high, while "imatinib" (AMTN) and
+            "erlotinib" (ARLT) diverge on the prefix → 0.
 
-    True phonetic features (Double Metaphone, syllable count, stress pattern)
-    are computed and stored in PhoneticScoreDetail but NOT used in the final
-    score, matching FDA's actual algorithm behavior.
+        Secondary Metaphone (10%):
+            Alternative pronunciation variant, same squashing logic.
+
+        Syllable count (15%):
+            Same count = 1.0, off by 1 = 0.5, off by 2+ = 0.0.
+
+        Stress pattern (10%):
+            Intonation contour similarity between syllable sequences.
+
+        NED baseline (35%):
+            Normalized Edit Distance — residual string similarity to capture
+            suffix rhyme effects that Metaphone may miss across prefix boundaries
+            (e.g. -tinib, -caine, -afil shared suffixes).
+
+    Score is scaled to 0-100 and divided by 100 for the 0-1 float interface.
     """
 
     @staticmethod
@@ -118,33 +131,61 @@ class PhoneticEncoder:
         s1 = proposed.lower()
         s2 = reference.lower()
 
-        # Existing phonetic feature extraction (for detail display)
+        # Phonetic feature extraction
         s_prop = self.soundex(proposed)
         s_ref = self.soundex(reference)
 
         mp_prop_primary, mp_prop_secondary = self.double_metaphone(proposed)
         mp_ref_primary, mp_ref_secondary = self.double_metaphone(reference)
 
+        # Primary Metaphone: exact match = full credit, near-match = squashed
         mp_edit = self.metaphone_edit_distance(mp_prop_primary, mp_ref_primary)
         max_mp_len = max(len(mp_prop_primary), len(mp_ref_primary), 1)
         mp_norm = mp_edit / max_mp_len
+        if mp_prop_primary and mp_ref_primary and mp_prop_primary == mp_ref_primary:
+            mp_similarity = 1.0
+        else:
+            mp_similarity = max(0.0, 1.0 - mp_norm * 1.5)
 
+        # Secondary Metaphone similarity (if both available)
+        mp2_similarity = 0.0
+        mp2_edit = 0
+        if mp_prop_secondary and mp_ref_secondary:
+            mp2_edit = self.metaphone_edit_distance(mp_prop_secondary, mp_ref_secondary)
+            mp2_max = max(len(mp_prop_secondary), len(mp_ref_secondary), 1)
+            if mp_prop_secondary == mp_ref_secondary:
+                mp2_similarity = 1.0
+            else:
+                mp2_similarity = max(0.0, 1.0 - (mp2_edit / mp2_max) * 1.5)
+
+        # Syllable count similarity
         syl_prop = self.syllable_count(proposed)
         syl_ref = self.syllable_count(reference)
         syl_diff = abs(syl_prop - syl_ref)
+        syl_similarity = 1.0 if syl_diff == 0 else 0.5 if syl_diff == 1 else 0.0
 
+        # Stress pattern similarity
         stress_sim = self.stress_pattern_similarity(proposed, reference)
 
-        # FDA POCA v2.19.5 phonetic formula (reverse-engineered from 168K pairs, MAE≈8.1)
-        lcs_len = _lcs(s1, s2)
+        # NED baseline (residual string-level similarity, captures suffix rhyme)
         lev_dist = _levenshtein(s1, s2)
         max_len = max(len(s1), len(s2), 1)
-        lcs_norm = lcs_len / max_len
         ned_norm = 1.0 - (lev_dist / max_len)
 
-        raw = 5 + 70 * lcs_norm + 10 * ned_norm
-        score = max(0.0, min(100.0, raw))
-        score = round(score)
+        # Auditory phoneme-driven scoring:
+        #   Primary Metaphone (30%) — dominant pronunciation match
+        #   Secondary Metaphone (10%) — alternative pronunciation variant
+        #   Syllable count (15%) — rhythm match
+        #   Stress pattern (10%) — intonation contour
+        #   NED baseline (35%) — suffix rhyme and string-level similarity
+        score = (
+            mp_similarity * 0.30
+            + mp2_similarity * 0.10
+            + syl_similarity * 0.15
+            + stress_sim * 0.10
+            + ned_norm * 0.35
+        )
+        score = round(max(0.0, min(100.0, score * 100.0)))
 
         detail = PhoneticScoreDetail(
             soundex_match=bool(s_prop and s_ref and s_prop == s_ref),

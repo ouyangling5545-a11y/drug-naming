@@ -1,5 +1,6 @@
 from __future__ import annotations
 from .phonetic import PhoneticEncoder
+from .phonetic_aline import AlineEncoder
 from .orthographic import OrthographicAnalyzer
 from .compositional import CompositionalAnalyzer
 from ..models.poca import (
@@ -15,6 +16,10 @@ class POCAScoringEngine:
 
     Can use an InnReferenceDB for intelligent reference name selection instead of
     brute-force comparison against all names.
+
+    Supports two phonetic backends: 'metaphone' (default, fast phoneme-driven scoring
+    via Double Metaphone + syllables + stress + NED) and 'aline' (Kondrak 2000
+    articulatory feature alignment, continuous similarity from G2P→IPA→DP alignment).
     """
 
     def __init__(
@@ -22,12 +27,28 @@ class POCAScoringEngine:
         weights: POCAWeights | None = None,
         known_stems: list[str] | None = None,
         inn_reference_db=None,
+        phonetic_method: str = "metaphone",
     ) -> None:
         self.weights = weights or POCAWeights()
-        self.phonetic = PhoneticEncoder()
+        self._phonetic_method = phonetic_method
+        self._phonetic_metaphone = PhoneticEncoder()
+        self._phonetic_aline = AlineEncoder()
         self.orthographic = OrthographicAnalyzer()
         self.compositional = CompositionalAnalyzer(known_stems or [])
         self._inn_db = inn_reference_db
+
+    @property
+    def phonetic_method(self) -> str:
+        return self._phonetic_method
+
+    @phonetic_method.setter
+    def phonetic_method(self, value: str) -> None:
+        if value not in ("metaphone", "aline"):
+            raise ValueError(f"Unknown phonetic method: {value}")
+        self._phonetic_method = value
+
+    def _get_phonetic_encoder(self):
+        return self._phonetic_aline if self._phonetic_method == "aline" else self._phonetic_metaphone
 
     def set_known_stems(self, stems: list[str]) -> None:
         self.compositional.set_stems(stems)
@@ -53,7 +74,8 @@ class POCAScoringEngine:
 
     def score_pair(self, proposed: str, reference: str, mode: str = "full") -> POCAScoreDetail:
         """Score a pair of names. mode='full' uses 3D, mode='fda' uses Phon+Orth only."""
-        phonetic_detail, phonetic_score = self.phonetic.compute_phonetics(proposed, reference)
+        phonetic_encoder = self._get_phonetic_encoder()
+        phonetic_detail, phonetic_score = phonetic_encoder.compute_phonetics(proposed, reference)
         orthographic_detail, orthographic_score = self.orthographic.compute_orthographic(proposed, reference)
         compositional_detail, compositional_score = self.compositional.compute_compositional(proposed, reference)
 
