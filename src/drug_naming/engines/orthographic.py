@@ -31,11 +31,15 @@ def _lcs(s1: str, s2: str) -> int:
 
 
 class OrthographicAnalyzer:
-    """FDA POCA-style orthographic similarity scoring.
+    """FDA POCA v2.19.5 orthographic similarity scoring.
 
-    Based on reverse-engineering of FDA POCA v2.19.5 across 168K name pairs.
-    Formula: Ortho = clamp(5 + 100*LCSnorm + 30*NEDnorm, 0, 100)
-    where LCSnorm = LCS / max(len1, len2), NEDnorm = 1 - LD / max(len1, len2).
+    Reverse-engineered from 10 FDA POCA Excel exports (374K pairs across 10
+    proposed names). Best-fit formula:
+      Ortho = clamp(24 + 66*LCSnorm + 14*NEDnorm, 0, 100)
+      MAE=4.17, R²=0.59 vs FDA Ortho scores.
+
+    LCSnorm = LCS / max(len1, len2), NEDnorm = 1 - LD / max(len1, len2).
+    FDA Combined = round((Ortho + Phon) / 2).
     """
 
     @staticmethod
@@ -113,8 +117,9 @@ class OrthographicAnalyzer:
         prefix_ratio = pfx_len / max_len
         suffix_ratio = sfx_len / max_len
 
-        # FDA POCA v2.19.5 formula (reverse-engineered from 168K pairs, MAE≈4.78)
-        raw = 5 + 100 * lcs_norm + 30 * (1.0 - lev_norm)
+        # FDA POCA v2.19.5 formula (reverse-engineered from 374K pairs across 10 drugs)
+        # Ortho = clamp(24 + 66*LCSnorm + 14*NEDnorm, 0, 100), MAE=4.17, R²=0.59
+        raw = 24 + 66 * lcs_norm + 14 * (1.0 - lev_norm)
         score = max(0.0, min(100.0, raw))
         score = round(score)
 

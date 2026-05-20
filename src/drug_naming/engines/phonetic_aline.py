@@ -272,7 +272,10 @@ class AlineEncoder:
 
     1. Converts spelling to IPA phoneme sequences via G2P rules
     2. Aligns phonemes using DP with articulatory feature distance
-    3. Produces continuous 0-100 similarity scores
+    3. Calibrates to FDA POCA Phon scale via piecewise linear mapping:
+         ALINE < 0.66 → Phon = 8 + 55*ALINE
+         ALINE >= 0.66 → Phon = -64 + 164*ALINE
+       (Calibrated against 4,002 FDA POCA pairs, R²=0.45, MAE=5.09)
 
     This captures partial phonetic overlap that Metaphone misses — e.g.
     /ɪməˈtɪnɪb/ vs /ɜɹləˈtɪnɪb/ differ on the first two phonemes but
@@ -289,11 +292,20 @@ class AlineEncoder:
         seq2 = self.to_phonemes(reference)
 
         aline_sim = _aline_score(seq1, seq2)
-        score = round(max(0.0, min(100.0, aline_sim * 100.0)))
+
+        # FDA POCA Phon calibration via piecewise linear mapping
+        # (calibrated against 4,002 FDA pairs, R²=0.45, MAE=5.09)
+        # Low similarity: gentle slope; high similarity: steeper to reach 100 at identity
+        if aline_sim < 0.66:
+            fda_phon_raw = 8 + 55 * aline_sim
+        else:
+            fda_phon_raw = -64 + 164 * aline_sim
+        fda_phon_raw = max(0.0, min(100.0, fda_phon_raw))
+        fda_phon_rounded = round(fda_phon_raw)
 
         detail = PhoneticScoreDetail(
             metaphone_proposed_primary="(".join(seq1),
             metaphone_reference_primary="(".join(seq2),
-            phonetic_score=score / 100.0,
+            phonetic_score=fda_phon_rounded / 100.0,
         )
-        return detail, score / 100.0
+        return detail, fda_phon_rounded / 100.0
