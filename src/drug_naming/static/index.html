@@ -1403,6 +1403,7 @@ createApp({
 
     // Listen for Ketcher ready event
     window.addEventListener('message', (e) => {
+      if (e.origin !== 'https://unpkg.com') return;
       if (e.data && e.data.type === 'ketcher_ready') {
         ketcherReady.value = true;
       }
@@ -1417,6 +1418,7 @@ createApp({
         // Ketcher responds via postMessage
         const response = await new Promise((resolve) => {
           const handler = (e) => {
+            if (e.origin !== 'https://unpkg.com') return;
             if (e.data && e.data.type === 'ketcher_smiles') {
               window.removeEventListener('message', handler);
               resolve(e.data.smiles);
@@ -1431,9 +1433,11 @@ createApp({
 
         // Quick frontend preview: count atoms/rings from SMILES
         if (response) {
-          const atomMatch = response.match(/[A-Z][a-z]?/g) || [];
-          const heavyAtoms = atomMatch.filter(a => a !== 'H');
-          const ringCount = (response.match(/[0-9]/g) || []).length;
+          const atomMatch = response.match(/[A-Za-z][a-z]?/g) || [];
+          const heavyAtoms = atomMatch
+            .map(a => a.charAt(0).toUpperCase() + a.slice(1))
+            .filter(a => a !== 'H');
+          const ringCount = (response.match(/%?[0-9]+/g) || []).length;
           const hasN = heavyAtoms.includes('N') ? '含N杂环' : '';
           const hasO = heavyAtoms.includes('O') ? '含O' : '';
           const hasHalogen = heavyAtoms.some(a => ['F','Cl','Br','I'].includes(a)) ? '含卤素' : '';
