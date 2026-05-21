@@ -1,8 +1,11 @@
 from __future__ import annotations
-from typing import Protocol
+from typing import Protocol, TYPE_CHECKING
 from ..models.molecule import PharmacologicalProperties
 from ..models.stem import INNStem, StemMatch, StemCategory, StemMatchingConfig
 from ..data.targets import find_target, TargetMeta
+
+if TYPE_CHECKING:
+    from .structure_parser import StructureFeatures
 
 
 class StemDataProvider(Protocol):
@@ -126,6 +129,28 @@ KNOWN_RULES: list[tuple[tuple[str, str, str, str], list[tuple[str, str]]]] = [
     (("*", "*", "oligonucleotide", "*"), [("-rsen", "chemical_class_stem")]),
     (("*", "*", "sirna", "*"), [("-siran", "chemical_class_stem")]),
     (("*", "*", "mrna", "*"), [("-meran", "chemical_class_stem")]),
+
+    # ── Scaffold-based stem disambiguation (enhanced by structure drawing) ──
+    # When scaffold is detected from drawn structure, these rules provide
+    # higher-confidence stem matching than target+mechanism alone.
+    (("egfr", "inhibitor", "small_molecule", "quinazoline"),
+     [("-tinib", "target_class_stem")]),
+    (("egfr", "inhibitor", "small_molecule", "pyrimidine"),
+     [("-tinib", "target_class_stem")]),
+    (("alk", "inhibitor", "small_molecule", "pyrimidine"),
+     [("-tinib", "target_class_stem")]),
+    (("calcium_channel", "blocker", "small_molecule", "dihydropyridine"),
+     [("-dipine", "target_class_stem")]),
+    (("gaba_receptor", "agonist", "small_molecule", "benzodiazepine"),
+     [("-zepam", "chemical_class_stem")]),
+    (("ppar", "agonist", "small_molecule", "phenyl"),
+     [("-glitazar", "target_class_stem")]),
+    (("cox", "inhibitor", "small_molecule", "pyrazole"),
+     [("-coxib", "target_class_stem")]),
+    (("sglt2", "inhibitor", "small_molecule", "phenyl"),
+     [("-gliflozin", "target_class_stem")]),
+    (("hcv_protease", "inhibitor", "small_molecule", "amide"),
+     [("-previr", "target_class_stem")]),
 ]
 
 
@@ -154,6 +179,7 @@ class StemMatchingEngine:
         properties: PharmacologicalProperties,
         top_k: int | None = None,
         min_score: float | None = None,
+        structure_features: "StructureFeatures | None" = None,
     ) -> list[StemMatch]:
         top_k = top_k or self.config.max_results
         min_score = min_score or self.config.min_score
@@ -163,6 +189,9 @@ class StemMatchingEngine:
         cc = getattr(properties.chemical_class, 'value', properties.chemical_class)
         ind = getattr(properties, 'indication', '') or ''
         scaffold = getattr(properties, 'chemical_scaffold', '') or ''
+        # Merge structure-detected scaffold into scaffold field if not manually set
+        if structure_features and structure_features.scaffold_type and not scaffold:
+            scaffold = structure_features.scaffold_type
         area = getattr(properties, 'therapeutic_area', '') or ''
 
         all_stems = self.data_provider.get_all_stems()
