@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from .api.router import api_router
 from .config import EngineSettings
 from .data.loader import DataRegistry
@@ -30,6 +31,11 @@ def create_app(
     app.state.data_registry = data_registry or DataRegistry()
 
     app.include_router(api_router, prefix="/api/v1")
+
+    # Mount static files for Ketcher and other assets
+    static_dir = Path(__file__).parent / "static"
+    if static_dir.is_dir():
+        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
     @app.get("/health")
     async def health_check():

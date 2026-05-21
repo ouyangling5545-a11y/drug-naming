@@ -1394,41 +1394,32 @@ createApp({
       window.speechSynthesis.speak(u);
     }
 
-    // ========== Ketcher Structure Editor ==========
-    const ketcherUrl = 'https://unpkg.com/ketcher@2.24.0/dist/ketcher.standalone.html';
+    // ========== Ketcher Structure Editor (v3.12.0, local standalone) ==========
+    const ketcherUrl = '/static/ketcher/index.html';
     const ketcherFrame = ref(null);
     const ketcherReady = ref(false);
     const ketcherSmiles = ref('');
     const ketcherPreview = ref('');
 
-    // Listen for Ketcher ready event
+    // Listen for Ketcher init event (Ketcher v3 sends { eventType: 'init' })
     window.addEventListener('message', (e) => {
-      if (e.origin !== 'https://unpkg.com') return;
-      if (e.data && e.data.type === 'ketcher_ready') {
+      if (e.origin !== window.location.origin) return;
+      if (e.data && e.data.eventType === 'init') {
         ketcherReady.value = true;
       }
     });
 
     async function ketcherGetSmiles() {
-      if (!ketcherFrame.value) return;
+      if (!ketcherFrame.value || !ketcherReady.value) return;
       try {
         const iframe = ketcherFrame.value;
-        iframe.contentWindow.postMessage({ type: 'ketcher_get_smiles' }, '*');
-
-        // Ketcher responds via postMessage
-        const response = await new Promise((resolve) => {
-          const handler = (e) => {
-            if (e.origin !== 'https://unpkg.com') return;
-            if (e.data && e.data.type === 'ketcher_smiles') {
-              window.removeEventListener('message', handler);
-              resolve(e.data.smiles);
-            }
-          };
-          window.addEventListener('message', handler);
-          // Timeout after 5s
-          setTimeout(() => { window.removeEventListener('message', handler); resolve(''); }, 5000);
-        });
-
+        // Ketcher v3 exposes API directly on contentWindow.ketcher
+        const ketcher = iframe.contentWindow.ketcher;
+        if (!ketcher) {
+          console.warn('Ketcher not available on iframe');
+          return;
+        }
+        const response = await ketcher.getSmiles();
         ketcherSmiles.value = response || '';
 
         // Quick frontend preview: count atoms/rings from SMILES
@@ -1450,9 +1441,16 @@ createApp({
       }
     }
 
-    function ketcherClear() {
-      if (!ketcherFrame.value) return;
-      ketcherFrame.value.contentWindow.postMessage({ type: 'ketcher_clear' }, '*');
+    async function ketcherClear() {
+      if (!ketcherFrame.value || !ketcherReady.value) return;
+      try {
+        const ketcher = ketcherFrame.value.contentWindow.ketcher;
+        if (ketcher) {
+          await ketcher.editor.clear();
+        }
+      } catch (e) {
+        console.error('Ketcher clear error:', e);
+      }
       ketcherSmiles.value = '';
       ketcherPreview.value = '';
     }
