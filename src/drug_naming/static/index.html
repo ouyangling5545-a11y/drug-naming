@@ -822,6 +822,19 @@ input[type="range"] {
   <!-- ==================== TAB B: 智能推荐 ==================== -->
   <div v-if="activeTab==='recommend'" class="panels">
     <div class="panel-left">
+      <!-- Ketcher Structure Editor -->
+      <div class="card" style="padding:10px;">
+        <h3 style="margin-bottom:8px;">分子结构绘制 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（绘制后自动识别骨架和官能团）</span></h3>
+        <iframe ref="ketcherFrame" :src="ketcherUrl" style="width:100%;height:420px;border:1px solid var(--color-border);border-radius:6px;"></iframe>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-sm" @click="ketcherGetSmiles" :disabled="!ketcherReady">获取 SMILES</button>
+          <button class="btn btn-sm" @click="ketcherClear" :disabled="!ketcherReady">清除画布</button>
+          <span v-if="ketcherSmiles" style="font-family:monospace;font-size:11px;color:var(--color-primary);word-break:break-all;flex:1;min-width:200px;">SMILES: {{ ketcherSmiles }}</span>
+        </div>
+        <div v-if="ketcherPreview" style="margin-top:6px;font-size:11px;color:var(--color-muted-foreground);">
+          预览: {{ ketcherPreview }}
+        </div>
+      </div>
       <div class="card">
         <h3>分子性质</h3>
 
@@ -1381,6 +1394,65 @@ createApp({
       window.speechSynthesis.speak(u);
     }
 
+    // ========== Ketcher Structure Editor ==========
+    const ketcherUrl = 'https://unpkg.com/ketcher@2.24.0/dist/ketcher.standalone.html';
+    const ketcherFrame = ref(null);
+    const ketcherReady = ref(false);
+    const ketcherSmiles = ref('');
+    const ketcherPreview = ref('');
+
+    // Listen for Ketcher ready event
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'ketcher_ready') {
+        ketcherReady.value = true;
+      }
+    });
+
+    async function ketcherGetSmiles() {
+      if (!ketcherFrame.value) return;
+      try {
+        const iframe = ketcherFrame.value;
+        iframe.contentWindow.postMessage({ type: 'ketcher_get_smiles' }, '*');
+
+        // Ketcher responds via postMessage
+        const response = await new Promise((resolve) => {
+          const handler = (e) => {
+            if (e.data && e.data.type === 'ketcher_smiles') {
+              window.removeEventListener('message', handler);
+              resolve(e.data.smiles);
+            }
+          };
+          window.addEventListener('message', handler);
+          // Timeout after 5s
+          setTimeout(() => { window.removeEventListener('message', handler); resolve(''); }, 5000);
+        });
+
+        ketcherSmiles.value = response || '';
+
+        // Quick frontend preview: count atoms/rings from SMILES
+        if (response) {
+          const atomMatch = response.match(/[A-Z][a-z]?/g) || [];
+          const heavyAtoms = atomMatch.filter(a => a !== 'H');
+          const ringCount = (response.match(/[0-9]/g) || []).length;
+          const hasN = heavyAtoms.includes('N') ? '含N杂环' : '';
+          const hasO = heavyAtoms.includes('O') ? '含O' : '';
+          const hasHalogen = heavyAtoms.some(a => ['F','Cl','Br','I'].includes(a)) ? '含卤素' : '';
+          ketcherPreview.value = `C${heavyAtoms.filter(a=>a==='C').length} | ${ringCount}环 | ${[hasN,hasO,hasHalogen].filter(Boolean).join(' | ') || '碳环'}`;
+        } else {
+          ketcherPreview.value = '';
+        }
+      } catch (e) {
+        console.error('Ketcher getSmiles error:', e);
+      }
+    }
+
+    function ketcherClear() {
+      if (!ketcherFrame.value) return;
+      ketcherFrame.value.contentWindow.postMessage({ type: 'ketcher_clear' }, '*');
+      ketcherSmiles.value = '';
+      ketcherPreview.value = '';
+    }
+
     // ========== Tab B: Smart Recommendation ==========
     const recLoading = ref(false); const recError = ref(''); const recStep = ref(0);
     const recTargetClass = ref('egfr');
@@ -1653,12 +1725,32 @@ createApp({
       recLoading.value = true; recError.value = ''; recStep.value = 0;
       recPocaResults.value = []; recChineseNames.value = [];
       try {
+        // If SMILES available, analyze structure first
+        let scaffoldValue = recScaffold.value || null;
+        if (ketcherSmiles.value && ketcherReady.value) {
+          try {
+            const structRes = await apiPost('/structure/analyze', {
+              smiles: ketcherSmiles.value,
+              target_class: recTargetClass.value || 'other',
+              mechanism: recMechanism.value || 'other',
+              chemical_class: recChemicalClass.value || 'small_molecule',
+              indication: recIndication.value || ''
+            });
+            // Auto-fill scaffold from structure analysis if not manually set
+            if (structRes.scaffold_type && !recScaffold.value) {
+              scaffoldValue = structRes.scaffold_type;
+            }
+          } catch (e) {
+            console.warn('Structure analysis failed, continuing without:', e);
+          }
+        }
+
         const props = {
           target_class: recTargetClass.value || 'other',
           mechanism: recMechanism.value || 'other',
           chemical_class: recChemicalClass.value || 'small_molecule',
           indication: recIndication.value || '',
-          chemical_scaffold: recScaffold.value || null,
+          chemical_scaffold: scaffoldValue,
           therapeutic_area: recArea.value || null
         };
 
@@ -2647,6 +2739,8 @@ createApp({
       evalPhoneticMethod, evalPhoneticScore, evalPocaScore, switchPhoneticMethod, evalSimilarNames,
       speakName,
       recLoading, recError, recStep, recTargetClass, recMechanism, recChemicalClass,
+      ketcherFrame, ketcherSmiles, ketcherPreview, ketcherReady,
+      ketcherUrl, ketcherGetSmiles, ketcherClear,
       recIndication, recSubstructure, recScaffold, recArea, recTargetMeaning,
       recStems, recInnCandidates, recSelectedInn, recPocaResults, recPocaWorstScore, recChineseNames,
       recExpandedStems, recToggleStem,
