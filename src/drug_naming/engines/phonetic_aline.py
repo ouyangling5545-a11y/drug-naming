@@ -68,6 +68,13 @@ _PHONEME_FEATURES: dict[str, list[float]] = {
     # Semivowels / weak
     "ɚ":  [0, 0, 0, 1, 0.50, 0.50, 0],
     "ɝ":  [0, 0, 0, 1, 0.50, 0.50, 0],
+    # Diphthongs (weighted midpoints of start/end components)
+    "aɪ": [0, 0, 0, 1, 0.35, 0.12, 0],   # a→ɪ: height 0.60→0.10, back 0.15→0.10
+    "aʊ": [0, 0, 0, 1, 0.40, 0.52, 0],   # a→ʊ: height 0.60→0.20, back 0.15→0.90
+    "ɔɪ": [0, 0, 0, 1, 0.35, 0.45, 0.5], # ɔ→ɪ: height 0.60→0.10, back 0.80→0.10, round 1→0
+    "eɪ": [0, 0, 0, 1, 0.17, 0.05, 0],   # e→ɪ: height 0.25→0.10, back 0.00→0.10
+    "oʊ": [0, 0, 0, 1, 0.27, 0.85, 0.75],# o→ʊ: height 0.35→0.20, back 0.80→0.90, round 1→1
+    "ju": [1, 0.60, 0.50, 1, 0.00, 0.90, 0], # j-glide + u: cons-like with high-back vowel
 }
 
 

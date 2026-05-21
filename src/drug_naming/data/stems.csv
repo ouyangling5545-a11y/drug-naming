@@ -60,7 +60,7 @@ stem,position,category,meaning,who_definition,chinese,target_classes,mechanisms,
 -fylline,suffix,mechanism_stem,N-methylated xanthine derivatives,,-茶碱,,,small_molecule,,acefylline clofibrol;acefylline piperazine;albifylline;aminophylline;apaxifylline;arofylline;bamifylline;cipamfylline,False,,,10,WHO INN Programme
 -gliflozin,suffix,mechanism_stem,"sodium glucose co-transporter inhibitors, phlorizin derivatives",,-格列净,,inhibitor,small_molecule,,mizagliflozin;bexagliflozin;sotagliflozin;ipragliflozin;empagliflozin;ertugliflozin;canagliflozin;tofogliflozin,False,,,10,WHO INN Programme
 -gliptin,suffix,mechanism_stem,dipeptidyl aminopeptidase–IV inhibitors,,-格列汀,,inhibitor,small_molecule,,,False,,,10,WHO INN Programme
--grel,suffix,mechanism_stem,platelet aggregation inhibitors,,-格雷-,,inhibitor,small_molecule,thrombosis,parogrelil;becondogrel;prasugrel;evategrel;regrelor;midazogrel;elinogrel;cangrelor,False,,,10,WHO INN Programme
+-grel,suffix,mechanism_stem,platelet aggregation inhibitors,,-格雷,,inhibitor,small_molecule,thrombosis,parogrelil;becondogrel;prasugrel;evategrel;regrelor;midazogrel;elinogrel;cangrelor,False,,,10,WHO INN Programme
 -imod,suffix,mechanism_stem,"immunomodulators, both stimulant/suppressive and stimulant",,-莫德,immune_checkpoint;cytokine,agonist;modulator,small_molecule,,pixatimod;cupabimod;tilsotolimod;rezuforimod;urcosimod;balamapimod;lapretolimod;bentamapimod,False,,,10,WHO INN Programme
 -imus,suffix,mechanism_stem,immunosuppressants (other than antineoplastics),,-莫司,immune_checkpoint;cytokine,,small_molecule,cancer,manitimus;zotarolimus;tallimustine;laporolimus;elimusertib;olcorolimus;laflunimus;everolimus,False,,,10,WHO INN Programme
 -ium,suffix,mechanism_stem,quaternary ammonium compounds,,-铵,,,small_molecule,,azamethonium bromide;decamethonium bromide;iodide;dimecolinium iodide;fubrogonium iodide;hexamethonium bromide;mebezonium iodide;oxydipentonium chloride,False,,,10,WHO INN Programme
@@ -70,7 +70,7 @@ stem,position,category,meaning,who_definition,chinese,target_classes,mechanisms,
 -lukast,suffix,target_class_stem,leukotriene receptor antagonists,,-鲁司特,gpcr,antagonist;agonist,small_molecule,,verlukast;iralukast;montelukast;tipelukast;cinalukast;ritolukast;gemilukast;masilukast,False,,,10,WHO INN Programme
 -mab,suffix,chemical_class_stem,monoclonal antibodies (previous naming scheme),,单抗,,antibody,monoclonal_antibody,,gavilimomab;bentracimab;depemokimab;zolbetuximab;placulumab;eluvixtamab;ixekizumab;lemzoparlimab,True,-xi-;-zu-;-li-;-tu-;-ci-;-ba-;-ga-;-ma-;-ta-;-ri-,,10,WHO INN Programme
 -meline,suffix,target_class_stem,cholinergic agents (muscarine receptor agonists/ partial antagonists used in the treatment of Alzheimer’s disease),,-美林,,antagonist;agonist,small_molecule,,alvameline;cevimeline;itameline;milameline;revosimeline;sabcomeline;tazomeline;xanomeline,False,,,10,WHO INN Programme
--mer,suffix,chemical_class_stem,polymers,,汞-,,,polymer,,mercuderamide;abdavomeran;bretovameran;zeldesmeran;quozovameran;leuciglumer;merimepodib;mereletinib,False,,,10,WHO INN Programme
+-mer,suffix,chemical_class_stem,polymers,,-姆,,,polymer,,mercuderamide;abdavomeran;bretovameran;zeldesmeran;quozovameran;leuciglumer;merimepodib;mereletinib,False,,,10,WHO INN Programme
 -micin,suffix,mechanism_stem,"aminoglycosides, antibiotics obtained from various Micromonospora",,-米星,,inhibitor,small_molecule,infectious disease,maduramicin;betamicin;camicinal;etisomicin;megalomicin;rosaramicin;plazomicin;rosamicin,False,,,10,WHO INN Programme
 -milast,suffix,mechanism_stem,Phosphodiesterase-4 (PDE4) inhibitors,,-米司特,enzyme,inhibitor,small_molecule,,oglemilast;mufemilast;roflumilast;tanimilast;idrebormilast;indimilast;zatolmilast;piclamilast,False,,,10,WHO INN Programme
 -mustine,suffix,mechanism_stem,"antineoplastic, alkylating agents, (β-chloroethyl) amine derivatives",,-莫司汀,,,small_molecule,cancer,uramustine;galamustine;mannomustine;tallimustine;tauromustine;ambamustine;pentamustine;atrimustine,False,,,10,WHO INN Programme
@@ -107,7 +107,7 @@ stem,position,category,meaning,who_definition,chinese,target_classes,mechanisms,
 -serpine,suffix,mechanism_stem,derivatives of Rauwolfia alkaloids,,-舍平,,,small_molecule,,capeserod;piboserod;sulamserod;tegaserod;bietaserpine;mefeserpine;reserpine;chloroserpidine,False,,,10,WHO INN Programme
 -setron,suffix,target_class_stem,serotonin receptor antagonists (5-HT3) not fitting into other established groups of serotonin receptor antagonists,,司琼,gpcr,antagonist;agonist,small_molecule,,arazasetron;bemesetron;cilansetron;granisetron;ondansetron;tropisetron;dolasetron;alosetron,False,,,10,WHO INN Programme
 -spirone,suffix,mechanism_stem,"anxiolytics, buspirone derivatives",,-螺酮,,,small_molecule,psychiatric disorders,alnespirone;perospirone;enilospirone;binospirone;zalospirone;tandospirone,False,,,10,WHO INN Programme
--stat,suffix,target_class_stem,enzyme inhibitors,,-司他,enzyme,inhibitor,small_molecule,,,False,,,10,WHO INN Programme
+-stat,suffix,target_class_stem,enzyme inhibitors,,-司他-,enzyme,inhibitor,small_molecule,,,False,,,10,WHO INN Programme
 -steride,suffix,mechanism_stem,androgens/anabolic steroids,,雄胺,nuclear_receptor,,small_molecule,,bexlosteride;lapisteride;turosteride;finasteride;izonsteride,False,,,10,WHO INN Programme
 -stigmine,suffix,mechanism_stem,acetylcholinesterase inhibitors,,-斯的明,,inhibitor,small_molecule,,,False,,,10,WHO INN Programme
 -stim,suffix,mechanism_stem,colony stimulating factors,,司亭,,,small_molecule,,sargramostim;telpegfilgrastim;pegacaristim;pegbovigrastim;idapegfilgrastim;muplestim;milodistim;pegteograstim,False,,,10,WHO INN Programme
@@ -375,9 +375,9 @@ gest,infix,mechanism_stem,"steroids, progestogens",,孕,nuclear_receptor,,small_
 gli,infix,mechanism_stem,antihyperglycaemics,,格列-,,,small_molecule,type 2 diabetes,nerigliatin;alogliptin;bisegliptin;mizagliflozin;mitiglinide;anagliptin;bexagliflozin;reglitazar,False,,,7,WHO INN Programme
 guan-,prefix,mechanism_stem,"antihypertensives, guanidine derivatives",,胍-,,,small_molecule,cardiovascular disease,guanabenz;guanadrel;guanazodine;guancidine;guanclofine;guanethidine;guanfacine;guanisoquine,False,,,7,WHO INN Programme
 imex,infix,mechanism_stem,immunostimulants,,-美司,,agonist,small_molecule,,azimexon;forfenimex;imexon;roquinimex,False,,,7,WHO INN Programme
-io-,prefix,mechanism_stem,iodine-containing contrast media,,碘-,,,small_molecule,,iobenzamic acid;iobitridol;iobutoic acid;iocarmic acid;iocetamic acid;iodamide;iodecimol;iodetryl,False,,,7,WHO INN Programme
+io-,prefix,mechanism_stem,iodine-containing contrast media,,-碘-,,,small_molecule,,iobenzamic acid;iobitridol;iobutoic acid;iocarmic acid;iocetamic acid;iodamide;iodecimol;iodetryl,False,,,7,WHO INN Programme
 mito-,prefix,mechanism_stem,"antineoplastics, nucleotoxic agents (deleted from General Principles in List 24 prop. INN)",,米托-,,,small_molecule,cancer,mitobronitol;mitocarcin;mitoclomine;mitoflaxone;mitogillin;mitoguazone;mitolactol;mitomalcin,False,,,7,WHO INN Programme
-nab,infix,target_class_stem,cannabinoid receptor agonists,,大麻 -,gpcr,agonist,small_molecule,,cannabidiol;cannabinol;dronabinol;lenabasum;menabitan;nabazenil;nabilone;nabitan,False,,,7,WHO INN Programme
+nab,infix,target_class_stem,cannabinoid receptor agonists,,-大麻,gpcr,agonist,small_molecule,,cannabidiol;cannabinol;dronabinol;lenabasum;menabitan;nabazenil;nabilone;nabitan,False,,,7,WHO INN Programme
 nal-,prefix,target_class_stem,opioid receptor antagonists/agonists related to normorphine,,纳-,gpcr,antagonist;agonist,small_molecule,,dinalbuphine sebacate;methylnaltrexone bromide;nalmetrene;nalmexone;nalorphine;naloxegol;naloxone;naltalimide,False,,,7,WHO INN Programme
 nifur-,prefix,mechanism_stem,5-nitrofuran derivatives,,硝呋-,,,small_molecule,,nifuradene;nifuraldezone;nifuralide;nifuratel;nifuratrone;nifurdazil;nifurethazone;nifurfoline,False,,,7,WHO INN Programme
 orphan,infix,target_class_stem,"opioid receptor antagonists/agonists, morphinan derivatives",,啡烷,gpcr,antagonist;agonist,small_molecule,,proxorphan;levomethorphan;levophenacylmorphan;phenomorphan;dextrorphan;levallorphan;racemethorphan;orphan,False,,,7,WHO INN Programme
@@ -423,7 +423,7 @@ trop,infix,mechanism_stem,atropine derivatives,,托,,,small_molecule,,atropine o
 -epdekinra (se -kinra),suffix,target_class_stem,interleukin-17 receptor antagonists (-)eptacog (see -cog) blood coagulation VII,,白介素,immune_checkpoint;cytokine;gpcr,antagonist;agonist,small_molecule,thrombosis,,False,,,5,WHO INN Programme
 -eptakin,suffix,mechanism_stem,interleukin-7 analogues and derivatives,,白介素,immune_checkpoint;cytokine,,small_molecule,,,False,,,5,WHO INN Programme
 -ermin,suffix,mechanism_stem,growth factors,,明,growth_factor,,small_molecule,,,False,,,5,WHO INN Programme
--etanide,suffix,mechanism_stem,"diuretics, piretanide derivatives",,-厄替尼,,,small_molecule,,,False,,,5,WHO INN Programme
+-etanide,suffix,mechanism_stem,"diuretics, piretanide derivatives",,-他尼,,,small_molecule,,,False,,,5,WHO INN Programme
 -ethidine,suffix,mechanism_stem,"analgesics, pethidine derivatives",,-替啶,,,small_molecule,pain,,False,,,5,WHO INN Programme
 -farcept,suffix,target_class_stem,subgroup of interferon receptors,,西普,,,small_molecule,,,False,,,5,WHO INN Programme
 -fenamic acid,suffix,mechanism_stem,"anti-inflammatory, anthranilic acid derivatives",,-芬那酸,,,small_molecule,inflammatory diseases,,False,,,5,WHO INN Programme
@@ -490,7 +490,7 @@ trop,infix,mechanism_stem,atropine derivatives,,托,,,small_molecule,,atropine o
 -tercept,suffix,target_class_stem,transforming growth factors receptors,,西普,growth_factor,,small_molecule,,,False,,,5,WHO INN Programme
 -tilide,suffix,mechanism_stem,"class III antiarrhythmics, sematilide derivatives",,-利特,,,small_molecule,cardiovascular disease,,False,,,5,WHO INN Programme
 -tiline,suffix,mechanism_stem,"antidepressants, dibenzo[a,d]cycloheptane or cyclopheptene derivatives",,-替林,,,small_molecule,psychiatric disorders,,False,,,5,WHO INN Programme
--tirom(-),suffix,mechanism_stem,"antihyperlipidaemics, thyromimetic derivatives",,-替罗,,,small_molecule,hyperlipidemia,,False,,,5,WHO INN Programme
+-tirom(-),suffix,mechanism_stem,"antihyperlipidaemics, thyromimetic derivatives",,-替罗-,,,small_molecule,hyperlipidemia,,False,,,5,WHO INN Programme
 -trectinib,suffix,target_class_stem,tropomyosin receptor kinase (TRK) inhibitors,,替尼,kinase,inhibitor,small_molecule,,,False,,,5,WHO INN Programme
 -tredekin,suffix,mechanism_stem,interleukin-13 analogues and derivatives,,白介素,immune_checkpoint;cytokine,,small_molecule,,,False,,,5,WHO INN Programme
 -trigine,suffix,target_class_stem,"sodium channel blockers, signal transduction modulators (anticonvulsant/analgesic)",,-曲近,ion_channel,blocker;antagonist;modulator,small_molecule,epilepsy;neuropathic pain;bipolar disorder,lamotrigine;pelitrigine;losigamone;ralitrigine,False,,,7,WHO INN Programme

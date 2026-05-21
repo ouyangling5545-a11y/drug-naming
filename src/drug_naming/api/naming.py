@@ -19,6 +19,7 @@ router = APIRouter()
 
 class GenerateNamesRequest(BaseModel):
     properties: PharmacologicalProperties
+    smiles: str | None = None
     existing_names_to_avoid: list[str] = []
     constraints: NameGenerationConstraints = NameGenerationConstraints()
 
@@ -28,7 +29,21 @@ def generate_names(body: GenerateNamesRequest) -> NameGenerationResponse:
     """Generate INN name candidates from pharmacological properties."""
     provider = _get_default_provider()
     stem_engine = StemMatchingEngine(provider)
-    matched_stems = stem_engine.match(body.properties, top_k=5)
+
+    structure_features = None
+    if body.smiles:
+        from ..engines.structure_parser import StructureParser
+        try:
+            parser = StructureParser()
+            structure_features = parser.parse(body.smiles)
+            if structure_features.scaffold_type and not body.properties.chemical_scaffold:
+                body.properties.chemical_scaffold = structure_features.scaffold_type
+        except Exception:
+            pass
+
+    matched_stems = stem_engine.match(
+        body.properties, top_k=5, structure_features=structure_features,
+    )
 
     gen_engine = NameGenerationEngine(inn_reference_db=get_inn_reference_db())
     gen_request = NameGenerationRequest(

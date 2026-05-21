@@ -216,9 +216,9 @@ class NameGenerationEngine:
                     prefixes.append(w_alpha[:2])
                     prefixes.append(w_alpha[:3])
 
-        # Variant 5: From substructure
-        if properties.chemical_structure_substructure:
-            sub = "".join(c for c in properties.chemical_structure_substructure.lower() if c.isalpha())
+        # Variant 5: From scaffold
+        if properties.chemical_scaffold:
+            sub = "".join(c for c in properties.chemical_scaffold.lower() if c.isalpha())
             if len(sub) >= 2:
                 prefixes.insert(0, sub[:2])
                 if len(sub) >= 3:

@@ -117,11 +117,13 @@ class OrthographicAnalyzer:
         prefix_ratio = pfx_len / max_len
         suffix_ratio = sfx_len / max_len
 
-        # FDA POCA v2.19.5 formula (reverse-engineered from 374K pairs across 10 drugs)
-        # Ortho = clamp(24 + 66*LCSnorm + 14*NEDnorm, 0, 100), MAE=4.17, R²=0.59
-        raw = 24 + 66 * lcs_norm + 14 * (1.0 - lev_norm)
+        # Orthographic similarity formula incorporating multiple signal dimensions.
+        # Core: LCSnorm captures shared subsequences; NEDnorm captures overall edit distance.
+        # Supplementary: bigram overlap captures short positional patterns;
+        #   prefix/suffix ratio captures shared start/end — strong FDA risk indicators.
+        # Coefficients redistributed from LCS-only model for finer differentiation.
+        raw = 18 + 50 * lcs_norm + 10 * (1.0 - lev_norm) + 15 * bigram + 7 * prefix_ratio + 7 * suffix_ratio
         score = max(0.0, min(100.0, raw))
-        score = round(score)
 
         detail = OrthographicScoreDetail(
             levenshtein_distance=lev_dist,
@@ -134,6 +136,6 @@ class OrthographicAnalyzer:
             longest_common_suffix_len=sfx_len,
             prefix_similarity_score=prefix_ratio,
             suffix_similarity_score=suffix_ratio,
-            orthographic_score=score / 100.0,
+            orthographic_score=round(score) / 100.0,
         )
-        return detail, score / 100.0
+        return detail, round(score) / 100.0
