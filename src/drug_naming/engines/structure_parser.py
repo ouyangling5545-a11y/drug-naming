@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 try:
     from rdkit import Chem
-    from rdkit.Chem import AllChem, Descriptors, Lipinski
+    from rdkit.Chem import Descriptors
     from rdkit.Chem.Scaffolds import MurckoScaffold
     HAS_RDKIT = True
 except ImportError:
@@ -43,7 +43,7 @@ _SCAFFOLD_SMARTS: list[tuple[str, str]] = [
     ("benzimidazole",   "c1ccc2[nH]cnc2c1"),       # 苯并咪唑
     ("purine",          "c1nc2ncnc2[nH]1"),        # 嘌呤
     ("pteridine",       "c1nc2ncncc2nc1"),         # 蝶啶
-    ("benzodiazepine",  "c1ccc2c(c1)CNCCN2"),      # 苯二氮䓬
+
     ("dihydropyridine", "C1C=CNC=C1"),             # 二氢吡啶
     ("hydantoin",       "O=C1CNC(=O)N1"),          # 乙内酰脲
     ("barbiturate",     "O=C1CC(=O)NC(=O)N1"),     # 巴比妥
@@ -115,7 +115,7 @@ def _detect_functional_groups(mol: Chem.Mol) -> list[str]:
 
 
 def _analyze_ring_systems(mol: Chem.Mol) -> list[dict]:
-    """Classify ring systems: monocyclic, fused, bridged, spiro."""
+    """Classify ring systems: monocyclic, fused (bicyclic, tricyclic, polycyclic)."""
     ri = mol.GetRingInfo()
     rings = ri.AtomRings()
     if not rings:
