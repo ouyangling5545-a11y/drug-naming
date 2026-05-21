@@ -307,3 +307,44 @@ class TestAlineEncoder:
         r2 = engine.score_pair("imatinib", "erlotinib")
         assert abs(r1.phonetic_score - r2.phonetic_score) > 0.01, \
             f"Dispatch failed: Meta={r1.phonetic_score:.4f} ALINE={r2.phonetic_score:.4f}"
+
+
+# ── Structure Parser ──
+
+class TestStructureParser:
+    def setup_method(self):
+        from drug_naming.engines.structure_parser import StructureParser
+        self.parser = StructureParser()
+
+    def test_quinazoline_scaffold(self):
+        """Gefitinib-like quinazoline structure should be detected."""
+        # 4-anilinoquinazoline core
+        smiles = "COC1=C(C=C2C(=C1)N=CN=C2NC3=CC=C(C=C3)Cl)OCCCN4CCOCC4"
+        result = self.parser.parse(smiles)
+        assert result.scaffold_type == "quinazoline"
+        assert "phenyl" in result.functional_groups
+        assert "chloro" in result.functional_groups
+
+    def test_pyridine_scaffold(self):
+        """Imatinib-like structure with pyridine/pyrimidine."""
+        smiles = "CC1=C(C=C(C=C1)NC(=O)C2=CC=C(C=C2)CN3CCN(CC3)C)NC4=NC=CC(=N4)C5=CN=CC=C5"
+        result = self.parser.parse(smiles)
+        assert result.scaffold_type in ("pyridine", "pyrimidine", "phenyl")
+
+    def test_triazine_scaffold(self):
+        """Lamotrigine-like 1,2,4-triazine."""
+        smiles = "NC1=NC(N)=NN=C1C2=C(Cl)C=CC=C2Cl"
+        result = self.parser.parse(smiles)
+        assert result.scaffold_type == "triazine"
+
+    def test_no_structure(self):
+        """Empty SMILES should return empty features."""
+        result = self.parser.parse("")
+        assert result.scaffold_type == ""
+        assert result.functional_groups == []
+        assert result.ring_systems == []
+
+    def test_invalid_smiles(self):
+        """Invalid SMILES should not crash."""
+        result = self.parser.parse("not_a_valid_smiles")
+        assert result.scaffold_type == ""
