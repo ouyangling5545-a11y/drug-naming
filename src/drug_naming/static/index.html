@@ -1624,8 +1624,8 @@ createApp({
 
     function filterCombo(type) {
       if (type === 'stem') {
-        const q = evalStem.value.toLowerCase();
-        const filtered = comboStemOptions.filter(o => o.label.toLowerCase().includes(q) || o.meaning.toLowerCase().includes(q));
+        const q = (activeTab.value === 'recommend' ? recStemOverride.value : evalStem.value).toLowerCase();
+        const filtered = comboStemOptions.filter(o => o.label.toLowerCase().includes(q) || o.meaning.toLowerCase().includes(q) || (o.obj && o.obj.chinese && o.obj.chinese.includes(q)));
         comboStemFiltered.value = filtered;
         comboIdx.stem = 0;
         return;
