@@ -822,6 +822,30 @@ input[type="range"] {
   <!-- ==================== TAB B: 智能推荐 ==================== -->
   <div v-if="activeTab==='recommend'" class="panels">
     <div class="panel-left">
+      <!-- Stem Quick-Search Card -->
+      <div class="card" style="padding:10px;margin-bottom:12px;">
+        <h3 style="margin-bottom:6px;">快速通道：已知词干直接推荐 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（跳过靶点填写）</span></h3>
+        <div class="combo">
+          <input v-model="recStemOverride" placeholder="搜索词干：如 -tinib, -mab, -gliflozin, 替尼..." @focus="openCombo('stem')" @input="filterCombo('stem')" @keydown.down.prevent="navCombo('stem',1)" @keydown.up.prevent="navCombo('stem',-1)" @keydown.enter.prevent="selectCombo('stem')" @blur="blurCombo('stem')">
+          <span class="arrow">▼</span>
+          <div class="dropdown" :class="{show: comboOpen.stem}" style="max-height:320px;overflow-y:auto;">
+            <div v-for="(opt,idx) in comboStemFiltered" :key="opt.v" class="opt" :class="{highlight: idx===comboIdx.stem}" @mousedown.prevent="pickCombo('stem',opt)">
+              <span style="font-weight:600;">{{ opt.v }}</span>
+              <span v-if="opt.obj && opt.obj.chinese" style="color:var(--color-primary);margin-left:6px;">{{ opt.obj.chinese }}</span>
+              <span style="color:var(--color-muted-foreground);font-size:11px;margin-left:6px;">{{ opt.meaning }}</span>
+            </div>
+            <div v-if="!comboStemFiltered.length" style="padding:10px;color:var(--color-muted-foreground);font-size:12px;text-align:center;">未找到匹配词干，可直接输入</div>
+          </div>
+        </div>
+        <div v-if="recStemOverrideInfo" style="margin-top:6px;font-size:12px;color:var(--color-primary);display:flex;align-items:center;gap:6px;">
+          已选: <strong>{{ recStemOverrideInfo.stem }}</strong>
+          <span v-if="recStemOverrideInfo.chinese">（{{ recStemOverrideInfo.chinese }}）</span>
+          — {{ recStemOverrideInfo.meaning }}
+          <span v-if="recStemOverrideInfo.examples && recStemOverrideInfo.examples.length" style="color:var(--color-muted-foreground);font-size:10px;">{{ recStemOverrideInfo.examples.slice(0,3).join(', ') }}</span>
+          <button class="btn btn-sm" style="padding:2px 6px;font-size:10px;" @click="recStemOverride=''; recStemOverrideInfo=null;">清除</button>
+        </div>
+      </div>
+
       <!-- Ketcher Structure Editor -->
       <div class="card" style="padding:10px;">
         <h3 style="margin-bottom:8px;">分子结构绘制 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（绘制后自动识别骨架和官能团）</span></h3>
@@ -1302,7 +1326,6 @@ createApp({
         const all = await res.json();
         // Filter to suffix stems, sort by priority desc
         knownStems.value = all
-          .filter(s => s.position === 'suffix')
           .sort((a, b) => (b.priority || 0) - (a.priority || 0));
         // Build combo options
         comboStemOptions.length = 0;
@@ -1465,6 +1488,8 @@ createApp({
     const recArea = ref('');
     const recSubstructure = ref('');
     const recTargetMeaning = ref('');
+    const recStemOverride = ref('');
+    const recStemOverrideInfo = ref(null);
     const recStems = ref([]); const recInnCandidates = ref([]);
     const recSelectedInn = ref(''); const recPocaResults = ref([]);
     const recPocaWorstScore = ref(0); const recChineseNames = ref([]);
@@ -1688,6 +1713,8 @@ createApp({
         evalStem.value = opt.v;
         evalStemInfo.value = opt.obj || null;
         if (opt.obj && opt.obj.infix_required) showInfixField.value = true;
+        recStemOverride.value = opt.v;
+        recStemOverrideInfo.value = opt.obj || null;
         comboOpen[type] = false;
         return;
       }
@@ -1759,6 +1786,7 @@ createApp({
         // Step 1: Generate INN names (includes stem matching)
         const p1 = await apiPost('/naming/generate', {
           properties: props,
+          stem_override: recStemOverride.value || undefined,
           existing_names_to_avoid: [],
           constraints: {}
         });
@@ -2744,6 +2772,7 @@ createApp({
       ketcherFrame, ketcherSmiles, ketcherPreview, ketcherReady,
       ketcherUrl, ketcherGetSmiles, ketcherClear,
       recIndication, recSubstructure, recScaffold, recArea, recTargetMeaning,
+      recStemOverride, recStemOverrideInfo,
       recStems, recInnCandidates, recSelectedInn, recPocaResults, recPocaWorstScore, recChineseNames,
       recExpandedStems, recToggleStem,
       recStepClass, runRecommend, recSelectInn,

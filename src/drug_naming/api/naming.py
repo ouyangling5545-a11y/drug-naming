@@ -20,13 +20,18 @@ router = APIRouter()
 class GenerateNamesRequest(BaseModel):
     properties: PharmacologicalProperties
     smiles: str | None = None
+    stem_override: str | None = None
     existing_names_to_avoid: list[str] = []
     constraints: NameGenerationConstraints = NameGenerationConstraints()
 
 
 @router.post("/generate", response_model=NameGenerationResponse)
 def generate_names(body: GenerateNamesRequest) -> NameGenerationResponse:
-    """Generate INN name candidates from pharmacological properties."""
+    """Generate INN name candidates from pharmacological properties.
+
+    If stem_override is provided, the specified stem is inserted as a
+    high-priority match before running normal property-based matching.
+    """
     provider = _get_default_provider()
     stem_engine = StemMatchingEngine(provider)
 
@@ -44,6 +49,19 @@ def generate_names(body: GenerateNamesRequest) -> NameGenerationResponse:
     matched_stems = stem_engine.match(
         body.properties, top_k=5, structure_features=structure_features,
     )
+
+    if body.stem_override:
+        from ..models.stem import StemMatch
+        override_key = body.stem_override.strip("-").lower()
+        for s in provider.get_all_stems():
+            if s.stem.strip("-").lower() == override_key:
+                override = StemMatch(
+                    stem=s, match_score=1.0,
+                    match_reasons=["user_override"],
+                    relevance_weight=1.0,
+                )
+                matched_stems.insert(0, override)
+                break
 
     gen_engine = NameGenerationEngine(inn_reference_db=get_inn_reference_db())
     gen_request = NameGenerationRequest(
