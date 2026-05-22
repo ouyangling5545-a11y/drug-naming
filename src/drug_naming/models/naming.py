@@ -32,6 +32,7 @@ class NameGenerationRequest(BaseModel):
     matched_stems: list[StemMatch]
     constraints: NameGenerationConstraints = Field(default_factory=NameGenerationConstraints)
     existing_names_to_avoid: list[str] = Field(default_factory=list)
+    relaxed: bool = Field(default=False, description="Skip trigram/existing-name filters to generate more candidates")
 
 
 class NameGenerationResponse(BaseModel):

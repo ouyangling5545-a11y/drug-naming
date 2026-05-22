@@ -426,6 +426,12 @@ input[type="range"] {
 .step-dot.done { background: var(--color-accent); }
 .step-dot.current { background: var(--color-primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.25); }
 
+/* Recommend Table */
+.rec-table { width:100%; border-collapse:collapse; font-size:13px; }
+.rec-table th { padding:8px 10px; text-align:left; font-weight:600; font-size:11px; color:var(--color-muted-foreground); text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid var(--color-border); white-space:nowrap; }
+.rec-table td { padding:6px 10px; border-bottom:1px solid var(--color-border); vertical-align:middle; }
+.rec-table tbody tr:hover { background:var(--surface-blue) !important; }
+
 /* Spinner */
 .spinner {
   display:inline-block; width:18px; height:18px;
@@ -822,9 +828,9 @@ input[type="range"] {
   <!-- ==================== TAB B: 智能推荐 ==================== -->
   <div v-if="activeTab==='recommend'" class="panels">
     <div class="panel-left">
-      <!-- Stem Quick-Search Card -->
+      <!-- Method A: Known Stem Quick-Search -->
       <div class="card" style="padding:10px;margin-bottom:12px;">
-        <h3 style="margin-bottom:6px;">快速通道：已知词干直接推荐 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（跳过靶点填写）</span></h3>
+        <h3 style="margin-bottom:6px;">方法一：已知词干直接输入 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（快速通道）</span></h3>
         <div class="combo">
           <input v-model="recStemOverride" placeholder="搜索词干：如 -tinib, -mab, -gliflozin, 替尼..." @focus="openCombo('stem')" @input="filterCombo('stem')" @keydown.down.prevent="navCombo('stem',1)" @keydown.up.prevent="navCombo('stem',-1)" @keydown.enter.prevent="selectCombo('stem')" @blur="blurCombo('stem')">
           <span class="arrow">▼</span>
@@ -837,36 +843,14 @@ input[type="range"] {
             <div v-if="!comboStemFiltered.length" style="padding:10px;color:var(--color-muted-foreground);font-size:12px;text-align:center;">未找到匹配词干，可直接输入</div>
           </div>
         </div>
-        <div v-if="recStemOverrideInfo" style="margin-top:6px;font-size:12px;color:var(--color-primary);display:flex;align-items:center;gap:6px;">
-          已选: <strong>{{ recStemOverrideInfo.stem }}</strong>
-          <span v-if="recStemOverrideInfo.chinese">（{{ recStemOverrideInfo.chinese }}）</span>
-          — {{ recStemOverrideInfo.meaning }}
-          <span v-if="recStemOverrideInfo.examples && recStemOverrideInfo.examples.length" style="color:var(--color-muted-foreground);font-size:10px;">{{ recStemOverrideInfo.examples.slice(0,3).join(', ') }}</span>
-          <button class="btn btn-sm" style="padding:2px 6px;font-size:10px;" @click="recStemOverride=''; recStemOverrideInfo=null;">清除</button>
-        </div>
       </div>
 
-      <!-- Ketcher Structure Editor -->
-      <div class="card" style="padding:10px;">
-        <h3 style="margin-bottom:8px;">分子结构绘制 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（绘制后自动识别骨架和官能团）</span></h3>
-        <iframe ref="ketcherFrame" :src="ketcherUrl" style="width:100%;height:420px;border:1px solid var(--color-border);border-radius:6px;"></iframe>
-        <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <button class="btn btn-sm" @click="ketcherGetSmiles" :disabled="!ketcherReady">获取 SMILES</button>
-          <button class="btn btn-sm" @click="ketcherClear" :disabled="!ketcherReady">清除画布</button>
-          <span v-if="ketcherSmiles" style="font-family:monospace;font-size:11px;color:var(--color-primary);word-break:break-all;flex:1;min-width:200px;">SMILES: {{ ketcherSmiles }}</span>
-        </div>
-        <div v-if="ketcherPreview" style="margin-top:6px;font-size:11px;color:var(--color-muted-foreground);">
-          预览: {{ ketcherPreview }}
-        </div>
-      </div>
+      <!-- Method B: Property-Based Stem Matching -->
       <div class="card">
-        <h3>分子性质</h3>
+        <h3 style="margin-bottom:8px;">方法二：通过性质匹配词干</h3>
 
-        <div style="margin-bottom:14px;">
+        <div style="margin-bottom:10px;">
           <label>靶点类别</label>
-          <div v-if="recTargetClass && targetMap[recTargetClass]" style="font-size:12px;color:var(--color-primary);font-weight:600;margin-bottom:4px;">
-            ✓ {{ targetMap[recTargetClass].label }}（{{ targetMap[recTargetClass].cn }}）
-          </div>
           <div class="combo" ref="targetCombo">
             <input v-model="recTargetClass" placeholder="搜索靶点：如 EGFR, HER2, BTK..." @focus="openCombo('target')" @input="filterCombo('target')" @keydown.down.prevent="navCombo('target',1)" @keydown.up.prevent="navCombo('target',-1)" @keydown.enter.prevent="selectCombo('target')" @blur="blurCombo('target')">
             <span class="arrow">▼</span>
@@ -879,16 +863,14 @@ input[type="range"] {
                   <span :style="{paddingLeft: (opt.indent||0)*16+'px', display:'inline-block'}">
                     <span style="font-weight:600;">{{ opt.label }}</span>
                     <span v-if="opt.cn" style="color:var(--color-muted-foreground);margin-left:6px;font-size:11px;">{{ opt.cn }}</span>
-                    <span v-if="opt.stems&&opt.stems.length" style="color:var(--color-primary);font-size:10px;margin-left:6px;">→ {{ opt.stems.slice(0,2).join(', ') }}</span>
                   </span>
                 </template>
               </div>
-              <div v-if="!comboTargetFiltered.length" style="padding:10px;color:var(--color-muted-foreground);font-size:12px;text-align:center;">未找到匹配靶点，可直接输入</div>
             </div>
           </div>
         </div>
 
-        <div style="margin-bottom:14px;">
+        <div style="margin-bottom:10px;">
           <label>作用机制</label>
           <div class="combo">
             <input v-model="recMechanism" placeholder="选择或输入机制..." @focus="openCombo('mechanism')" @input="filterCombo('mechanism')" @keydown.down.prevent="navCombo('mechanism',1)" @keydown.up.prevent="navCombo('mechanism',-1)" @keydown.enter.prevent="selectCombo('mechanism')" @blur="blurCombo('mechanism')">
@@ -899,7 +881,7 @@ input[type="range"] {
           </div>
         </div>
 
-        <div style="margin-bottom:14px;">
+        <div style="margin-bottom:10px;">
           <label>化学类别</label>
           <div class="combo">
             <input v-model="recChemicalClass" placeholder="选择化学类别..." @focus="openCombo('chemical')" @input="filterCombo('chemical')" @keydown.down.prevent="navCombo('chemical',1)" @keydown.up.prevent="navCombo('chemical',-1)" @keydown.enter.prevent="selectCombo('chemical')" @blur="blurCombo('chemical')">
@@ -910,7 +892,7 @@ input[type="range"] {
           </div>
         </div>
 
-        <div style="margin-bottom:14px;">
+        <div style="margin-bottom:10px;">
           <label>适应症</label>
           <div class="combo">
             <input v-model="recIndication" placeholder="选择或输入适应症..." @focus="openCombo('indication')" @input="filterCombo('indication')" @keydown.down.prevent="navCombo('indication',1)" @keydown.up.prevent="navCombo('indication',-1)" @keydown.enter.prevent="selectCombo('indication')" @blur="blurCombo('indication')">
@@ -921,137 +903,124 @@ input[type="range"] {
           </div>
         </div>
 
-        <div style="margin-bottom:14px;">
-          <label>化学骨架 <span style="font-weight:400;color:var(--color-muted-foreground);">(关键区分维度)</span></label>
-          <div class="combo">
-            <input v-model="recScaffold" placeholder="选择或输入骨架，如 triazine, amide/ester..." @focus="openCombo('scaffold')" @input="filterCombo('scaffold')" @keydown.down.prevent="navCombo('scaffold',1)" @keydown.up.prevent="navCombo('scaffold',-1)" @keydown.enter.prevent="selectCombo('scaffold')" @blur="blurCombo('scaffold')">
-            <span class="arrow">▼</span>
-            <div class="dropdown" :class="{show: comboOpen.scaffold}" style="max-height:280px;overflow-y:auto;">
-              <div v-for="(opt,idx) in comboScaffoldFiltered" :key="opt.v" class="opt" :class="{highlight: idx===comboIdx.scaffold}" @mousedown.prevent="pickCombo('scaffold',opt)">{{ opt.label }}</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-bottom:14px;">
-          <label>治疗领域 <span style="font-weight:400;color:var(--color-muted-foreground);">(ATC分类)</span></label>
-          <div class="combo">
-            <input v-model="recArea" placeholder="选择或输入，如 anticonvulsant..." @focus="openCombo('area')" @input="filterCombo('area')" @keydown.down.prevent="navCombo('area',1)" @keydown.up.prevent="navCombo('area',-1)" @keydown.enter.prevent="selectCombo('area')" @blur="blurCombo('area')">
-            <span class="arrow">▼</span>
-            <div class="dropdown" :class="{show: comboOpen.area}" style="max-height:280px;overflow-y:auto;">
-              <div v-for="(opt,idx) in comboAreaFiltered" :key="opt.v" class="opt" :class="{highlight: idx===comboIdx.area}" @mousedown.prevent="pickCombo('area',opt)">{{ opt.label }}</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-bottom:14px;">
-          <label>语义偏好 <span style="font-weight:400;color:var(--color-muted-foreground);">(中文核名用)</span></label>
-          <input v-model="recTargetMeaning" placeholder="如 抑制肿瘤、免疫调节">
-        </div>
-
-        <button class="btn btn-primary" @click="runRecommend" :disabled="recLoading">
+        <button class="btn btn-outline" @click="recMatchStems" :disabled="recLoading" style="width:100%;margin-bottom:8px;">
           <span v-if="recLoading" class="spinner"></span>
-          {{ recLoading ? '分析中...' : '开始推荐' }}
+          {{ recLoading ? '匹配中...' : '匹配词干' }}
         </button>
-        <div v-if="recError" class="alert-error">{{ recError }}</div>
       </div>
+
+      <!-- Ketcher — collapsible -->
+      <div class="card" style="padding:10px;">
+        <h3 style="margin-bottom:8px;cursor:pointer;user-select:none;" @click="recShowKetcher=!recShowKetcher">
+          分子结构绘制 {{ recShowKetcher ? '▼' : '▶' }} <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（可选，辅助骨架识别）</span>
+        </h3>
+        <div v-if="recShowKetcher">
+          <iframe ref="ketcherFrame" :src="ketcherUrl" style="width:100%;height:300px;border:1px solid var(--color-border);border-radius:6px;"></iframe>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-sm" @click="ketcherGetSmiles" :disabled="!ketcherReady">获取 SMILES</button>
+            <button class="btn btn-sm" @click="ketcherClear" :disabled="!ketcherReady">清除画布</button>
+            <span v-if="ketcherSmiles" style="font-family:monospace;font-size:11px;color:var(--color-primary);word-break:break-all;flex:1;min-width:200px;">SMILES: {{ ketcherSmiles }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmed Stem + Generate Button -->
+      <div v-if="recMatchedStems.length" class="card" style="padding:12px;background:var(--surface-blue);">
+        <h3 style="margin-bottom:8px;">选择词干 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（点击确认一个词干用于生成）</span></h3>
+        <div v-for="s in recMatchedStems.slice(0,8)" :key="s.stem.stem"
+             @click="recConfirmStem(s)"
+             style="display:flex;align-items:center;padding:8px 12px;margin-bottom:4px;border-radius:6px;cursor:pointer;gap:8px;border:1.5px solid;transition:all var(--transition-fast);"
+             :style="{borderColor: recConfirmedStemKey===s.stem.stem ? 'var(--color-primary)' : 'var(--color-border)', background: recConfirmedStemKey===s.stem.stem ? 'var(--surface-green)' : 'var(--color-surface)'}">
+          <span style="font-family:var(--font-mono);font-weight:700;font-size:15px;flex:1;">{{ s.stem.stem }}</span>
+          <span v-if="s.stem.chinese" style="font-size:13px;color:var(--color-primary);font-weight:600;">{{ s.stem.chinese }}</span>
+          <span style="font-size:11px;color:var(--color-muted-foreground);">{{ s.stem.meaning }}</span>
+          <span style="font-size:10px;color:var(--color-muted-foreground);">{{ (s.match_score*100).toFixed(0) }}%</span>
+        </div>
+      </div>
+
+      <button v-if="recConfirmedStemKey" class="btn btn-primary" @click="recGenerateCandidates" :disabled="recLoading" style="width:100%;margin-top:12px;padding:12px;font-size:16px;font-weight:700;">
+        <span v-if="recLoading" class="spinner"></span>
+        {{ recLoading ? '生成中...' : '生成 ' + recTopK + ' 个候选名 →' }}
+      </button>
+      <div v-if="recError" class="alert-error" style="margin-top:8px;">{{ recError }}</div>
     </div>
 
+    <!-- Right Panel: Results Table -->
     <div class="panel-right">
-      <div class="steps">
-        <div class="step-dot" :class="recStepClass(1)"></div>
-        <div class="step-dot" :class="recStepClass(2)"></div>
-        <div class="step-dot" :class="recStepClass(3)"></div>
-        <div class="step-dot" :class="recStepClass(4)"></div>
-        <div class="step-dot" :class="recStepClass(5)"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-muted-foreground);padding:0 4px;margin-bottom:14px;font-weight:500;">
-        <span>词干匹配</span><span>INN生成</span><span>POCA评分</span><span>中文核名</span><span>品牌筛选</span>
+      <div v-if="!recRecommendCandidates.length && !recLoading" class="card empty">
+        <p><strong>使用流程：</strong></p>
+        <p style="margin-top:8px;">1. 方法一（直接输入词干）或 方法二（填写性质 → 匹配词干）</p>
+        <p>2. 点击词干确认选择</p>
+        <p>3. 点击"生成候选名"按钮</p>
       </div>
 
-      <div v-if="!recStems.length && !recLoading" class="card empty">
-        在左侧填写分子性质，点击"开始推荐"查看完整推荐结果
-      </div>
-
-      <div v-if="recStems.length" class="card">
-        <h3>词干匹配 <span class="badge badge-blue">{{ recStems.length }} 条</span></h3>
-        <div style="font-size:12px;color:var(--color-muted-foreground);margin-bottom:12px;">
-          按 INN 决策层级排序：靶点直接匹配 → 靶点+机制 → 化学结构 → 临床适应症
-        </div>
-        <div v-for="s in recStems.slice(0,8)" :key="s.stem.stem"
-             style="border:1px solid var(--color-border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;">
-          <!-- Collapsed row -->
-          <div @click="recToggleStem(s.stem.stem)"
-               style="display:flex;align-items:center;padding:10px 14px;cursor:pointer;background:var(--color-bg);gap:10px;"
-               onmouseover="this.style.background='var(--surface-blue)';" onmouseout="this.style.background='var(--color-bg)';">
-            <span style="font-size:14px;transition:transform 0.2s;" :style="{transform: recExpandedStems[s.stem.stem] ? 'rotate(90deg)' : 'rotate(0deg)'}">▶</span>
-            <span v-if="s.relevance_weight <= 1" class="badge" style="background:#059669;color:#fff;font-size:10px;flex-shrink:0;">T1 靶点</span>
-            <span v-else-if="s.relevance_weight <= 2" class="badge" style="background:#2563EB;color:#fff;font-size:10px;flex-shrink:0;">T2 靶点+机制</span>
-            <span v-else-if="s.relevance_weight <= 3" class="badge" style="background:#7C3AED;color:#fff;font-size:10px;flex-shrink:0;">T3 靶点类</span>
-            <span v-else-if="s.relevance_weight <= 4" class="badge" style="background:#D97706;color:#fff;font-size:10px;flex-shrink:0;">T4 机制+化学</span>
-            <span v-else-if="s.relevance_weight <= 5" class="badge" style="background:#DC2626;color:#fff;font-size:10px;flex-shrink:0;">T5 通用</span>
-            <span v-else class="badge" style="background:var(--color-muted-foreground);color:#fff;font-size:10px;flex-shrink:0;">T{{ Math.floor(s.relevance_weight) }}</span>
-            <span style="font-family:var(--font-mono);font-weight:700;font-size:15px;flex:1;">{{ s.stem.stem }}</span>
-            <span v-if="s.stem.chinese" style="font-size:13px;color:var(--color-primary);font-weight:600;margin-right:8px;">{{ s.stem.chinese }}</span>
-            <div style="width:60px;height:6px;border-radius:3px;background:var(--color-border);overflow:hidden;flex-shrink:0;">
-              <div style="height:100%;border-radius:3px;" :style="{width:(s.match_score*100)+'%', background: s.match_score>0.9?'#059669':s.match_score>0.7?'#2563EB':s.match_score>0.4?'#D97706':'var(--color-muted-foreground)'}"></div>
-            </div>
-            <span style="font-weight:700;font-size:12px;width:36px;text-align:right;flex-shrink:0;" :style="{color: s.match_score>0.9?'var(--color-success)':s.match_score>0.7?'#2563EB':s.match_score>0.4?'var(--color-warning)':'var(--color-muted-foreground)'}">{{ (s.match_score*100).toFixed(0) }}%</span>
-          </div>
-          <!-- Expanded details -->
-          <div v-if="recExpandedStems[s.stem.stem]" style="padding:10px 14px 12px 38px;border-top:1px solid var(--color-border);background:var(--color-bg);font-size:12px;line-height:1.6;">
-            <div v-if="s.stem.meaning"><span style="color:var(--color-muted-foreground);">含义：</span>{{ s.stem.meaning }}</div>
-            <div v-if="s.stem.who_definition"><span style="color:var(--color-muted-foreground);">WHO定义：</span>{{ s.stem.who_definition }}</div>
-            <div style="display:flex;gap:16px;margin-top:4px;">
-              <span><span style="color:var(--color-muted-foreground);">位置：</span>{{ s.stem.position }}</span>
-              <span><span style="color:var(--color-muted-foreground);">类别：</span>{{ s.stem.category }}</span>
-              <span v-if="s.stem.priority"><span style="color:var(--color-muted-foreground);">优先级：</span>{{ s.stem.priority }}</span>
-            </div>
-            <div v-if="s.stem.examples" style="margin-top:2px;"><span style="color:var(--color-muted-foreground);">示例药物：</span>{{ Array.isArray(s.stem.examples) ? s.stem.examples.join(', ') : s.stem.examples }}</div>
-            <div v-if="s.match_reasons && s.match_reasons.length" style="margin-top:4px;padding:6px 8px;background:var(--surface-blue);border-radius:4px;font-size:11px;">
-              <span style="color:var(--color-muted-foreground);font-weight:600;">决策路径：</span>
-              <span v-for="(r,i) in s.match_reasons" :key="r" style="color:var(--color-foreground);">{{ r }}<span v-if="i<s.match_reasons.length-1"> → </span></span>
-            </div>
+      <div v-if="recRecommendCandidates.length" class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <h3>候选名列表 <span class="badge badge-green">{{ recRecommendCandidates.length }} 个</span></h3>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button class="btn btn-sm btn-outline" @click="recPage=0" :disabled="recPage===0">««</button>
+            <button class="btn btn-sm btn-outline" @click="recPage--" :disabled="recPage<=0">«</button>
+            <span style="font-size:13px;color:var(--color-muted-foreground);min-width:80px;text-align:center;">{{ recPage+1 }} / {{ recTotalPages }}</span>
+            <button class="btn btn-sm btn-outline" @click="recPage++" :disabled="recPage>=recTotalPages-1">»</button>
+            <button class="btn btn-sm btn-outline" @click="recPage=recTotalPages-1" :disabled="recPage>=recTotalPages-1">»»</button>
+            <span style="margin-left:8px;font-size:12px;color:var(--color-muted-foreground);">每页</span>
+            <select v-model.number="recPageSize" @change="recPage=0" style="padding:2px 6px;font-size:12px;border:1px solid var(--color-border);border-radius:4px;">
+              <option :value="20">20</option><option :value="50">50</option><option :value="100">100</option>
+            </select>
           </div>
         </div>
-      </div>
 
-      <div v-if="recInnCandidates.length" class="card">
-        <h3>INN 候选名 <span class="badge badge-green">{{ recInnCandidates.length }} 个</span></h3>
-        <div class="name-grid">
-          <span class="name-chip" v-for="c in recInnCandidates" :key="c.name"
-                :class="{selected: recSelectedInn===c.name}"
-                @click="recSelectInn(c.name)">{{ c.name }}
-            <span style="cursor:pointer;margin-left:4px;opacity:0.6;" @click.stop="speakName(c.name)" title="听发音">🔊</span>
-          </span>
-        </div>
-      </div>
-
-      <div v-if="recPocaResults.length" class="card">
-        <h3>POCA 评分 — {{ recSelectedInn }}
-          <span v-if="recPocaWorstScore<0.70" class="badge badge-green">PASS</span>
-          <span v-else-if="recPocaWorstScore<0.85" class="badge badge-amber">REVIEW</span>
-          <span v-else class="badge badge-red">REJECT</span>
-        </h3>
-        <div class="poca-row" v-for="r in recPocaResults.slice(0,8)" :key="r.reference_name">
-          <span :class="'badge badge-'+(r.alert_level==='PASS'?'green':r.alert_level==='REVIEW'?'amber':'red')" style="font-size:10px;width:40px;text-align:center;">{{ r.alert_level }}</span>
-          <span class="ref-name">{{ r.reference_name }}</span>
-          <div style="flex:1;height:8px;border-radius:4px;background:var(--color-border);overflow:hidden;"><div style="height:100%;border-radius:4px;transition:width 400ms ease-out;" :class="r.overall_poca_score<0.70?'pass':r.overall_poca_score<0.85?'review':'reject'" :style="{width:(r.overall_poca_score*100)+'%'}"></div></div>
-          <span class="poca-val" :style="{color: r.overall_poca_score<0.70?'var(--color-success)':r.overall_poca_score<0.85?'var(--color-warning)':'var(--color-destructive)'}">{{ (r.overall_poca_score*100).toFixed(0) }}%</span>
-        </div>
-        <div class="meta-row"><span>语音 / 字形 / 组合</span><span style="font-size:11px;color:var(--color-muted-foreground);">点击候选名称可重新评分</span></div>
-      </div>
-
-      <div v-if="recChineseNames.length" class="card">
-        <h3>中文核名 <span class="badge badge-blue">{{ recChineseNames.length }} 个</span></h3>
-        <div style="display:flex;flex-wrap:wrap;gap:12px;">
-          <div v-for="cn in recChineseNames.slice(0,6)" :key="cn.chinese_name"
-               style="padding:12px 16px;border:1.5px solid var(--color-border);border-radius:var(--radius);text-align:center;transition:all var(--transition-fast);cursor:default;"
-               onmouseover="this.style.borderColor='var(--color-primary)';this.style.boxShadow='var(--shadow-sm)';this.style.transform='translateY(-2px)';"
-               onmouseout="this.style.borderColor='var(--color-border)';this.style.boxShadow='none';this.style.transform='translateY(0)';">
-            <div class="chinese-chars">{{ cn.chinese_name }}</div>
-            <div style="font-size:12px;color:var(--color-muted-foreground);margin-top:4px;">{{ cn.pinyin }}</div>
-            <div style="font-size:11px;color:var(--color-muted-foreground);margin-top:2px;">{{ cn.meaning_gloss }}</div>
-          </div>
+        <div style="overflow-x:auto;">
+          <table class="rec-table">
+            <thead>
+              <tr>
+                <th style="width:30px;"><input type="checkbox" @change="recToggleAll($event)" :checked="recAllSelected"></th>
+                <th>候选名</th>
+                <th>前缀</th>
+                <th>POCA综合</th>
+                <th>语音</th>
+                <th>字形</th>
+                <th>评估</th>
+                <th>中文音译方案</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(c,idx) in recPagedCandidates" :key="c.name"
+                  :style="{background: recSelected.has(c.name) ? 'var(--surface-blue)' : ''}">
+                <td><input type="checkbox" :checked="recSelected.has(c.name)" @change="recToggleSelect(c.name)"></td>
+                <td>
+                  <span style="font-family:var(--font-mono);font-weight:600;font-size:14px;">{{ c.name }}</span>
+                  <span style="cursor:pointer;margin-left:4px;opacity:0.5;font-size:11px;" @click="speakName(c.name)" title="听发音">🔊</span>
+                </td>
+                <td style="font-family:var(--font-mono);font-size:12px;color:var(--color-muted-foreground);">{{ c.prefix || '-' }}</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:4px;">
+                    <div style="flex:1;height:6px;border-radius:3px;background:var(--color-border);overflow:hidden;min-width:40px;">
+                      <div style="height:100%;border-radius:3px;" :style="{width: Math.min(c.combined_score,100)+'%', background: c.combined_score<70?'var(--color-success)':c.combined_score<85?'var(--color-warning)':'var(--color-destructive)'}"></div>
+                    </div>
+                    <span style="font-weight:700;font-size:13px;min-width:36px;text-align:right;" :style="{color: c.combined_score<70?'var(--color-success)':c.combined_score<85?'var(--color-warning)':'var(--color-destructive)'}">{{ c.combined_score }}</span>
+                  </div>
+                </td>
+                <td style="font-size:13px;text-align:center;">{{ c.phonetic_score }}</td>
+                <td style="font-size:13px;text-align:center;">{{ c.orthographic_score }}</td>
+                <td>
+                  <span class="badge" :class="c.poca_assessment==='PASS'?'badge-green':c.poca_assessment==='REVIEW'?'badge-amber':'badge-red'" style="font-size:10px;">{{ c.poca_assessment }}</span>
+                </td>
+                <td style="font-size:11px;line-height:1.4;">
+                  <div v-for="(cn,ci) in c.chinese_transliterations" :key="ci"
+                       style="cursor:pointer;padding:1px 4px;margin:1px 0;border-radius:3px;"
+                       :style="{background: recSelectedCn.get(c.name)===ci ? 'var(--surface-green)' : 'transparent', fontWeight: recSelectedCn.get(c.name)===ci ? '700' : '400'}"
+                       @click="recSelectCn(c.name, ci)">
+                    {{ ['一','二','三'][ci] }}. {{ cn }}
+                  </div>
+                </td>
+                <td>
+                  <button class="btn btn-sm" style="padding:2px 8px;font-size:11px;" @click="recEvaluateName(c.name)">评估</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -1494,9 +1463,36 @@ createApp({
     const recSelectedInn = ref(''); const recPocaResults = ref([]);
     const recPocaWorstScore = ref(0); const recChineseNames = ref([]);
     const recExpandedStems = reactive({});
+    // New: Two-phase flow — match stems first, then generate from one stem
+    const recMatchedStems = ref([]);
+    const recConfirmedStemKey = ref('');
+    const recConfirmedStemObj = ref(null);
+    const recRecommendCandidates = ref([]);
+    const recPage = ref(0);
+    const recPageSize = ref(20);
+    const recTopK = ref(100);
+    const recSelected = reactive(new Set());
+    const recSelectedCn = reactive(new Map());
+    const recShowKetcher = ref(false);
+    const recTotalPages = computed(() => Math.max(1, Math.ceil(recRecommendCandidates.value.length / recPageSize.value)));
+    const recPagedCandidates = computed(() => recRecommendCandidates.value.slice(recPage.value * recPageSize.value, (recPage.value + 1) * recPageSize.value));
+    const recAllSelected = computed(() => recPagedCandidates.value.length > 0 && recPagedCandidates.value.every(c => recSelected.has(c.name)));
 
     function recStepClass(n) { const s=recStep.value; if(s>n)return'done'; if(s===n)return'current'; return''; }
     function recToggleStem(key) { recExpandedStems[key] = !recExpandedStems[key]; }
+    function recToggleAll(ev) {
+      for (const c of recPagedCandidates.value) {
+        if (ev.target.checked) recSelected.add(c.name); else recSelected.delete(c.name);
+      }
+    }
+    function recToggleSelect(name) {
+      if (recSelected.has(name)) recSelected.delete(name); else recSelected.add(name);
+    }
+    function recSelectCn(name, idx) { recSelectedCn.set(name, idx); }
+    function recConfirmStem(sm) {
+      recConfirmedStemKey.value = sm.stem.stem;
+      recConfirmedStemObj.value = sm;
+    }
 
     // ========== Combobox system ==========
     const comboOpen = reactive({ target:false, mechanism:false, chemical:false, indication:false, scaffold:false, area:false, stem:false });
@@ -1715,6 +1711,12 @@ createApp({
         if (opt.obj && opt.obj.infix_required) showInfixField.value = true;
         recStemOverride.value = opt.v;
         recStemOverrideInfo.value = opt.obj || null;
+        // Auto-confirm stem for Tab B generation
+        recConfirmedStemKey.value = opt.v;
+        recConfirmedStemObj.value = { stem: opt.obj || { stem: opt.v }, match_score: 1.0, match_reasons: ['user_input'], relevance_weight: 0 };
+        if (!recMatchedStems.value.find(s => s.stem.stem === opt.v)) {
+          recMatchedStems.value.unshift(recConfirmedStemObj.value);
+        }
         comboOpen[type] = false;
         return;
       }
@@ -1750,11 +1752,10 @@ createApp({
       return res.json();
     }
 
-    async function runRecommend() {
+    async function recMatchStems() {
       recLoading.value = true; recError.value = ''; recStep.value = 0;
-      recPocaResults.value = []; recChineseNames.value = [];
+      recMatchedStems.value = [];
       try {
-        // If SMILES available, analyze structure first
         let scaffoldValue = recScaffold.value || null;
         if (ketcherSmiles.value && ketcherReady.value) {
           try {
@@ -1765,15 +1766,9 @@ createApp({
               chemical_class: recChemicalClass.value || 'small_molecule',
               indication: recIndication.value || ''
             });
-            // Auto-fill scaffold from structure analysis if not manually set
-            if (structRes.scaffold_type && !recScaffold.value) {
-              scaffoldValue = structRes.scaffold_type;
-            }
-          } catch (e) {
-            console.warn('Structure analysis failed, continuing without:', e);
-          }
+            if (structRes.scaffold_type && !recScaffold.value) scaffoldValue = structRes.scaffold_type;
+          } catch (e) { console.warn('Structure analysis failed:', e); }
         }
-
         const props = {
           target_class: recTargetClass.value || 'other',
           mechanism: recMechanism.value || 'other',
@@ -1782,59 +1777,75 @@ createApp({
           chemical_scaffold: scaffoldValue,
           therapeutic_area: recArea.value || null
         };
-
-        // Step 1: Generate INN names (includes stem matching)
         const p1 = await apiPost('/naming/generate', {
           properties: props,
-          stem_override: recStemOverride.value || undefined,
           existing_names_to_avoid: [],
-          constraints: {}
+          constraints: { max_candidates_per_stem: 5 }
         });
-        recInnCandidates.value = p1.candidates || [];
-        recStep.value = 1;
-
-        // Step 2: Extract unique matched stems from all candidates
         const seen = new Set();
         const stems = [];
         for (const c of (p1.candidates || [])) {
           for (const sm of (c.stems_used || [])) {
             const key = sm.stem && sm.stem.stem;
-            if (key && !seen.has(key)) {
-              seen.add(key);
-              stems.push(sm);
-            }
+            if (key && !seen.has(key)) { seen.add(key); stems.push(sm); }
           }
         }
-        recStems.value = stems.sort((a,b) => (a.relevance_weight||99) - (b.relevance_weight||99) || b.match_score - a.match_score);
-        recStep.value = 2;
-
-        // Step 3: POCA scoring for the first candidate
-        if (recInnCandidates.value.length) {
-          recSelectedInn.value = recInnCandidates.value[0].name;
-          await recRunPoca();
+        recMatchedStems.value = stems.sort((a,b) => (a.relevance_weight||99) - (b.relevance_weight||99) || b.match_score - a.match_score);
+        // Also handle quick-search stem if entered
+        if (recStemOverrideInfo.value) {
+          const qk = recStemOverrideInfo.value.stem;
+          if (!recMatchedStems.value.find(s => s.stem.stem === qk)) {
+            recMatchedStems.value.unshift({ stem: recStemOverrideInfo.value, match_score: 1.0, match_reasons: ['user_input'], relevance_weight: 0 });
+          }
         }
-
-        // Step 4: Chinese name suggestions
-        const p4 = await apiPost('/chinese/suggest', {
-          inn_name: recSelectedInn.value || (recInnCandidates.value[0] && recInnCandidates.value[0].name) || '',
-          target_meaning: recTargetMeaning.value || '',
-          max_candidates: 4
-        });
-        recChineseNames.value = p4.candidates || [];
-        recStep.value = 4;
-        recStep.value = 5;
+        recStep.value = 1;
       } catch(e) { recError.value = e.message; } finally { recLoading.value = false; }
     }
 
-    async function recRunPoca() {
+    async function recGenerateCandidates() {
+      if (!recConfirmedStemObj.value) { recError.value = '请先确认一个词干'; return; }
+      recLoading.value = true; recError.value = ''; recRecommendCandidates.value = []; recPage.value = 0; recSelected.clear(); recSelectedCn.clear();
       try {
-        const refs = await apiPostQuery('/poca/smart-references', {proposed_name: recSelectedInn.value, max_refs:12});
-        const result = await apiPost('/poca/score', {proposed_name: recSelectedInn.value, reference_names: refs.length?refs:['imatinib','erlotinib','gefitinib','osimertinib']});
-        recPocaResults.value = result.results||[]; recPocaWorstScore.value = result.worst_score||0; recStep.value = 3;
-      } catch(e) { recError.value = 'POCA: '+e.message; }
+        let scaffoldValue = recScaffold.value || null;
+        if (ketcherSmiles.value && ketcherReady.value) {
+          try {
+            const structRes = await apiPost('/structure/analyze', {
+              smiles: ketcherSmiles.value,
+              target_class: recTargetClass.value || 'other',
+              mechanism: recMechanism.value || 'other',
+              chemical_class: recChemicalClass.value || 'small_molecule',
+              indication: recIndication.value || ''
+            });
+            if (structRes.scaffold_type && !recScaffold.value) scaffoldValue = structRes.scaffold_type;
+          } catch (e) { console.warn('Structure analysis failed:', e); }
+        }
+        const stemText = recConfirmedStemObj.value.stem.stem || recConfirmedStemObj.value.stem;
+        const props = {
+          target_class: recTargetClass.value || 'other',
+          mechanism: recMechanism.value || 'other',
+          chemical_class: recChemicalClass.value || 'small_molecule',
+          indication: recIndication.value || '',
+          chemical_scaffold: scaffoldValue,
+          therapeutic_area: recArea.value || null
+        };
+        const res = await apiPost('/naming/recommend', {
+          stem: stemText,
+          properties: props,
+          smiles: ketcherSmiles.value || null,
+          top_k: recTopK.value
+        });
+        recRecommendCandidates.value = res.candidates || [];
+        recStep.value = 2;
+      } catch(e) { recError.value = e.message; } finally { recLoading.value = false; }
     }
 
-    async function recSelectInn(name) { recSelectedInn.value = name; await recRunPoca(); }
+    async function recEvaluateName(name) {
+      try {
+        const res = await fetch(API + '/poca/smart-score?proposed_name=' + encodeURIComponent(name) + '&max_refs=15', { method: 'POST' });
+        const data = await res.json();
+        alert('POCA 评估: ' + name + '\n综合最高分: ' + (data.worst_score ? (data.worst_score*100).toFixed(0) + '%' : 'N/A') + '\n评估: ' + (data.overall_safety_assessment || 'N/A') + '\n参考名: ' + (data.worst_comparison || 'N/A'));
+      } catch(e) { alert('评估失败: ' + e.message); }
+    }
 
     // ========== Tab C: Project Pipeline Management ==========
     const pjProjects = ref([]);
@@ -2775,7 +2786,12 @@ createApp({
       recStemOverride, recStemOverrideInfo,
       recStems, recInnCandidates, recSelectedInn, recPocaResults, recPocaWorstScore, recChineseNames,
       recExpandedStems, recToggleStem,
-      recStepClass, runRecommend, recSelectInn,
+      recStepClass, recMatchStems, recGenerateCandidates, recEvaluateName,
+      recMatchedStems, recConfirmedStemKey, recConfirmedStemObj,
+      recRecommendCandidates, recPage, recPageSize, recTopK,
+      recSelected, recSelectedCn, recShowKetcher,
+      recTotalPages, recPagedCandidates, recAllSelected,
+      recToggleAll, recToggleSelect, recSelectCn, recConfirmStem,
       comboOpen, comboIdx, comboStemFiltered,
       comboTargetFiltered, comboMechanismFiltered, comboChemicalFiltered, comboIndicationFiltered,
       comboScaffoldFiltered, comboAreaFiltered,

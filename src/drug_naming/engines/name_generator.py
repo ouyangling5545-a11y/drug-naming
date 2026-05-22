@@ -118,10 +118,10 @@ class NameGenerationEngine:
         filtered: list[NameCandidate] = []
         for c in all_candidates:
             name_lower = c.name.lower()
-            if name_lower in existing_set:
+            if not request.relaxed and name_lower in existing_set:
                 c.regulatory_flags.append("exact_inn_conflict")
                 continue
-            if not self._passes_trigram_screen(name_lower, existing_set):
+            if not request.relaxed and not self._passes_trigram_screen(name_lower, existing_set):
                 c.regulatory_flags.append("trigram_match_with_existing")
                 continue
             if any(name_lower.startswith(p) for p in constraints.forbidden_prefixes):
