@@ -32,6 +32,10 @@ class RecommendRequest(BaseModel):
     properties: PharmacologicalProperties = Field(default_factory=PharmacologicalProperties)
     smiles: str | None = None
     top_k: int = Field(default=100, ge=10, le=200)
+    poca_threshold: float = Field(default=85, ge=50, le=100, description="Max POCA combined score; candidates above this are filtered out")
+    dedup_strict: bool = Field(default=True, description="If True, also apply trigram deduplication (75% threshold)")
+    prefix_lengths: list[int] = Field(default_factory=lambda: [2, 3, 4, 5, 6], description="Allowed prefix letter counts")
+    chinese_prefix_hint: str | None = Field(default=None, description="Desired Chinese prefix character(s); system reverse-maps to Latin prefixes")
 
 
 class RecommendCandidate(BaseModel):
@@ -53,6 +57,7 @@ class RecommendResponse(BaseModel):
     stem_meaning: str
     candidates: list[RecommendCandidate]
     total: int
+    stats: dict = Field(default_factory=dict, description="Filtering statistics from generation pipeline")
 
 
 @router.post("/generate", response_model=NameGenerationResponse)
@@ -144,11 +149,36 @@ def recommend_names(body: RecommendRequest) -> RecommendResponse:
         relevance_weight=1.0,
     )
 
-    # 4. Generate candidates with relaxed mode (skip trigram/INN-conflict filters)
+    # 4. Build prefix blacklist from target root (avoid prefixes identical to target)
+    target_root_blacklist: list[str] = []
+    if body.properties.target_class:
+        tc_val = getattr(body.properties.target_class, 'value', body.properties.target_class)
+        tc_lower = tc_val.lower()
+        target_root_blacklist.append(tc_lower)
+        if len(tc_lower) >= 4:
+            target_root_blacklist.append(tc_lower[:4])
+        if len(tc_lower) >= 3:
+            target_root_blacklist.append(tc_lower[:3])
+
+    # Chinese prefix hint → reverse-map to Latin prefixes
+    prefix_whitelist: list[str] | None = None
+    prefix_lengths = body.prefix_lengths
+    if body.chinese_prefix_hint:
+        from ..engines.chinese_transliteration import latin_prefixes_for_chinese
+        matched = latin_prefixes_for_chinese(body.chinese_prefix_hint.strip())
+        if matched:
+            prefix_whitelist = matched
+            # Allow all matched prefix lengths
+            matched_lengths = set(len(p) for p in matched)
+            prefix_lengths = sorted(matched_lengths)
+
     constraints = NameGenerationConstraints(
         max_candidates_per_stem=body.top_k,
         max_name_length=20,
         min_name_length=5,
+        prefix_blacklist=target_root_blacklist,
+        prefix_lengths=prefix_lengths,
+        prefix_whitelist=prefix_whitelist,
     )
 
     gen_engine = NameGenerationEngine(inn_reference_db=get_inn_reference_db())
@@ -156,41 +186,74 @@ def recommend_names(body: RecommendRequest) -> RecommendResponse:
         properties=body.properties,
         matched_stems=[stem_match],
         constraints=constraints,
-        relaxed=True,
+        relaxed=not body.dedup_strict,
     )
     gen_response = gen_engine.generate(gen_request)
 
-    # 5. Build POCA engine and select smart references once
+    # 5. Build POCA engine with trigram-indexed full INN reference list
     all_stems = [s.stem for s in provider.get_all_stems()]
+    inn_db = get_inn_reference_db()
     poca_engine = POCAScoringEngine(
         known_stems=all_stems,
-        inn_reference_db=get_inn_reference_db(),
+        inn_reference_db=inn_db,
     )
 
     stem_core = stem_obj.stem.strip("-")
-    refs = poca_engine.smart_references(stem_core + "ib", max_refs=12)
-    if not refs:
-        refs = ["imatinib", "erlotinib", "gefitinib", "osimertinib",
-                "dasatinib", "nilotinib", "sorafenib", "sunitinib",
-                "ibrutinib", "acalabrutinib"]
+    smart_refs = poca_engine.smart_references(stem_core + "ib", max_refs=30)
+    if not smart_refs:
+        smart_refs = ["imatinib", "erlotinib", "gefitinib", "osimertinib",
+                      "dasatinib", "nilotinib", "sorafenib", "sunitinib",
+                      "ibrutinib", "acalabrutinib"]
+
+    # Build trigram index over all INN refs for fast cross-stem lookup
+    all_inn_refs_list = sorted(inn_db.english_names) if inn_db else []
+    trigram_index: dict[str, list[str]] = {}
+    for ref in all_inn_refs_list:
+        for i in range(len(ref) - 2):
+            t = ref[i:i + 3].lower()
+            trigram_index.setdefault(t, []).append(ref)
 
     # 6. Chinese transliteration prep: suffix stem detection
     suffix_cn = stem_obj.chinese.lstrip("-").strip() if stem_obj.chinese else ""
     suffix_core = stem_obj.stem.strip("-").lower()
 
-    # 7. Score each candidate and generate Chinese transliterations
+    # 7. Score each candidate: smart refs + trigram-matching refs, early stop at 3 over threshold
+    poca_threshold_ratio = body.poca_threshold / 100.0
+    poca_filtered = 0
     results: list[RecommendCandidate] = []
     for c in gen_response.candidates:
-        # POCA batch scoring against smart references
         worst_score = 0.0
         worst_phonetic = 0.0
         worst_ortho = 0.0
-        for ref in refs:
+        over_threshold_count = 0
+
+        # Collect trigram-matching refs for this candidate
+        name_lower = c.name.lower()
+        seen_refs = set(smart_refs)
+        refs_to_check = list(smart_refs)
+        for i in range(len(name_lower) - 2):
+            t = name_lower[i:i + 3]
+            for ref in trigram_index.get(t, []):
+                if ref not in seen_refs:
+                    seen_refs.add(ref)
+                    refs_to_check.append(ref)
+
+        for ref in refs_to_check:
             detail = poca_engine.score_pair(c.name, ref, mode="fda")
             if detail.overall_poca_score > worst_score:
                 worst_score = detail.overall_poca_score
                 worst_phonetic = detail.phonetic_score
                 worst_ortho = detail.orthographic_score
+            if detail.overall_poca_score >= poca_threshold_ratio:
+                over_threshold_count += 1
+                if over_threshold_count >= 3:
+                    break  # early stop: 3 references above threshold → reject candidate
+
+        if over_threshold_count >= 3:
+            poca_filtered += 1
+            continue
+
+        combined = round(worst_score * 100)
 
         # Chinese transliteration: transliterate prefix + known suffix Chinese
         name_lower = c.name.lower()
@@ -217,7 +280,7 @@ def recommend_names(body: RecommendRequest) -> RecommendResponse:
             infix=c.infix,
             suffix=c.suffix,
             phonological_score=round(c.phonological_score, 3),
-            combined_score=round(worst_score * 100),
+            combined_score=combined,
             phonetic_score=round(worst_phonetic * 100),
             orthographic_score=round(worst_ortho * 100),
             chinese_transliterations=cn_variants,
@@ -233,6 +296,12 @@ def recommend_names(body: RecommendRequest) -> RecommendResponse:
         stem_meaning=stem_obj.meaning or "",
         candidates=results,
         total=len(results),
+        stats={
+            "total_generated": gen_response.total_generated,
+            "filtered_by_generation": gen_response.filtered_out,
+            "filtered_by_poca_threshold": poca_filtered,
+            "flag_counts": gen_response.flag_counts,
+        },
     )
 
 
@@ -249,3 +318,19 @@ def get_target_info(target_value: str) -> dict | None:
     if t:
         return t.to_dict()
     return None
+
+
+class ChinesePrefixHintRequest(BaseModel):
+    q: str = ""
+
+
+@router.post("/chinese-prefix-hint")
+def chinese_prefix_hint(body: ChinesePrefixHintRequest) -> dict:
+    """Return Latin prefix candidates whose Chinese transliteration matches query char(s)."""
+    q = body.q.strip()
+    if not q:
+        return {"hint": "", "prefixes": [], "lengths": []}
+    from ..engines.chinese_transliteration import latin_prefixes_for_chinese
+    prefixes = latin_prefixes_for_chinese(q)
+    lengths = sorted(set(len(p) for p in prefixes)) if prefixes else []
+    return {"hint": q, "prefixes": prefixes, "lengths": lengths}

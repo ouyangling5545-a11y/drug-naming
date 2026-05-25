@@ -938,7 +938,44 @@ input[type="range"] {
         </div>
       </div>
 
-      <button v-if="recConfirmedStemKey" class="btn btn-primary" @click="recGenerateCandidates" :disabled="recLoading" style="width:100%;margin-top:12px;padding:12px;font-size:16px;font-weight:700;">
+      <div v-if="recConfirmedStemKey" style="margin-top:12px;padding:10px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-sm);">
+        <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span>POCA 阈值 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（超过此分数的候选将被过滤）</span></span>
+          <span style="font-weight:700;color:var(--color-primary);">{{ recPocaThreshold }}</span>
+        </label>
+        <input type="range" v-model.number="recPocaThreshold" min="50" max="100" step="5" style="width:100%;">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--color-muted-foreground);">
+          <span>50 严格</span><span>100 全部</span>
+        </div>
+      </div>
+
+      <!-- Prefix length filter -->
+      <div v-if="recConfirmedStemKey" style="margin-top:8px;padding:10px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-sm);">
+        <label style="display:block;margin-bottom:6px;">前缀长度筛选 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（可多选）</span></label>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <label v-for="n in [2,3,4,5,6]" :key="'plen'+n" style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;">
+            <input type="checkbox" :value="n" v-model="recPrefixLengths" style="width:16px;height:16px;">
+            {{ n }}字母
+          </label>
+        </div>
+      </div>
+
+      <!-- Chinese prefix hint -->
+      <div v-if="recConfirmedStemKey" style="margin-top:8px;padding:10px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-sm);">
+        <label style="display:block;margin-bottom:4px;">中文前缀提示 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（输入期望的中文前缀字，系统反向查找匹配的拉丁前缀）</span></label>
+        <div style="display:flex;gap:8px;">
+          <input v-model="recChineseHint" placeholder="如：好、曲、近、宁、康..." style="flex:1;padding:6px 10px;border:1px solid var(--color-border);border-radius:var(--radius-sm);font-size:14px;" @keydown.enter="recGenerateCandidates">
+          <button class="btn btn-sm btn-outline" @click="recChineseHint=''" :disabled="!recChineseHint">清除</button>
+        </div>
+        <div v-if="recChineseMatchedPrefixes.length" style="margin-top:4px;font-size:11px;color:var(--color-primary);">
+          匹配拉丁前缀：<span v-for="(p,i) in recChineseMatchedPrefixes" :key="p" style="font-family:var(--font-mono);margin-left:4px;padding:1px 4px;background:var(--surface-green);border-radius:3px;">{{ p }}{{ i < recChineseMatchedPrefixes.length-1 ? ',' : '' }}</span>
+        </div>
+        <div v-else-if="recChineseHint" style="margin-top:4px;font-size:11px;color:var(--color-muted-foreground);">
+          未找到匹配前缀（请尝试其他字）
+        </div>
+      </div>
+
+      <button v-if="recConfirmedStemKey" class="btn btn-primary" @click="recGenerateCandidates" :disabled="recLoading" style="width:100%;margin-top:10px;padding:12px;font-size:16px;font-weight:700;">
         <span v-if="recLoading" class="spinner"></span>
         {{ recLoading ? '生成中...' : '生成 ' + recTopK + ' 个候选名 →' }}
       </button>
@@ -970,6 +1007,18 @@ input[type="range"] {
           </div>
         </div>
 
+        <div v-if="recStats" style="font-size:11px;color:var(--color-muted-foreground);margin-bottom:8px;padding:6px 10px;background:var(--surface-slate);border-radius:4px;display:flex;flex-wrap:wrap;gap:8px;">
+          <span>生成 {{ recStats.total_generated }} → 生成过滤 {{ recStats.filtered_by_generation }}
+            <span v-if="recStats.flag_counts">
+              <span v-if="recStats.flag_counts.invalid_consonant_cluster"> · 辅音簇 {{ recStats.flag_counts.invalid_consonant_cluster }}</span>
+              <span v-if="recStats.flag_counts.exact_inn_conflict"> · INN冲突 {{ recStats.flag_counts.exact_inn_conflict }}</span>
+              <span v-if="recStats.flag_counts.trigram_match_with_existing"> · 三字母重叠 {{ recStats.flag_counts.trigram_match_with_existing }}</span>
+            </span>
+          </span>
+          <span style="color:var(--color-primary);">→ POCA阈值过滤 {{ recStats.filtered_by_poca_threshold }}</span>
+          <span style="font-weight:600;">→ 最终 {{ recRecommendCandidates.length }} 个</span>
+        </div>
+
         <div style="overflow-x:auto;">
           <table class="rec-table">
             <thead>
@@ -980,6 +1029,7 @@ input[type="range"] {
                 <th>POCA综合</th>
                 <th>语音</th>
                 <th>字形</th>
+                <th>音韵</th>
                 <th>评估</th>
                 <th>中文音译方案</th>
                 <th>操作</th>
@@ -1004,6 +1054,11 @@ input[type="range"] {
                 </td>
                 <td style="font-size:13px;text-align:center;">{{ c.phonetic_score }}</td>
                 <td style="font-size:13px;text-align:center;">{{ c.orthographic_score }}</td>
+                <td style="text-align:center;">
+                  <span v-if="c.phonological_score >= 0.8" style="color:var(--color-success);font-weight:600;">🟢 {{ c.phonological_score.toFixed(2) }}</span>
+                  <span v-else-if="c.phonological_score >= 0.6" style="color:var(--color-warning);font-weight:600;">🟡 {{ c.phonological_score.toFixed(2) }}</span>
+                  <span v-else style="color:var(--color-destructive);font-weight:600;">🔴 {{ c.phonological_score.toFixed(2) }}</span>
+                </td>
                 <td>
                   <span class="badge" :class="c.poca_assessment==='PASS'?'badge-green':c.poca_assessment==='REVIEW'?'badge-amber':'badge-red'" style="font-size:10px;">{{ c.poca_assessment }}</span>
                 </td>
@@ -1471,12 +1526,31 @@ createApp({
     const recPage = ref(0);
     const recPageSize = ref(20);
     const recTopK = ref(100);
+    const recPocaThreshold = ref(85);
+    const recStats = ref(null);
+    const recPrefixLengths = ref([2,3,4,5,6]);
+    const recChineseHint = ref('');
     const recSelected = reactive(new Set());
     const recSelectedCn = reactive(new Map());
     const recShowKetcher = ref(false);
     const recTotalPages = computed(() => Math.max(1, Math.ceil(recRecommendCandidates.value.length / recPageSize.value)));
     const recPagedCandidates = computed(() => recRecommendCandidates.value.slice(recPage.value * recPageSize.value, (recPage.value + 1) * recPageSize.value));
     const recAllSelected = computed(() => recPagedCandidates.value.length > 0 && recPagedCandidates.value.every(c => recSelected.has(c.name)));
+    const recChineseMatchedPrefixes = ref([]);
+    const recChineseMatchedLengths = ref([]);
+    // Debounced watch: when Chinese hint changes, fetch matching Latin prefixes from server
+    let _recCnTimer = null;
+    watch(recChineseHint, (hint) => {
+      clearTimeout(_recCnTimer);
+      if (!hint.trim()) { recChineseMatchedPrefixes.value = []; recChineseMatchedLengths.value = []; return; }
+      _recCnTimer = setTimeout(async () => {
+        try {
+          const res = await apiPost('/naming/chinese-prefix-hint', {q: hint.trim()});
+          recChineseMatchedPrefixes.value = res.prefixes || [];
+          recChineseMatchedLengths.value = res.lengths || [];
+        } catch (e) { recChineseMatchedPrefixes.value = []; recChineseMatchedLengths.value = []; }
+      }, 300);
+    });
 
     function recStepClass(n) { const s=recStep.value; if(s>n)return'done'; if(s===n)return'current'; return''; }
     function recToggleStem(key) { recExpandedStems[key] = !recExpandedStems[key]; }
@@ -1832,9 +1906,14 @@ createApp({
           stem: stemText,
           properties: props,
           smiles: ketcherSmiles.value || null,
-          top_k: recTopK.value
+          top_k: recTopK.value,
+          poca_threshold: recPocaThreshold.value,
+          dedup_strict: true,
+          prefix_lengths: recPrefixLengths.value.length ? recPrefixLengths.value : [2,3,4,5,6],
+          chinese_prefix_hint: recChineseHint.value.trim() || null
         });
         recRecommendCandidates.value = res.candidates || [];
+        recStats.value = res.stats || null;
         recStep.value = 2;
       } catch(e) { recError.value = e.message; } finally { recLoading.value = false; }
     }
@@ -2789,7 +2868,8 @@ createApp({
       recStepClass, recMatchStems, recGenerateCandidates, recEvaluateName,
       recMatchedStems, recConfirmedStemKey, recConfirmedStemObj,
       recRecommendCandidates, recPage, recPageSize, recTopK,
-      recSelected, recSelectedCn, recShowKetcher,
+      recSelected, recSelectedCn, recShowKetcher, recPocaThreshold, recStats,
+      recPrefixLengths, recChineseHint, recChineseMatchedPrefixes, recChineseMatchedLengths,
       recTotalPages, recPagedCandidates, recAllSelected,
       recToggleAll, recToggleSelect, recSelectCn, recConfirmStem,
       comboOpen, comboIdx, comboStemFiltered,

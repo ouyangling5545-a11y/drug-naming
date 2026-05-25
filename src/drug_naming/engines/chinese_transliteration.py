@@ -52,6 +52,12 @@ SYLLABLE_TO_CHAR: list[tuple[str, str]] = [
     ("gra", "格"), ("gre", "格"), ("gri", "格"), ("gro", "格罗"),
     ("pra", "普"), ("pre", "普"), ("pri", "普"), ("pro", "普罗"),
     ("tra", "曲"), ("tre", "曲"), ("tri", "曲"), ("tro", "曲"),
+    # Additional common Chinese character syllables (reverse-lookup friendly)
+    ("hao", "好"), ("hou", "侯"), ("gin", "近"), ("jin", "近"),
+    ("xin", "新"), ("ning", "宁"), ("ping", "平"), ("tong", "通"),
+    ("kang", "康"), ("jing", "静"), ("qing", "清"), ("ming", "明"),
+    ("long", "隆"), ("hong", "宏"), ("sheng", "生"), ("cheng", "成"),
+    ("dong", "东"), ("lian", "联"), ("rui", "瑞"), ("zhu", "珠"),
     # Two-letter consonant clusters
     ("bl", "布"), ("br", "布"), ("cl", "克"), ("cr", "克"),
     ("dr", "德"), ("fl", "夫"), ("fr", "夫"), ("gl", "格"),
@@ -126,3 +132,85 @@ def check_chinese_transliteration_taboo(transliteration: str) -> list[str]:
         if ch in CHINESE_DRUG_FORBIDDEN:
             flags.append(f"forbidden_character:{ch}")
     return flags
+
+
+# ── Chinese → Latin reverse index for prefix matching ─────────────────────
+# Used by the recommendation engine to find Latin prefixes whose Chinese
+# transliteration matches a user-specified hint character.
+
+_CN_TO_LATIN = None  # type: dict[str, list[str]] | None → Optional[dict] for py3.9 compat; re-assigned lazily by get_cn_latin_index()
+
+
+def _build_cn_latin_index() -> dict[str, list[str]]:
+    """Build Chinese character → Latin syllable reverse index."""
+    from collections import defaultdict
+    idx: dict[str, list[str]] = defaultdict(list)
+    for syllable, char in SYLLABLE_TO_CHAR:
+        for c in char:
+            idx[c].append(syllable)
+    return dict(idx)
+
+
+def get_cn_latin_index() -> dict[str, list[str]]:
+    """Lazily build and return the Chinese→Latin reverse index."""
+    global _CN_TO_LATIN
+    if _CN_TO_LATIN is None:
+        _CN_TO_LATIN = _build_cn_latin_index()
+    return _CN_TO_LATIN
+
+
+def latin_prefixes_for_chinese(hint: str) -> list[str]:
+    """Return Latin prefix candidates whose Chinese transliteration matches `hint`.
+
+    Three-tier lookup:
+    1. Data-driven mapping from 12K English-Chinese INN name pairs (most accurate)
+    2. Reverse index from SYLLABLE_TO_CHAR transliteration table
+    3. PFX_ALTERNATES from poca module
+
+    Example: hint="吉" → returns ["gi", "ge", "gem", ...] from INN data
+             hint="曲" → returns ["tri", "tra", "tre", ...] from INN data
+    """
+    results: list[str] = []
+
+    # Tier 1: Data-driven mapping (from INN corpus)
+    try:
+        from ..data.cn_eng_prefixes import CN_TO_ENG_PREFIXES
+    except ImportError:
+        CN_TO_ENG_PREFIXES = {}
+
+    for ch in hint:
+        for pfx in CN_TO_ENG_PREFIXES.get(ch, []):
+            if pfx not in results:
+                results.append(pfx)
+
+    # Tier 2: Existing reverse index (SYLLABLE_TO_CHAR → CN_TO_LATIN)
+    idx = get_cn_latin_index()
+    for ch in hint:
+        for syl in idx.get(ch, []):
+            if len(syl) <= 4 and syl not in results:
+                results.append(syl)
+
+    # Tier 3: PFX alternates for richer coverage
+    try:
+        from ..api.poca import _PFX_ALTERNATES as pfx_alt
+    except ImportError:
+        pfx_alt = {}
+    for syl, chars in pfx_alt.items():
+        for ch in hint:
+            if ch in chars and syl not in results:
+                results.append(syl)
+
+    # Tier 4: Pinyin fallback for characters not in any mapping
+    if not results:
+        try:
+            from pypinyin import pinyin, Style
+            for ch in hint:
+                py_list = pinyin(ch, style=Style.NORMAL)
+                for p in py_list:
+                    py_syl = p[0]
+                    if py_syl and len(py_syl) >= 1 and py_syl not in results:
+                        results.append(py_syl)
+        except ImportError:
+            pass
+
+    return results

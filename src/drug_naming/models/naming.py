@@ -14,6 +14,10 @@ class NameGenerationConstraints(BaseModel):
     forbidden_suffixes: list[str] = Field(default_factory=list)
     required_infix_rules: bool = True
     avoid_single_char_difference: bool = True
+    trigram_overlap_threshold: float = Field(default=0.75, description="Max trigram overlap ratio before rejection, 1.0=off")
+    prefix_blacklist: list[str] = Field(default_factory=list, description="Prefixes to skip entirely during generation")
+    prefix_lengths: list[int] = Field(default_factory=lambda: [2, 3, 4, 5, 6], description="Allowed prefix lengths; prefixes outside these lengths are skipped")
+    prefix_whitelist: list[str] | None = Field(default=None, description="If set, only these prefixes are used during generation")
 
 
 class NameCandidate(BaseModel):
@@ -39,3 +43,4 @@ class NameGenerationResponse(BaseModel):
     candidates: list[NameCandidate]
     total_generated: int
     filtered_out: int
+    flag_counts: dict[str, int] = Field(default_factory=dict)

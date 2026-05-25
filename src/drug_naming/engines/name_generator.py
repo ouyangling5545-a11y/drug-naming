@@ -8,6 +8,12 @@ from ..models.naming import (
     NameGenerationResponse,
 )
 from ..data.targets import find_target
+from ..engines.phonotactic import (
+    count_syllables,
+    has_invalid_consonant_cluster,
+    bad_ending,
+    boundary_cluster_valid,
+)
 from collections import OrderedDict
 
 
@@ -85,15 +91,72 @@ class NameGenerationEngine:
         # Build prefix pool: target-derived first, then euphonious
         target_prefixes = self._target_prefixes(target_root, mc, cc, properties, target_meta)
         base_prefixes = self._base_prefix_pool(cc)
-        prefixes = list(OrderedDict.fromkeys(target_prefixes + base_prefixes))
+        raw_prefixes = list(OrderedDict.fromkeys(target_prefixes + base_prefixes))
+
+        # Interleave by length: 4-char, 3-char, 2-char, 4-char, 3-char, ...
+        # This ensures long+short prefixes both get a chance instead of all 2-char first.
+        by_length: dict[int, list[str]] = {2: [], 3: [], 4: []}
+        for p in raw_prefixes:
+            if len(p) in by_length:
+                by_length[len(p)].append(p)
+        prefixes: list[str] = []
+        max_group = max(len(by_length[2]), len(by_length[3]), len(by_length[4]))
+        for i in range(max_group):
+            for length in (4, 3, 2):
+                group = by_length[length]
+                if i < len(group):
+                    prefixes.append(group[i])
 
         all_candidates: list[NameCandidate] = []
+        prefix_blacklist = set(p.lower() for p in constraints.prefix_blacklist)
+        prefix_whitelist = set(p.lower() for p in constraints.prefix_whitelist) if constraints.prefix_whitelist else None
+        allowed_lengths = set(constraints.prefix_lengths) if constraints.prefix_lengths else set()
+
+        # If whitelist is set, inject its entries at the front of the prefix pool
+        # so Chinese reverse-lookup prefixes participate even if novel.
+        if prefix_whitelist:
+            prefixes = list(OrderedDict.fromkeys(
+                [p for p in prefix_whitelist if len(p) >= 2] + prefixes
+            ))
 
         for sm in request.matched_stems:
             stem_combos = self._build_stem_combos(sm)
-            for prefix in prefixes[:80]:  # cap prefixes per stem for performance
+            for prefix in prefixes:  # no cap — full pool participates
+                if prefix.lower() in prefix_blacklist:
+                    continue
+                if prefix_whitelist and prefix.lower() not in prefix_whitelist:
+                    continue
+                if allowed_lengths and len(prefix) not in allowed_lengths:
+                    continue
                 for infix, suffix in stem_combos:
+                    # If no infix and prefix→suffix boundary is bad, try bridging vowels
+                    if infix is None and suffix is not None and not boundary_cluster_valid(prefix, suffix):
+                        bridged = False
+                        for bridge in ["i", "o", "a", "e"]:
+                            if boundary_cluster_valid(prefix, bridge) and boundary_cluster_valid(bridge, suffix):
+                                parts = [p for p in [prefix, bridge, suffix] if p]
+                                name = "".join(parts)
+                                all_candidates.append(NameCandidate(
+                                    name=name,
+                                    stems_used=[sm],
+                                    prefix=prefix,
+                                    infix=bridge,
+                                    suffix=suffix,
+                                    generation_method="structured",
+                                ))
+                                bridged = True
+                        if bridged:
+                            continue
+                        # No bridge works — skip this combination
+                        continue
+
                     parts = [p for p in [prefix, infix, suffix] if p]
+                    # Check boundary consonant clusters between adjacent parts
+                    if any(
+                        not boundary_cluster_valid(parts[i], parts[i + 1])
+                        for i in range(len(parts) - 1)
+                    ):
+                        continue
                     name = "".join(parts)
                     all_candidates.append(NameCandidate(
                         name=name,
@@ -115,28 +178,45 @@ class NameGenerationEngine:
             existing_set = existing_set | self._inn_db.english_names
 
         # Filter pipeline
+        trigram_threshold = getattr(constraints, 'trigram_overlap_threshold', 0.75)
         filtered: list[NameCandidate] = []
+        flag_counts: dict[str, int] = {}
         for c in all_candidates:
             name_lower = c.name.lower()
-            if not request.relaxed and name_lower in existing_set:
+            # Exact INN conflict — ALWAYS reject, even in relaxed mode
+            if name_lower in existing_set:
                 c.regulatory_flags.append("exact_inn_conflict")
+                flag_counts["exact_inn_conflict"] = flag_counts.get("exact_inn_conflict", 0) + 1
                 continue
-            if not request.relaxed and not self._passes_trigram_screen(name_lower, existing_set):
+            # Trigram screening: relaxed mode uses a wider threshold (1.0 = off),
+            # strict mode uses the configured threshold (default 0.75).
+            effective_trigram = 1.0 if request.relaxed else trigram_threshold
+            if effective_trigram < 1.0 and not self._passes_trigram_screen(name_lower, existing_set, effective_trigram):
                 c.regulatory_flags.append("trigram_match_with_existing")
+                flag_counts["trigram_match_with_existing"] = flag_counts.get("trigram_match_with_existing", 0) + 1
+                continue
+            if has_invalid_consonant_cluster(name_lower):
+                c.regulatory_flags.append("invalid_consonant_cluster")
+                flag_counts["invalid_consonant_cluster"] = flag_counts.get("invalid_consonant_cluster", 0) + 1
                 continue
             if any(name_lower.startswith(p) for p in constraints.forbidden_prefixes):
                 c.regulatory_flags.append("contains_forbidden_prefix")
+                flag_counts["contains_forbidden_prefix"] = flag_counts.get("contains_forbidden_prefix", 0) + 1
                 continue
             if any(name_lower.endswith(s) for s in constraints.forbidden_suffixes):
                 c.regulatory_flags.append("contains_forbidden_suffix")
+                flag_counts["contains_forbidden_suffix"] = flag_counts.get("contains_forbidden_suffix", 0) + 1
                 continue
             if not (constraints.min_name_length <= len(c.name) <= constraints.max_name_length):
+                flag_counts["bad_length"] = flag_counts.get("bad_length", 0) + 1
                 continue
             if self._has_consecutive(name_lower, CONSONANTS, constraints.max_consecutive_consonants + 1):
                 c.regulatory_flags.append("too_many_consecutive_consonants")
+                flag_counts["too_many_consecutive_consonants"] = flag_counts.get("too_many_consecutive_consonants", 0) + 1
                 continue
             if self._has_consecutive(name_lower, VOWELS, constraints.max_consecutive_vowels + 1):
                 c.regulatory_flags.append("too_many_consecutive_vowels")
+                flag_counts["too_many_consecutive_vowels"] = flag_counts.get("too_many_consecutive_vowels", 0) + 1
                 continue
             filtered.append(c)
 
@@ -155,6 +235,7 @@ class NameGenerationEngine:
             candidates=unique,
             total_generated=total_generated,
             filtered_out=total_generated - len(unique),
+            flag_counts=flag_counts,
         )
 
     # ── Target-aware prefix derivation ─────────────────────────────────────
@@ -238,7 +319,19 @@ class NameGenerationEngine:
         """Return the appropriate base prefix pool for the chemical class."""
         if cc in ('monoclonal_antibody', 'antibody_fragment', 'bispecific_antibody', 'antibody_drug_conjugate'):
             return ANTIBODY_PREFIXES
-        return SMALL_MOLECULE_PREFIXES
+        base = CORE_PREFIXES + SMALL_MOLECULE_PREFIXES
+        # Generate 3-4 char euphonious prefixes ending in vowels for variety
+        longer = []
+        for p in base:
+            if len(p) == 2 and p[-1] not in VOWELS:
+                longer.append(p + "a")
+                longer.append(p + "i")
+                longer.append(p + "o")
+            elif len(p) == 2:
+                longer.append(p + "la")
+                longer.append(p + "ra")
+                longer.append(p + "na")
+        return base + longer
 
     # ── Stem combo building ─────────────────────────────────────────────────
 
@@ -318,12 +411,25 @@ class NameGenerationEngine:
         cv_ratio = alternations / max(len(name_lower) - 1, 1)
         score += 0.05 * cv_ratio
 
+        # Syllable count: optimal 3-5 (most INN drug names)
+        syl = count_syllables(name_lower)
+        if 3 <= syl <= 5:
+            score += 0.04
+        elif syl < 2:
+            score -= 0.06
+        elif syl > 6:
+            score -= 0.03
+
         # Bonus: common pharmaceutical endings
         good_endings = ["ib", "il", "ine", "ole", "ane", "ene", "ant", "ast", "icin", "mycin", "tinib", "mab", "dipine", "sartan", "grel", "previr", "xaban", "lukast", "gliptin", "gliflozin"]
         for ending in good_endings:
             if name_lower.endswith(ending):
                 score += 0.08
                 break
+
+        # Penalty: awkward non-pharmaceutical endings
+        if bad_ending(name_lower):
+            score -= 0.10
 
         return max(0.0, min(1.0, score))
 
@@ -342,17 +448,18 @@ class NameGenerationEngine:
         return False
 
     @staticmethod
-    def _passes_trigram_screen(name: str, existing_set: set[str]) -> bool:
-        """Reject names whose trigram overlap with existing INN names is ≥80%."""
+    def _passes_trigram_screen(name: str, existing_set: set[str], threshold: float = 0.75) -> bool:
+        """Reject names whose trigram overlap with existing INN names exceeds threshold."""
         name_lower = name.lower()
         if not existing_set:
             return True
         name_trigrams = {name_lower[i: i + 3] for i in range(len(name_lower) - 2)}
         if not name_trigrams:
             return True
+        limit = len(name_trigrams) * threshold
         for existing in existing_set:
             existing_trigrams = {existing[i: i + 3] for i in range(len(existing) - 2)}
             overlap = len(name_trigrams & existing_trigrams)
-            if overlap >= len(name_trigrams) * 0.8:
+            if overlap >= limit:
                 return False
         return True
