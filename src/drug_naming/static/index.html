@@ -602,6 +602,58 @@ input[type="range"] {
 .pj-table th { text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--color-border); font-weight: 600; color: var(--color-muted-foreground); }
 .pj-table td { padding: 10px 14px; border-bottom: 1px solid var(--color-border); }
 .pj-table tr:hover td { background: var(--color-muted); }
+
+/* Left info panel — shows 4 key task result rows for selected project */
+.pj-layout { display: flex; gap: 0; }
+.pj-info-panel {
+  width: 340px; min-width: 340px; border: 2px solid #DC2626; border-radius: var(--radius-lg);
+  background: var(--color-surface); padding: var(--space-5);
+  margin-right: var(--space-4); display: flex; flex-direction: column; gap: 2px;
+}
+.pj-info-panel h3 {
+  font-family: var(--font-heading); font-size: 16px; margin: 0 0 4px 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.pj-close-btn {
+  width: 24px; height: 24px; border: none; background: none; color: #94A3B8;
+  cursor: pointer; font-size: 18px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+.pj-close-btn:hover { color: #DC2626; background: #FEE2E2; }
+.pj-info-row {
+  display: flex; align-items: center; gap: 6px; padding: 6px 8px;
+  border-radius: var(--radius-sm); background: #F8FAFC; font-size: 13px;
+}
+.pj-info-row .pj-task-label {
+  font-weight: 600; color: var(--color-foreground); min-width: 42px;
+}
+.pj-info-row .pj-task-start {
+  color: var(--color-muted-foreground); font-size: 11px; min-width: 82px;
+}
+.pj-info-row input {
+  flex: 1; padding: 4px 8px; border: 1px solid transparent;
+  border-radius: 4px; font-size: 12px; font-family: var(--font-body);
+  background: transparent; min-width: 0; transition: border-color 0.15s, background 0.15s;
+}
+.pj-info-row input:hover { border-color: var(--color-border); background: #FFF; }
+.pj-info-row input:focus { border-color: var(--color-primary); outline: none; background: #FFF; }
+.pj-clear-btn {
+  display: none; width: 18px; height: 18px; line-height: 16px; text-align: center;
+  border: none; background: none; color: #94A3B8; cursor: pointer; font-size: 14px;
+  border-radius: 50%; padding: 0; flex-shrink: 0;
+}
+.pj-clear-btn:hover { color: #DC2626; background: #FEE2E2; }
+.pj-info-row:hover .pj-clear-btn.show { display: inline-block; }
+.pj-info-nda {
+  margin-top: 8px; padding: 8px; background: #EFF6FF; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 600; color: #3B82F6;
+}
+.pj-info-empty {
+  color: var(--color-muted-foreground); font-size: 13px; text-align: center;
+  padding: 24px 0;
+}
+.pj-main-area { flex: 1; min-width: 0; }
 .gantt-tooltip {
   position: absolute; background: #1E293B; color: white; padding: 8px 12px;
   border-radius: var(--radius-sm); font-size: 12px; pointer-events: none; z-index: 50;
@@ -984,11 +1036,14 @@ input[type="range"] {
 
     <!-- Right Panel: Results Table -->
     <div class="panel-right">
-      <div v-if="!recRecommendCandidates.length && !recLoading" class="card empty">
+      <div v-if="!recHasGenerated && !recLoading" class="card empty">
         <p><strong>使用流程：</strong></p>
         <p style="margin-top:8px;">1. 方法一（直接输入词干）或 方法二（填写性质 → 匹配词干）</p>
         <p>2. 点击词干确认选择</p>
         <p>3. 点击"生成候选名"按钮</p>
+      </div>
+      <div v-if="recHasGenerated && !recRecommendCandidates.length && !recLoading" class="card empty">
+        <p>暂无符合条件的候选名，请调整参数后重试。</p>
       </div>
 
       <div v-if="recRecommendCandidates.length" class="card">
@@ -1090,6 +1145,11 @@ input[type="range"] {
       <button class="btn btn-outline" @click="pjViewMode = pjViewMode==='gantt' ? 'list' : 'gantt'">
         {{ pjViewMode === 'gantt' ? '列表视图' : '管线图视图' }}
       </button>
+      <template v-if="pjSelectedProject">
+        <span style="font-size:12px;color:var(--color-muted-foreground);margin:0 4px;">|</span>
+        <button class="btn btn-outline" style="padding:4px 8px;font-size:14px;" @click="pjMoveProject(pjSelectedProject.id, 'up')" title="上移">▲</button>
+        <button class="btn btn-outline" style="padding:4px 8px;font-size:14px;" @click="pjMoveProject(pjSelectedProject.id, 'down')" title="下移">▼</button>
+      </template>
       <template v-if="pjViewMode==='gantt' && pjFiltered.length > 0">
         <span style="font-size:12px;color:var(--color-muted-foreground);margin:0 4px;">|</span>
         <button class="btn btn-outline pan-btn" @click="pjViewportStart = new Date(pjViewportStart.getFullYear(), pjViewportStart.getMonth() - 3, 1); pjRenderGantt()" title="向左滚动3个月">◀</button>
@@ -1111,40 +1171,67 @@ input[type="range"] {
       </div>
     </div>
 
-    <div v-if="pjFiltered.length === 0" style="text-align:center;padding:80px 20px;color:var(--color-muted-foreground);">
-      <div style="font-size:48px;margin-bottom:16px;">&#x1F4CB;</div>
-      <div style="font-size:16px;font-weight:600;">尚无项目，创建第一个项目开始追踪</div>
-      <div style="font-size:13px;margin-top:8px;">点击"+ 新建项目"或导入 CSV 文件</div>
-    </div>
+    <div class="pj-layout">
+      <!-- Left Info Panel — shows 4 key task result rows for selected project -->
+      <div class="pj-info-panel" v-if="pjSelectedProject">
+        <h3>{{ pjSelectedProject.name }}<button class="pj-close-btn" @click="pjClosePanel" title="关闭">×</button></h3>
+        <div class="pj-info-row" v-for="km in pjKeyMilestones(pjSelectedProject)" :key="km.id">
+          <span class="pj-task-label">{{ km.label }}</span>
+          <span class="pj-task-start">{{ km.fastest_start || '—' }}</span>
+          <input
+            :value="km.result"
+            @blur="pjSaveResult(pjSelectedProject.id, km.id, $event.target)"
+            @keyup.enter="pjSaveAndClose(pjSelectedProject.id, km.id, $event.target)"
+            :placeholder="km.hint"
+          />
+          <button class="pj-clear-btn" :class="{show: km.result}" @click="pjClearResult(pjSelectedProject.id, km.id)" title="清除">×</button>
+        </div>
+        <div class="pj-info-nda" v-if="pjSelectedProject.nda_date">
+          NDA：{{ pjSelectedProject.nda_date }}
+        </div>
+        <div class="pj-info-empty" v-if="pjKeyMilestones(pjSelectedProject).length === 0">
+          暂无任务数据
+        </div>
+      </div>
 
-    <div v-if="pjViewMode==='gantt' && pjFiltered.length > 0" class="pipeline-canvas-wrap" ref="pjCanvasWrap">
-      <canvas ref="pjCanvas" :width="pjCanvasWidth" :height="pjCanvasHeight" style="cursor:pointer;"
-        @click="pjCanvasClick" @mousemove="pjCanvasMouseMove" @mouseleave="pjTooltip=null"
-        @mousedown="pjCanvasMouseDown" @mouseup="pjCanvasMouseUp"></canvas>
-    </div>
-    <div class="gantt-tooltip" v-if="pjTooltip" :style="{left:pjTooltip.x+'px',top:pjTooltip.y+'px'}">
-      <div style="font-weight:700;margin-bottom:2px;">{{ pjTooltip.name }}</div>
-      <div style="font-size:11px;color:var(--color-muted-foreground);">{{ pjPhaseName(pjTooltip.phase) }}</div>
-      <div style="font-size:11px;margin-top:2px;">计划: {{ pjTooltip.ps }} → {{ pjTooltip.pe }}</div>
-      <div style="font-size:11px;margin-top:2px;">状态: {{ pjStatusLabel(pjTooltip.status) }}</div>
-    </div>
+      <!-- Main area -->
+      <div class="pj-main-area">
+        <div v-if="pjFiltered.length === 0" style="text-align:center;padding:80px 20px;color:var(--color-muted-foreground);">
+          <div style="font-size:48px;margin-bottom:16px;">&#x1F4CB;</div>
+          <div style="font-size:16px;font-weight:600;">尚无项目，创建第一个项目开始追踪</div>
+          <div style="font-size:13px;margin-top:8px;">点击"+ 新建项目"或导入 CSV 文件</div>
+        </div>
 
-    <div v-if="pjViewMode==='list' && pjFiltered.length > 0">
-      <table class="pj-table">
-        <thead>
-          <tr><th>项目名称</th><th>CAS号</th><th>当前阶段</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
-        </thead>
-        <tbody>
-          <tr v-for="p in pjFiltered" :key="p.id">
-            <td style="font-weight:600;">{{ p.name }}</td>
-            <td style="font-family:var(--font-mono);">{{ p.cas_number || '—' }}</td>
-            <td>{{ pjPhaseName(p.current_phase) }}</td>
-            <td><span class="status-badge" :class="'status-'+pjStatusBadgeClass(p.overall_status)">{{ pjStatusLabel(p.overall_status) }}</span></td>
-            <td style="color:var(--color-muted-foreground);">{{ p.created_at?.slice(0,10) }}</td>
-            <td><button class="btn btn-outline" style="font-size:11px;padding:4px 10px;" @click="pjDeleteProject(p.id)">删除</button></td>
-          </tr>
-        </tbody>
-      </table>
+        <div v-if="pjViewMode==='gantt' && pjFiltered.length > 0" class="pipeline-canvas-wrap" ref="pjCanvasWrap">
+          <canvas ref="pjCanvas" :width="pjCanvasWidth" :height="pjCanvasHeight" style="cursor:pointer;"
+            @click="pjCanvasClick" @mousemove="pjCanvasMouseMove" @mouseleave="pjTooltip=null"
+            @mousedown="pjCanvasMouseDown" @mouseup="pjCanvasMouseUp"></canvas>
+        </div>
+        <div class="gantt-tooltip" v-if="pjTooltip" :style="{left:pjTooltip.x+'px',top:pjTooltip.y+'px'}">
+          <div style="font-weight:700;margin-bottom:2px;">{{ pjTooltip.name }}</div>
+          <div style="font-size:11px;color:var(--color-muted-foreground);">{{ pjPhaseName(pjTooltip.phase) }}</div>
+          <div style="font-size:11px;margin-top:2px;">计划: {{ pjTooltip.ps }} → {{ pjTooltip.pe }}</div>
+          <div style="font-size:11px;margin-top:2px;">状态: {{ pjStatusLabel(pjTooltip.status) }}</div>
+        </div>
+
+        <div v-if="pjViewMode==='list' && pjFiltered.length > 0">
+          <table class="pj-table">
+            <thead>
+              <tr><th>项目名称</th><th>CAS号</th><th>当前阶段</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="p in pjFiltered" :key="p.id" style="cursor:pointer;" @click="pjSelectProject(p)" :style="{background: pjSelectedProject?.id === p.id ? '#EFF6FF' : ''}">
+                <td style="font-weight:600;">{{ p.name }}</td>
+                <td style="font-family:var(--font-mono);">{{ p.cas_number || '—' }}</td>
+                <td>{{ pjPhaseName(p.current_phase) }}</td>
+                <td><span class="status-badge" :class="'status-'+pjStatusBadgeClass(p.overall_status)">{{ pjStatusLabel(p.overall_status) }}</span></td>
+                <td style="color:var(--color-muted-foreground);">{{ p.created_at?.slice(0,10) }}</td>
+                <td><button class="btn btn-outline" style="font-size:11px;padding:4px 10px;" @click.stop="pjDeleteProject(p.id)">删除</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- Create Project Modal -->
@@ -1523,6 +1610,7 @@ createApp({
     const recConfirmedStemKey = ref('');
     const recConfirmedStemObj = ref(null);
     const recRecommendCandidates = ref([]);
+    const recHasGenerated = ref(false);  // true after at least one successful generation
     const recPage = ref(0);
     const recPageSize = ref(20);
     const recTopK = ref(100);
@@ -1878,7 +1966,7 @@ createApp({
 
     async function recGenerateCandidates() {
       if (!recConfirmedStemObj.value) { recError.value = '请先确认一个词干'; return; }
-      recLoading.value = true; recError.value = ''; recRecommendCandidates.value = []; recPage.value = 0; recSelected.clear(); recSelectedCn.clear();
+      recLoading.value = true; recError.value = ''; recPage.value = 0; recSelected.clear(); recSelectedCn.clear();
       try {
         let scaffoldValue = recScaffold.value || null;
         if (ketcherSmiles.value && ketcherReady.value) {
@@ -1915,6 +2003,7 @@ createApp({
         recRecommendCandidates.value = res.candidates || [];
         recStats.value = res.stats || null;
         recStep.value = 2;
+        recHasGenerated.value = true;
       } catch(e) { recError.value = e.message; } finally { recLoading.value = false; }
     }
 
@@ -1933,7 +2022,97 @@ createApp({
     const pjShowCreate = ref(false);
     const pjTriggerFile = ref(null);
     const pjDrawer = ref(null);
+    const pjSelectedProject = ref(null);
     const pjZoom = ref('month');
+
+    // Key milestone IDs → label + hint for the left info panel
+    const PJ_KEY_MILESTONES = [
+      { id: 'cas_obtain',      label: 'CAS',    hint: 'CAS号' },
+      { id: 'inn_rinn',        label: 'INN',    hint: 'INN名称' },
+      { id: 'pharm_approval',  label: '中文名',  hint: '中文通用名' },
+      { id: 'tm_notice',       label: '商标',    hint: '商品名' },
+    ];
+
+    function pjKeyMilestones(project) {
+      if (!project || !project.phases) return [];
+      const byId = {};
+      for (const ph of project.phases) {
+        for (const m of ph.milestones) { byId[m.id] = m; }
+      }
+      return PJ_KEY_MILESTONES.map(km => {
+        const m = byId[km.id];
+        return {
+          id: km.id,
+          label: km.label,
+          hint: km.hint,
+          fastest_start: m ? (m.fastest_start || m.slowest_start || '') : '',
+          result: m ? (m.result || '') : '',
+        };
+      });
+    }
+
+    function pjSelectProject(project) {
+      pjSelectedProject.value = project;
+      if (pjViewMode.value === 'gantt') setTimeout(pjRenderGantt, 50);
+    }
+
+    function pjClosePanel() {
+      pjSelectedProject.value = null;
+      if (pjViewMode.value === 'gantt') setTimeout(pjRenderGantt, 50);
+    }
+
+    async function pjSaveAndClose(projectId, milestoneId, inputEl) {
+      await pjSaveResult(projectId, milestoneId, inputEl);
+      pjClosePanel();
+    }
+
+    async function pjMoveProject(projectId, direction) {
+      try {
+        const res = await fetch(`/api/v1/projects/${projectId}/move?direction=${direction}`, { method: 'POST' });
+        if (!res.ok) throw new Error(await res.text());
+        const sorted = await res.json();
+        pjProjects.value = sorted;
+        if (pjViewMode.value === 'gantt') setTimeout(pjRenderGantt, 50);
+      } catch(e) { /* silent */ }
+    }
+
+    async function pjClearResult(projectId, milestoneId) {
+      try {
+        const res = await fetch(`/api/v1/projects/${projectId}/milestones/${milestoneId}`, {
+          method: 'PATCH', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ result: '' })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const updated = await res.json();
+        const idx = pjProjects.value.findIndex(p => p.id === projectId);
+        if (idx >= 0) { pjProjects.value[idx] = updated; pjProjects.value = [...pjProjects.value]; }
+        if (pjSelectedProject.value && pjSelectedProject.value.id === projectId) { pjSelectedProject.value = updated; }
+        if (pjViewMode.value === 'gantt') setTimeout(pjRenderGantt, 50);
+      } catch(e) { /* silent */ }
+    }
+
+    async function pjSaveResult(projectId, milestoneId, inputEl) {
+      const value = (inputEl && inputEl.value != null) ? inputEl.value : '';
+      try {
+        const res = await fetch(`/api/v1/projects/${projectId}/milestones/${milestoneId}`, {
+          method: 'PATCH', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ result: value })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const updated = await res.json();
+        // Update local project data
+        const idx = pjProjects.value.findIndex(p => p.id === projectId);
+        if (idx >= 0) {
+          pjProjects.value[idx] = updated;
+          pjProjects.value = [...pjProjects.value];
+        }
+        // Update selected project reference
+        if (pjSelectedProject.value && pjSelectedProject.value.id === projectId) {
+          pjSelectedProject.value = updated;
+        }
+        if (pjViewMode.value === 'gantt') setTimeout(pjRenderGantt, 50);
+      } catch(e) { /* silent fail on blur — user can retry */ }
+    }
     const pjViewportStart = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
     const pjVisibleMonths = computed(() => ({ month: 12, quarter: 36, year: 60 }[pjZoom.value] || 12));
     const pjTooltip = ref(null);
@@ -2174,6 +2353,10 @@ createApp({
     const PJ_HEADER_H = 32;
     const PROJECT_GAP = 12;
 
+    // Row index → key milestone id for task info display in gantt
+    const ROW_KEY_MILESTONE = { 0: 'cas_obtain', 1: 'inn_rinn', 2: 'pharm_approval', 3: 'tm_notice' };
+    const ROW_KEY_LABEL = { 0: 'CAS', 1: 'INN', 2: '中文名', 3: '商标' };
+
     function pjRowMilestones(project, rowIdx) {
       const result = [];
       for (const phase of (project.phases || [])) {
@@ -2217,7 +2400,7 @@ createApp({
       viewportEnd.setMonth(viewportEnd.getMonth() + visibleMonths);
       const viewportTotalDays = Math.ceil((viewportEnd - viewportStart) / (1000 * 60 * 60 * 24));
 
-      const leftPad = 160;
+      const leftPad = 270;
       const headerH = 40;
       const topPad = headerH + 10;
       // Per-project height (depends on whether CAS申请 row is present)
@@ -2320,24 +2503,6 @@ createApp({
           }
         }
 
-        // ---- NDA marker ----
-        for (let pi = 0; pi < projects.length; pi++) {
-          const project = projects[pi];
-          if (project.nda_date) {
-            const nda = new Date(project.nda_date);
-            if (nda >= viewportStart && nda <= viewportEnd) {
-              const nx = dateToX(nda);
-              ctx.strokeStyle = '#3B82F6'; ctx.lineWidth = 2;
-              ctx.setLineDash([4, 3]);
-              ctx.beginPath(); ctx.moveTo(nx, headerH); ctx.lineTo(nx, totalH); ctx.stroke();
-              ctx.setLineDash([]);
-              ctx.fillStyle = '#3B82F6';
-              ctx.font = '600 11px "Noto Sans", sans-serif';
-              ctx.fillText('NDA', nx + 4, headerH + 14);
-            }
-          }
-        }
-
         // ---- Today line ----
         const today = new Date();
         if (today >= viewportStart && today <= viewportEnd) {
@@ -2368,6 +2533,23 @@ createApp({
             ctx.fillText('CAS ' + project.cas_number, 8, baseY + 24);
           }
 
+          // Per-project NDA dashed line — only within this project's lane height
+          if (project.nda_date) {
+            const nda = new Date(project.nda_date);
+            if (nda >= viewportStart && nda <= viewportEnd) {
+              const nx = dateToX(nda);
+              const ndaY0 = baseY;
+              const ndaY1 = baseY + PJ_HEADER_H + activeRows.length * ROW_H;
+              ctx.strokeStyle = '#3B82F6'; ctx.lineWidth = 2;
+              ctx.setLineDash([4, 3]);
+              ctx.beginPath(); ctx.moveTo(nx, ndaY0); ctx.lineTo(nx, ndaY1); ctx.stroke();
+              ctx.setLineDash([]);
+              ctx.fillStyle = '#3B82F6';
+              ctx.font = '600 11px "Noto Sans", sans-serif';
+              ctx.fillText('NDA', nx + 4, ndaY0 + 12);
+            }
+          }
+
           // Phase background bands (one per active row)
           for (let vi = 0; vi < activeRows.length; vi++) {
             const ri = activeRows[vi];
@@ -2391,13 +2573,44 @@ createApp({
             ctx.fillRect(px, py, pw, ROW_H);
           }
 
-          // Row labels (only active rows)
-          ctx.fillStyle = '#64748B';
-          ctx.font = '11px "Noto Sans", sans-serif';
+          // Row labels with task info (label + start date + result)
           for (let vi = 0; vi < activeRows.length; vi++) {
             const ri = activeRows[vi];
             const ry = baseY + PJ_HEADER_H + vi * ROW_H + ROW_H / 2 + 4;
-            ctx.fillText(ROW_LABELS[ri], 8, ry);
+            const kmId = ROW_KEY_MILESTONE[ri];
+            let km = null;
+            for (const ph of (project.phases || [])) {
+              for (const m of (ph.milestones || [])) {
+                if (m.id === kmId) { km = m; break; }
+              }
+              if (km) break;
+            }
+            const startStr = km ? (km.fastest_start || km.slowest_start || '') : '';
+            const resultStr = km ? (km.result || '') : '';
+
+            // Label (bold)
+            ctx.fillStyle = '#0F172A';
+            ctx.font = '600 12px "Noto Sans", sans-serif';
+            ctx.fillText(ROW_KEY_LABEL[ri], 10, ry);
+
+            // Start date (no prefix, compact)
+            if (startStr) {
+              ctx.fillStyle = '#64748B';
+              ctx.font = '10px "Noto Sans", sans-serif';
+              ctx.fillText(startStr, 52, ry);
+            }
+
+            // Result (~8 chars wide, truncated)
+            if (resultStr) {
+              ctx.fillStyle = '#1D4ED8';
+              const maxW = 88;
+              let display = resultStr;
+              while (ctx.measureText(display).width > maxW && display.length > 1) {
+                display = display.slice(0, -1);
+              }
+              if (display !== resultStr) display += '…';
+              ctx.fillText(display, 150, ry);
+            }
           }
 
           // Active path label for pharmacopoeia on row 2
@@ -2530,10 +2743,14 @@ createApp({
         const dx = mx - hit.x;
         const dy = my - hit.y;
         if (Math.sqrt(dx*dx + dy*dy) <= hit.r) {
+          pjSelectProject(hit.project);
           pjDrawer.value = { project: hit.project, milestone: hit.milestone };
           return;
         }
       }
+      // Click on empty space → close panel
+      pjClosePanel();
+      pjDrawer.value = null;
     }
 
     async function pjUpdateMilestone(projectId, milestone) {
@@ -2844,6 +3061,7 @@ createApp({
       pjForm, pjTargetClasses, pjMechanisms, pjChemicalClasses,
       pjFiltered, pjPhaseName, pjStatusLabel, pjStatusBadgeClass,
       pjLoadProjects, pjCreateProject, pjImportCsv, pjDeleteProject,
+      pjSelectedProject, pjKeyMilestones, pjSelectProject, pjSaveResult, pjClearResult, pjClosePanel, pjSaveAndClose, pjMoveProject,
       pjShowPreview, pjPreviewProject, pjPreviewLoading, pjPreviewDates,
       pjPreviewCreate, setPrevDate, pjCloseCreate, previewSection,
       pjPhaseColors, pjPhaseColor, pjTimelineMin, pjTimelineMax, pjTimelineDays,
@@ -2867,7 +3085,7 @@ createApp({
       recExpandedStems, recToggleStem,
       recStepClass, recMatchStems, recGenerateCandidates, recEvaluateName,
       recMatchedStems, recConfirmedStemKey, recConfirmedStemObj,
-      recRecommendCandidates, recPage, recPageSize, recTopK,
+      recRecommendCandidates, recHasGenerated, recPage, recPageSize, recTopK,
       recSelected, recSelectedCn, recShowKetcher, recPocaThreshold, recStats,
       recPrefixLengths, recChineseHint, recChineseMatchedPrefixes, recChineseMatchedLengths,
       recTotalPages, recPagedCandidates, recAllSelected,

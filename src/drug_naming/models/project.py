@@ -32,6 +32,7 @@ class Milestone(BaseModel):
     depends_on: list[str] = Field(default_factory=list)
     parallel_with: str | None = None
     notes: str = ""
+    result: str = ""
 
 
 class Phase(BaseModel):
@@ -64,6 +65,7 @@ class Project(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     csv_source: str | None = None
+    sort_order: int = 0
 
 
 class MilestoneDateOverride(BaseModel):
@@ -144,8 +146,21 @@ def build_default_phases(has_cas: bool) -> list[Phase]:
         parallel_trigger="inn_pinn_published",
         milestones=[
             Milestone(id="tm_name_draft", name="商品名拟定", phase="trademark", order=1, fastest_days=5, slowest_days=10),
-            Milestone(id="tm_submit", name="商品名提交", phase="trademark", order=2, fastest_days=5, slowest_days=10, depends_on=["tm_name_draft"]),
-            Milestone(id="tm_notice", name="商品名公示", phase="trademark", order=3, fastest_days=180, slowest_days=180, depends_on=["tm_submit"]),
+            Milestone(id="tm_cde_check", name="商标检索及CDE比对", phase="trademark", order=2, fastest_days=20, slowest_days=35, depends_on=["tm_name_draft"]),
+            Milestone(id="tm_submit", name="商品名提交", phase="trademark", order=3, fastest_days=5, slowest_days=10, depends_on=["tm_cde_check"]),
+            Milestone(id="tm_notice", name="商品名公示", phase="trademark", order=4, fastest_days=180, slowest_days=180, depends_on=["tm_submit"]),
+        ],
+    ))
+
+    phase6_order = phase5_order + 1
+    phases.append(Phase(
+        id="nda_filing",
+        name="NDA申报",
+        order=phase6_order,
+        milestones=[
+            Milestone(id="nda_submit", name="NDA递交", phase="nda_filing", order=1, fastest_days=0, slowest_days=0,
+                      depends_on=["pharm_approval", "tm_notice"],
+                      notes="药典委核准 + 商标公示均完成后触发"),
         ],
     ))
 

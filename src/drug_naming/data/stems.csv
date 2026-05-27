@@ -498,6 +498,7 @@ trop,infix,mechanism_stem,atropine derivatives,,托,,,small_molecule,,atropine o
 -troban,suffix,target_class_stem,thromboxane A2-receptor antagonists; antithrombotic agents,,-曲班,gpcr,antagonist;agonist,small_molecule,,,False,,,5,WHO INN Programme
 -trombopag,suffix,mechanism_stem,thrombopoietin agonists,,,,agonist,small_molecule,,,False,,,5,WHO INN Programme
 -tug,suffix,chemical_class_stem,unmodified immunoglobulins (current monoclonal antibody naming scheme),,,,antibody,monoclonal_antibody,,,False,,,5,WHO INN Programme
+-kitug,suffix,chemical_class_stem,immunoglobulins (ki-series monoclonal antibody),,奇塔单抗,,antibody,monoclonal_antibody,,,False,,,5,User-defined
 -ur,suffix,mechanism_stem,uridine derivatives used as antiviral agents and as antineoplastics,,-尿,,inhibitor,small_molecule,cancer;infectious disease,,False,,,5,WHO INN Programme
 -vec,suffix,mechanism_stem,gene therapy product,,,,,small_molecule,,,False,,,5,WHO INN Programme
 -vetmab,suffix,chemical_class_stem,monoclonal antibodies for veterinary use,,单抗,,antibody,monoclonal_antibody,,,False,,,5,WHO INN Programme

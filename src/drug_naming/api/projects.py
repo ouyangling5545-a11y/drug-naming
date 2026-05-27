@@ -114,7 +114,37 @@ def list_projects(status: str | None = None) -> list[Project]:
     result = list(projects.values())
     if status:
         result = [p for p in result if p.overall_status == status]
-    return sorted(result, key=lambda p: p.created_at, reverse=True)
+    return sorted(result, key=lambda p: (p.sort_order, -p.created_at.timestamp()))
+
+
+@router.post("/{project_id}/move", response_model=list[Project])
+def move_project(project_id: UUID, direction: str = "up") -> list[Project]:
+    """Move a project up or down in display order."""
+    projects = _load()
+    if project_id not in projects:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    sorted_projects = sorted(projects.values(), key=lambda p: (p.sort_order, -p.created_at.timestamp()))
+    idx = None
+    for i, p in enumerate(sorted_projects):
+        if p.id == project_id:
+            idx = i
+            break
+
+    if idx is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if direction == "up" and idx > 0:
+        sorted_projects[idx], sorted_projects[idx - 1] = sorted_projects[idx - 1], sorted_projects[idx]
+    elif direction == "down" and idx < len(sorted_projects) - 1:
+        sorted_projects[idx], sorted_projects[idx + 1] = sorted_projects[idx + 1], sorted_projects[idx]
+
+    # Renumber all sort_order values to keep them clean
+    for i, p in enumerate(sorted_projects):
+        p.sort_order = i
+
+    _save(projects)
+    return sorted(projects.values(), key=lambda p: (p.sort_order, -p.created_at.timestamp()))
 
 
 @router.get("/{project_id}", response_model=Project)
@@ -167,6 +197,7 @@ class UpdateMilestoneBody(BaseModel):
     planned_end: date | None = None
     depends_on: list[str] | None = None
     notes: str | None = None
+    result: str | None = None
 
 
 @router.patch("/{project_id}/milestones/{milestone_id}", response_model=Project)

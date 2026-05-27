@@ -173,7 +173,7 @@ def recommend_names(body: RecommendRequest) -> RecommendResponse:
             prefix_lengths = sorted(matched_lengths)
 
     constraints = NameGenerationConstraints(
-        max_candidates_per_stem=body.top_k,
+        max_candidates_per_stem=max(body.top_k * 10, 500),
         max_name_length=20,
         min_name_length=5,
         prefix_blacklist=target_root_blacklist,
@@ -227,16 +227,21 @@ def recommend_names(body: RecommendRequest) -> RecommendResponse:
         worst_ortho = 0.0
         over_threshold_count = 0
 
-        # Collect trigram-matching refs for this candidate
+        # Collect trigram-matching refs for this candidate (capped at 50 total)
         name_lower = c.name.lower()
         seen_refs = set(smart_refs)
         refs_to_check = list(smart_refs)
+        MAX_REFS = 50
         for i in range(len(name_lower) - 2):
+            if len(refs_to_check) >= MAX_REFS:
+                break
             t = name_lower[i:i + 3]
             for ref in trigram_index.get(t, []):
                 if ref not in seen_refs:
                     seen_refs.add(ref)
                     refs_to_check.append(ref)
+                    if len(refs_to_check) >= MAX_REFS:
+                        break
 
         for ref in refs_to_check:
             detail = poca_engine.score_pair(c.name, ref, mode="fda")
@@ -287,8 +292,37 @@ def recommend_names(body: RecommendRequest) -> RecommendResponse:
             poca_assessment=assessment,
         ))
 
-    # Sort: best (lowest POCA) first, break ties with phonological quality
-    results.sort(key=lambda r: (r.combined_score, -r.phonological_score))
+    # Sort: phonological quality first (higher = more euphonious),
+    # then lower POCA as tiebreaker.  Then group by score tier and
+    # interleave tiers so that 2/3/4-letter prefixes all appear.
+    # Within each tier, prefix families are spread out (no clustering).
+    results.sort(key=lambda r: (-r.phonological_score, r.combined_score))
+
+    tiers: dict[float, list[RecommendCandidate]] = {}
+    for c in results:
+        tier = round(c.phonological_score, 2)
+        tiers.setdefault(tier, []).append(c)
+
+    for tier in tiers:
+        seen: set[str] = set()
+        d: list[RecommendCandidate] = []
+        r: list[RecommendCandidate] = []
+        for c in tiers[tier]:
+            pfx_family = (c.prefix or "")[:2].lower()
+            if pfx_family not in seen:
+                d.append(c)
+                seen.add(pfx_family)
+            else:
+                r.append(c)
+        tiers[tier] = d + r
+
+    results = []
+    tier_keys = sorted(tiers.keys(), reverse=True)
+    max_tier = max(len(tiers[t]) for t in tier_keys)
+    for i in range(max_tier):
+        for t in tier_keys:
+            if i < len(tiers[t]):
+                results.append(tiers[t][i])
 
     return RecommendResponse(
         stem=stem_obj.stem,

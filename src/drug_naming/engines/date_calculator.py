@@ -59,23 +59,30 @@ def _next_inn_meeting(after_date: date) -> date:
     return candidates[0] if candidates else date(effective.year + 2, 4, 1)
 
 
-def recalculate_milestone_dates(milestones: list, start_date: date | None = None) -> None:
+def recalculate_milestone_dates(milestones: list, start_date: date | None = None,
+                                global_milestones: dict | None = None) -> None:
     """Recalculate fastest_start/fastest_end and slowest_start/slowest_end
     for an ordered list of milestones.
 
     Handles dependency chains: a milestone that depends_on another
-    starts after the dependency's end date.
+    starts after the dependency's end date. Cross-phase dependencies
+    are resolved via the optional global_milestones dict.
 
     Args:
         milestones: List of Milestone objects (mutated in place).
         start_date: Override start date for the first milestone.
                     Defaults to today.
+        global_milestones: Optional {milestone_id: Milestone} for cross-phase deps.
     """
     if not milestones:
         return
 
-    # Build lookup by milestone id
+    # Build lookup by milestone id (phase-local first, then merge global)
     by_id = {m.id: m for m in milestones}
+    if global_milestones:
+        for mid, m in global_milestones.items():
+            if mid not in by_id:
+                by_id[mid] = m
 
     base = start_date or date.today()
 
@@ -128,6 +135,12 @@ def recalculate_project_dates(project) -> None:
     phases_sorted = sorted(project.phases, key=lambda p: p.order)
     base_date = dt_date.today()
 
+    # Build project-wide milestone lookup for cross-phase dependency resolution
+    all_milestones: dict[str, object] = {}
+    for phase in phases_sorted:
+        for m in phase.milestones:
+            all_milestones[m.id] = m
+
     for phase in phases_sorted:
         if phase.is_parallel and phase.parallel_trigger:
             # Find the trigger milestone in another phase
@@ -140,10 +153,12 @@ def recalculate_project_dates(project) -> None:
                 if trigger_end:
                     break
             if trigger_end:
-                recalculate_milestone_dates(phase.milestones, start_date=trigger_end)
+                recalculate_milestone_dates(phase.milestones, start_date=trigger_end,
+                                           global_milestones=all_milestones)
                 continue
 
-        recalculate_milestone_dates(phase.milestones, start_date=base_date)
+        recalculate_milestone_dates(phase.milestones, start_date=base_date,
+                                   global_milestones=all_milestones)
         # Next non-parallel phase starts after the last milestone of this phase
         if phase.milestones:
             last = phase.milestones[-1]

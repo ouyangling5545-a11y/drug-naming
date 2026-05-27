@@ -1,5 +1,5 @@
 from __future__ import annotations
-from ..models.molecule import ChemicalClass, PharmacologicalProperties
+from ..models.molecule import PharmacologicalProperties
 from ..models.stem import INNStem, StemMatch, StemPosition
 from ..models.naming import (
     NameCandidate,
@@ -61,16 +61,17 @@ class NameGenerationEngine:
         base_prefixes = self._base_prefix_pool(cc)
         raw_prefixes = list(OrderedDict.fromkeys(target_prefixes + base_prefixes))
 
-        # Interleave by length: 4-char, 3-char, 2-char, 4-char, 3-char, ...
-        # This ensures long+short prefixes both get a chance instead of all 2-char first.
-        by_length: dict[int, list[str]] = {2: [], 3: [], 4: []}
+        # Interleave by length: 4-char, 3-char, 2-char, 5-char, 6-char in rotation.
+        # This ensures diverse prefix lengths get a chance instead of all short first.
+        by_length: dict[int, list[str]] = {2: [], 3: [], 4: [], 5: [], 6: []}
         for p in raw_prefixes:
             if len(p) in by_length:
                 by_length[len(p)].append(p)
         prefixes: list[str] = []
-        max_group = max(len(by_length[2]), len(by_length[3]), len(by_length[4]))
+        max_group = max(len(by_length[2]), len(by_length[3]), len(by_length[4]),
+                        len(by_length[5]), len(by_length[6]))
         for i in range(max_group):
-            for length in (4, 3, 2):
+            for length in (4, 3, 2, 5, 6):
                 group = by_length[length]
                 if i < len(group):
                     prefixes.append(group[i])
@@ -79,6 +80,7 @@ class NameGenerationEngine:
         prefix_blacklist = set(p.lower() for p in constraints.prefix_blacklist)
         prefix_whitelist = set(p.lower() for p in constraints.prefix_whitelist) if constraints.prefix_whitelist else None
         allowed_lengths = set(constraints.prefix_lengths) if constraints.prefix_lengths else set()
+        boundary_skips = 0
 
         # If whitelist is set, inject its entries at the front of the prefix pool
         # so Chinese reverse-lookup prefixes participate even if novel.
@@ -119,6 +121,7 @@ class NameGenerationEngine:
                         if bridged:
                             continue
                         # No bridge works — skip this combination
+                        boundary_skips += 1
                         continue
 
                     parts = [p for p in [prefix, infix, suffix] if p]
@@ -127,6 +130,7 @@ class NameGenerationEngine:
                         not boundary_cluster_valid(parts[i], parts[i + 1])
                         for i in range(len(parts) - 1)
                     ):
+                        boundary_skips += 1
                         continue
                     name = "".join(parts)
                     all_candidates.append(NameCandidate(
@@ -191,21 +195,47 @@ class NameGenerationEngine:
                 continue
             filtered.append(c)
 
-        # Sort: phonological score, deduplicate, cap
+        # Sort by phonological score, then apply diversity-aware cap:
+        # reserve slots for each prefix length (2,3,4,5,6) so short prefixes
+        # aren't drowned out by the larger volume of longer ones.
         filtered.sort(key=lambda c: c.phonological_score, reverse=True)
+        total_cap = constraints.max_candidates_per_stem * len(request.matched_stems)
+        per_length_quota = max(total_cap // 6, 8)
+
+        by_length: dict[int, list[NameCandidate]] = {2: [], 3: [], 4: [], 5: [], 6: []}
+        for c in filtered:
+            pl = len(c.prefix or "")
+            if pl in by_length:
+                by_length[pl].append(c)
+
+        # Each group is already sorted (inherited from filtered sort)
         seen: set[str] = set()
         unique: list[NameCandidate] = []
+        for pl in (2, 3, 4, 5, 6):
+            taken = 0
+            for c in by_length[pl]:
+                if c.name.lower() not in seen and taken < per_length_quota:
+                    seen.add(c.name.lower())
+                    unique.append(c)
+                    taken += 1
+
+        # Fill remaining slots with best remaining candidates (any length)
         for c in filtered:
+            if len(unique) >= total_cap:
+                break
             if c.name.lower() not in seen:
                 seen.add(c.name.lower())
                 unique.append(c)
-                if len(unique) >= constraints.max_candidates_per_stem * len(request.matched_stems):
-                    break
+
+        if boundary_skips:
+            flag_counts["boundary_cluster_invalid"] = boundary_skips
+
+        pipeline_rejected = sum(flag_counts.values())
 
         return NameGenerationResponse(
             candidates=unique,
             total_generated=total_generated,
-            filtered_out=total_generated - len(unique),
+            filtered_out=pipeline_rejected,
             flag_counts=flag_counts,
         )
 
@@ -291,22 +321,18 @@ class NameGenerationEngine:
 
     @staticmethod
     def _base_prefix_pool(cc: str) -> list[str]:
-        """Return the appropriate base prefix pool for the chemical class."""
+        """Return the appropriate base prefix pool for the chemical class.
+
+        Small molecules get phonotactically-generated syllable prefixes (2-6 chars).
+        Antibodies use a curated single-syllable pool for mAb naming conventions.
+        """
         if cc in ('monoclonal_antibody', 'antibody_fragment', 'bispecific_antibody', 'antibody_drug_conjugate'):
             return ANTIBODY_PREFIXES
-        base = CORE_PREFIXES + SMALL_MOLECULE_PREFIXES
-        # Generate 3-4 char euphonious prefixes ending in vowels for variety
-        longer = []
-        for p in base:
-            if len(p) == 2 and p[-1] not in VOWELS:
-                longer.append(p + "a")
-                longer.append(p + "i")
-                longer.append(p + "o")
-            elif len(p) == 2:
-                longer.append(p + "la")
-                longer.append(p + "ra")
-                longer.append(p + "na")
-        return base + longer
+        sp = _get_syllable_prefixes()
+        result: list[str] = []
+        for length in (6, 5, 4, 3, 2):
+            result.extend(sp.get(length, []))
+        return result
 
     # ── Stem combo building ─────────────────────────────────────────────────
 
@@ -352,19 +378,23 @@ class NameGenerationEngine:
 
     @staticmethod
     def _phonological_score(name: str) -> float:
-        """Score 0-1. Penalizes awkward patterns, rewards pharmaceutical euphony."""
-        name_lower = name.lower()
-        score = 1.0
+        """Score 0-1 with meaningful spread.
 
-        # Penalty: 3+ consecutive consonants
+        Starts at a baseline (0.55), then applies graded penalties and bonuses
+        so that euphonious names score 0.75-0.95 and awkward ones 0.30-0.55.
+        """
+        name_lower = name.lower()
+        score = 0.55
+
+        # Penalty: 3+ consecutive consonants (count each occurrence)
         consecutive_consonants = 0
         for ch in name_lower:
             if ch in CONSONANTS:
                 consecutive_consonants += 1
-                if consecutive_consonants >= 4:
-                    score -= 0.15
-                elif consecutive_consonants == 3:
-                    score -= 0.08
+                if consecutive_consonants == 3:
+                    score -= 0.10
+                elif consecutive_consonants >= 4:
+                    score -= 0.20
             else:
                 consecutive_consonants = 0
 
@@ -374,37 +404,48 @@ class NameGenerationEngine:
             if ch in VOWELS:
                 consecutive_vowels += 1
                 if consecutive_vowels >= 3:
-                    score -= 0.10
+                    score -= 0.12
             else:
                 consecutive_vowels = 0
 
-        # Bonus: good consonant-vowel alternation
+        # Bonus: good consonant-vowel alternation (higher weight)
         alternations = sum(
             1 for i in range(len(name_lower) - 1)
             if (name_lower[i] in VOWELS) != (name_lower[i + 1] in VOWELS)
         )
         cv_ratio = alternations / max(len(name_lower) - 1, 1)
-        score += 0.05 * cv_ratio
+        score += 0.18 * cv_ratio
+
+        # Bonus: valid English onset cluster at name start — natural and distinctive.
+        # Use elif to prevent double-dipping: a triple onset (e.g. "squ") already
+        # contains a valid 2-char onset ("sq"), so only the larger bonus applies.
+        from ..engines.phonotactic import VALID_ONSET_CLUSTERS, VALID_TRIPLE_ONSETS
+        if len(name_lower) >= 4 and name_lower[:3] in VALID_TRIPLE_ONSETS:
+            score += 0.04
+        elif len(name_lower) >= 3 and name_lower[:2] in VALID_ONSET_CLUSTERS:
+            score += 0.03
 
         # Syllable count: optimal 3-5 (most INN drug names)
         syl = count_syllables(name_lower)
         if 3 <= syl <= 5:
-            score += 0.04
+            score += 0.06
         elif syl < 2:
-            score -= 0.06
+            score -= 0.08
         elif syl > 6:
-            score -= 0.03
+            score -= 0.05
 
         # Bonus: common pharmaceutical endings
-        good_endings = ["ib", "il", "ine", "ole", "ane", "ene", "ant", "ast", "icin", "mycin", "tinib", "mab", "dipine", "sartan", "grel", "previr", "xaban", "lukast", "gliptin", "gliflozin"]
+        good_endings = ["ib", "il", "ine", "ole", "ane", "ene", "ant", "ast",
+                        "icin", "mycin", "tinib", "mab", "dipine", "sartan",
+                        "grel", "previr", "xaban", "lukast", "gliptin", "gliflozin"]
         for ending in good_endings:
             if name_lower.endswith(ending):
-                score += 0.08
+                score += 0.10
                 break
 
         # Penalty: awkward non-pharmaceutical endings
         if bad_ending(name_lower):
-            score -= 0.10
+            score -= 0.15
 
         return max(0.0, min(1.0, score))
 
@@ -422,9 +463,29 @@ class NameGenerationEngine:
                 count = 0
         return False
 
-    @staticmethod
-    def _passes_trigram_screen(name: str, existing_set: set[str], threshold: float = 0.75) -> bool:
-        """Reject names whose trigram overlap with existing INN names exceeds threshold."""
+    _trigram_index: dict[str, set[str]] | None = None  # cached index over INN DB names
+
+    @classmethod
+    def _get_trigram_index(cls, names: frozenset[str] | set[str]) -> dict[str, set[str]]:
+        """Build a trigram→names index. Cached on first call (INN DB is static)."""
+        if cls._trigram_index is not None:
+            return cls._trigram_index
+        idx: dict[str, set[str]] = {}
+        for name in names:
+            for i in range(len(name) - 2):
+                t = name[i:i + 3]
+                idx.setdefault(t, set()).add(name)
+        cls._trigram_index = idx
+        return idx
+
+    @classmethod
+    def _passes_trigram_screen(cls, name: str, existing_set: frozenset[str] | set[str], threshold: float = 0.75) -> bool:
+        """Reject names whose trigram overlap with existing INN names exceeds threshold.
+
+        Uses a cached trigram index over the INN DB for fast lookup (O(candidate_trigrams)
+        instead of O(existing_names)). User-provided names are checked directly since
+        they are typically few.
+        """
         name_lower = name.lower()
         if not existing_set:
             return True
@@ -432,9 +493,12 @@ class NameGenerationEngine:
         if not name_trigrams:
             return True
         limit = len(name_trigrams) * threshold
-        for existing in existing_set:
-            existing_trigrams = {existing[i: i + 3] for i in range(len(existing) - 2)}
-            overlap = len(name_trigrams & existing_trigrams)
-            if overlap >= limit:
-                return False
+
+        idx = cls._get_trigram_index(existing_set)
+        overlap_counter: dict[str, int] = {}
+        for t in name_trigrams:
+            for ref in idx.get(t, ()):
+                overlap_counter[ref] = overlap_counter.get(ref, 0) + 1
+                if overlap_counter[ref] >= limit:
+                    return False
         return True
