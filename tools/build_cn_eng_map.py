@@ -10,13 +10,14 @@ Usage:
 Output:
     src/drug_naming/data/cn_eng_prefixes.py
 """
-import csv, json
+import csv, json, sys
 from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT / "src"))
+
 CSV_PATH = ROOT / "src/drug_naming/data/inn_reference.csv"
-STEMS_PATH = ROOT / "src/drug_naming/data/stems.csv"
 OUT_PATH = ROOT / "src/drug_naming/data/cn_eng_prefixes.py"
 VOWELS = set("aeiou")
 
@@ -60,17 +61,17 @@ def main():
 
     # ── 4. Stem data ──
     try:
-        with open(STEMS_PATH, encoding="utf-8-sig") as f:
-            for row in csv.DictReader(f):
-                stem = row.get("stem", "").strip("-").strip()
-                cn = row.get("chinese", "").strip()
-                if stem and cn:
-                    for l in [2, 3, 4, 5]:
-                        if len(stem) >= l:
-                            pfx = stem[:l]
-                            if any(v in VOWELS for v in pfx) and pfx[0] not in VOWELS:
-                                for ch in cn:
-                                    cn_to_raw[ch].append(pfx)
+        from drug_naming.data.stems import get_all
+        for s in get_all():
+            stem = s.stem.strip("-")
+            cn = s.chinese
+            if stem and cn:
+                for l in [2, 3, 4, 5]:
+                    if len(stem) >= l:
+                        pfx = stem[:l]
+                        if any(v in VOWELS for v in pfx) and pfx[0] not in VOWELS:
+                            for ch in cn:
+                                cn_to_raw[ch].append(pfx)
         print("Loaded stem mappings")
     except Exception as e:
         print(f"Stem warning: {e}")

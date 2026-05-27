@@ -29,6 +29,7 @@ SYLLABLE_TO_CHAR: list[tuple[str, str]] = [
     ("conazole", "康唑"),
     ("mycin", "霉素"),
     ("micin", "米星"),
+    ("kitug", "奇塔单抗"),
     ("mab", "单抗"),
     ("grel", "格雷"),
     ("afil", "那非"),

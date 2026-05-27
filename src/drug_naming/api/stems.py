@@ -20,29 +20,9 @@ class InMemoryStemProvider:
         return [s for s in self._stems if s.category == category]
 
 
-# Built-in reference stems (WHO INN Stem Book 2024)
-# Enriched with definitions and examples from the WHO INN Programme
-_REFERENCE_STEMS: list[INNStem] = []  # populated on first access
-
-_STEMS_LOADED = False
-
-
-def _ensure_stems_loaded() -> None:
-    """Load stems from CSV on first access (lazy init)."""
-    global _REFERENCE_STEMS, _STEMS_LOADED
-    if _STEMS_LOADED:
-        return
-    from pathlib import Path
-    from ..data.loader import CSVStemDataSource
-    csv_path = Path(__file__).resolve().parent.parent / "data" / "stems.csv"
-    source = CSVStemDataSource(csv_path)
-    _REFERENCE_STEMS = source.load()
-    _STEMS_LOADED = True
-
-
 def _get_default_provider() -> InMemoryStemProvider:
-    _ensure_stems_loaded()
-    return InMemoryStemProvider(_REFERENCE_STEMS)
+    from ..data.stems import get_all
+    return InMemoryStemProvider(get_all())
 
 
 

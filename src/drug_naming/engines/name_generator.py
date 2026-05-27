@@ -8,6 +8,7 @@ from ..models.naming import (
     NameGenerationResponse,
 )
 from ..data.targets import find_target
+from ..data.prefixes import CORE_PREFIXES, SMALL_MOLECULE_PREFIXES, ANTIBODY_PREFIXES
 from ..engines.phonotactic import (
     count_syllables,
     has_invalid_consonant_cluster,
@@ -16,54 +17,21 @@ from ..engines.phonotactic import (
 )
 from collections import OrderedDict
 
-
-# ── Euphonious prefix pools by chemical class ──
-CORE_PREFIXES: list[str] = [
-    "a", "be", "ce", "da", "e", "fa", "ga", "ha", "i", "jo", "ka",
-    "la", "le", "li", "lo", "lu", "ma", "me", "mi", "mo", "mu",
-    "na", "ne", "ni", "no", "nu", "o", "pa", "pe", "pi", "po",
-    "ra", "re", "ri", "ro", "ru",
-    "sa", "se", "si", "so", "su",
-    "ta", "te", "ti", "to", "tu",
-    "va", "ve", "vi", "vo", "vu",
-    "za", "ze", "zi", "zo", "zu",
-]
-
-SMALL_MOLECULE_PREFIXES: list[str] = [
-    "ab", "ac", "af", "al", "am", "an", "ap", "ar", "as", "at", "ax", "az",
-    "ba", "be", "bi", "bo", "br", "bu",
-    "ca", "ce", "ci", "co", "cr", "cu",
-    "da", "de", "di", "do", "dr", "du",
-    "el", "em", "en", "er", "es", "ev", "ex",
-    "fa", "fe", "fi", "fl", "fo", "fr", "fu",
-    "ga", "ge", "gi", "gl", "go", "gr", "gu",
-    "ic", "il", "im", "in", "ir", "is", "it", "iv",
-    "la", "le", "li", "lo", "lu",
-    "ma", "me", "mi", "mo", "mu",
-    "na", "ne", "ni", "no", "nu",
-    "ol", "om", "on", "op", "or", "os", "ov", "ox",
-    "pa", "pe", "pi", "pl", "po", "pr", "pu",
-    "ra", "re", "ri", "ro", "ru",
-    "sa", "se", "si", "so", "sp", "st", "su",
-    "ta", "te", "th", "ti", "to", "tr", "tu",
-    "va", "ve", "vi", "vo", "vu",
-    "za", "ze", "zi", "zo", "zu",
-]
-
-ANTIBODY_PREFIXES: list[str] = [
-    "a", "ba", "be", "bi", "bo", "ca", "ce", "ci", "co", "cu", "da", "de", "di", "do",
-    "e", "fa", "fe", "ga", "go", "gu", "ha", "he", "i", "ja", "je", "ka", "ki",
-    "la", "le", "li", "lo", "lu", "ma", "me", "mi", "mo", "mu",
-    "na", "ne", "ni", "no", "nu", "o", "pa", "pe", "pi", "po",
-    "ra", "re", "ri", "ro", "ru",
-    "sa", "se", "si", "so", "su",
-    "ta", "te", "ti", "to", "tu",
-    "va", "ve", "vi", "vo", "vu",
-    "za", "ze", "zi", "zo", "zu",
-]
-
 VOWELS = frozenset("aeiouy")
 CONSONANTS = frozenset("bcdfghjklmnpqrstvwxz")
+
+# WHO Rule 7: ph→f, th→t, y→i, avoid h/k
+_WHO_NORMALIZE = str.maketrans("", "", "hk")  # strip h/k entirely
+_WHO_REPLACE = str.maketrans({"y": "i"})  # y→i after stripping h/k
+# ph→f and th→t are string-level replacements applied separately
+
+
+def _who_normalize(s: str) -> str:
+    """Apply WHO Rule 7 phonetic normalization to a prefix candidate."""
+    s = s.replace("ph", "f").replace("th", "t")
+    s = s.translate(_WHO_NORMALIZE)  # strip remaining h, k
+    s = s.translate(_WHO_REPLACE)   # y → i
+    return s
 
 
 class NameGenerationEngine:
@@ -127,6 +95,9 @@ class NameGenerationEngine:
                 if prefix_whitelist and prefix.lower() not in prefix_whitelist:
                     continue
                 if allowed_lengths and len(prefix) not in allowed_lengths:
+                    continue
+                # WHO Rule 7: avoid h and k in prefixes
+                if "h" in prefix.lower() or "k" in prefix.lower():
                     continue
                 for infix, suffix in stem_combos:
                     # If no infix and prefix→suffix boundary is bad, try bridging vowels
@@ -249,6 +220,8 @@ class NameGenerationEngine:
             label = tc.lower()
         # Remove non-alpha characters and common suffixes
         label = "".join(c for c in label if c.isalpha())
+        # WHO Rule 7: ph→f, th→t, strip h/k, y→i
+        label = _who_normalize(label)
         # Take first 2-4 characters as root
         if len(label) >= 4:
             return label[:4]
@@ -293,6 +266,7 @@ class NameGenerationEngine:
             ind_words = properties.indication.replace('（', ' ').replace('）', ' ').replace('/', ' ').split()
             for w in ind_words:
                 w_alpha = "".join(c for c in w if c.isalpha()).lower()
+                w_alpha = _who_normalize(w_alpha)
                 if len(w_alpha) >= 3:
                     prefixes.append(w_alpha[:2])
                     prefixes.append(w_alpha[:3])
@@ -300,6 +274,7 @@ class NameGenerationEngine:
         # Variant 5: From scaffold
         if properties.chemical_scaffold:
             sub = "".join(c for c in properties.chemical_scaffold.lower() if c.isalpha())
+            sub = _who_normalize(sub)
             if len(sub) >= 2:
                 prefixes.insert(0, sub[:2])
                 if len(sub) >= 3:
