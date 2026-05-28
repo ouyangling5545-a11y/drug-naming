@@ -755,8 +755,16 @@ input[type="range"] {
 .gantt-tooltip {
   position: absolute; background: #1E293B; color: white; padding: 8px 12px;
   border-radius: var(--radius-sm); font-size: 12px; pointer-events: none; z-index: 50;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 220px; white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 280px; white-space: nowrap;
 }
+.tooltip-multi { white-space: normal; max-width: 300px; }
+.tooltip-item {
+  border-left: 3px solid #94A3B8; padding: 4px 0 4px 8px; margin-bottom: 6px;
+}
+.tooltip-item:last-child { margin-bottom: 0; }
+.tooltip-item-name { font-weight: 600; font-size: 12px; color: #F1F5F9; }
+.tooltip-item-phase { font-size: 10px; color: #94A3B8; }
+.tooltip-item-dates { font-size: 10px; color: #CBD5E1; margin-top: 1px; }
 .gantt-tooltip::after { content: ''; position: absolute; top: 100%; left: 12px; border: 5px solid transparent; border-top-color: #1E293B; }
 </style>
 </head>
@@ -770,9 +778,9 @@ input[type="range"] {
 
   <!-- Tabs -->
   <div class="tabs">
-    <div class="tab" :class="{active: activeTab==='evaluate'}" @click="activeTab='evaluate'">名称评估</div>
-    <div class="tab" :class="{active: activeTab==='recommend'}" @click="activeTab='recommend'">智能推荐</div>
     <div class="tab" :class="{active: activeTab==='projects'}" @click="activeTab='projects'">项目管理</div>
+    <div class="tab" :class="{active: activeTab==='recommend'}" @click="activeTab='recommend'">智能推荐</div>
+    <div class="tab" :class="{active: activeTab==='evaluate'}" @click="activeTab='evaluate'">名称评估</div>
   </div>
 
   <!-- ==================== TAB A: 名称评估 ==================== -->
@@ -1344,11 +1352,23 @@ input[type="range"] {
             @click="pjCanvasClick" @mousemove="pjCanvasMouseMove" @mouseleave="pjTooltip=null"
             @mousedown="pjCanvasMouseDown" @mouseup="pjCanvasMouseUp"></canvas>
         </div>
-        <div class="gantt-tooltip" v-if="pjTooltip" :style="{left:pjTooltip.x+'px',top:pjTooltip.y+'px'}">
-          <div style="font-weight:700;margin-bottom:2px;">{{ pjTooltip.name }}</div>
-          <div style="font-size:11px;color:var(--color-muted-foreground);">{{ pjPhaseName(pjTooltip.phase) }}</div>
-          <div style="font-size:11px;margin-top:2px;">计划: {{ pjTooltip.ps }} → {{ pjTooltip.pe }}</div>
-          <div style="font-size:11px;margin-top:2px;">状态: {{ pjStatusLabel(pjTooltip.status) }}</div>
+        <div class="gantt-tooltip" v-if="pjTooltip" :style="{left:pjTooltip.x+'px',top:pjTooltip.y+'px'}"
+             :class="{ 'tooltip-multi': pjTooltip.items && pjTooltip.items.length > 1 }">
+          <template v-if="pjTooltip.items && pjTooltip.items.length > 1">
+            <div style="font-weight:700;margin-bottom:4px;font-size:11px;color:#94A3B8;">{{ pjTooltip.items.length }} 个里程碑重叠</div>
+            <div class="tooltip-item" v-for="(it, i) in pjTooltip.items" :key="i"
+                 :style="{borderLeftColor: pjTooltipStatusColor(it.status)}">
+              <div class="tooltip-item-name">{{ it.name }}</div>
+              <div class="tooltip-item-phase">{{ pjPhaseName(it.phase) }}</div>
+              <div class="tooltip-item-dates">{{ it.ps }} → {{ it.pe }}</div>
+            </div>
+          </template>
+          <template v-else>
+            <div style="font-weight:700;margin-bottom:2px;">{{ pjTooltip.items[0].name }}</div>
+            <div style="font-size:11px;color:var(--color-muted-foreground);">{{ pjPhaseName(pjTooltip.items[0].phase) }}</div>
+            <div style="font-size:11px;margin-top:2px;">计划: {{ pjTooltip.items[0].ps }} → {{ pjTooltip.items[0].pe }}</div>
+            <div style="font-size:11px;margin-top:2px;">状态: {{ pjStatusLabel(pjTooltip.items[0].status) }}</div>
+          </template>
         </div>
 
         <div v-if="pjViewMode==='list' && pjFiltered.length > 0">
@@ -1515,7 +1535,7 @@ const { createApp, ref, reactive, nextTick, computed, watch } = Vue;
 createApp({
   setup() {
     const API = '/api/v1';
-    const activeTab = ref('evaluate');
+    const activeTab = ref('projects');
 
     // ========== Tab A: Name Evaluation ==========
     const evalPrefix = ref('');
@@ -2663,6 +2683,8 @@ createApp({
       ctx.closePath();
     }
 
+    const PROJECT_ACCENTS = ['#2563EB','#7C3AED','#059669','#D97706','#DC2626','#0891B2','#4F46E5','#DB2777'];
+
     function pjRenderGantt() {
       const canvas = pjCanvas.value;
       if (!canvas) return;
@@ -2853,16 +2875,36 @@ createApp({
           const project = projects[pi];
           const baseY = cumY;
           const activeRows = pjActiveRows(project);
-          cumY += pjProjectHeight(project);
+          const projH = pjProjectHeight(project);
+          cumY += projH;
 
-          // Project name + CAS
+          const accent = PROJECT_ACCENTS[pi % PROJECT_ACCENTS.length];
+
+          // Alternating subtle background + thin left accent strip
+          ctx.fillStyle = pi % 2 === 0 ? '#FAFBFC' : '#FFFFFF';
+          ctx.fillRect(0, baseY, leftPad, projH);
+          ctx.fillStyle = accent;
+          ctx.fillRect(0, baseY, 4, projH);
+
+          // Divider between projects (except first)
+          if (pi > 0) {
+            ctx.strokeStyle = '#E2E8F0';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(leftPad, baseY); ctx.lineTo(leftPad + contentW, baseY); ctx.stroke();
+          }
+
+          // Project name with accent dot
+          ctx.fillStyle = accent;
+          ctx.beginPath();
+          ctx.arc(16, baseY + 12, 4, 0, Math.PI * 2);
+          ctx.fill();
           ctx.fillStyle = '#0F172A';
-          ctx.font = '600 12px "Noto Sans", sans-serif';
-          ctx.fillText(project.name, 8, baseY + 12);
+          ctx.font = '600 13px "Noto Sans", sans-serif';
+          ctx.fillText(project.name, 25, baseY + 16);
           if (project.cas_number) {
             ctx.fillStyle = '#64748B';
             ctx.font = '10px "Noto Sans", sans-serif';
-            ctx.fillText('CAS ' + project.cas_number, 8, baseY + 24);
+            ctx.fillText('CAS ' + project.cas_number, 25, baseY + 28);
           }
 
           // Per-project NDA dashed line — only within this project's lane height
@@ -3214,20 +3256,31 @@ createApp({
       const rect = canvas.getBoundingClientRect();
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
-      let found = null;
+      // Collect all nearby hits within a generous radius for congestion detection
+      const searchR = 36;
+      const nearby = [];
       for (const hit of canvas._hits) {
         if (Math.abs(mx - hit.x) <= (hit.w || hit.r || 8) && Math.abs(my - hit.y) <= (hit.h || hit.r || 8)) {
-          found = hit; break;
+          nearby.push(hit);
         }
       }
-      if (found) {
-        const m = found.milestone;
+      // Also collect hits within searchR (that weren't caught by rect check)
+      for (const hit of canvas._hits) {
+        if (!nearby.includes(hit) && Math.hypot(mx - hit.x, my - hit.y) <= searchR) {
+          nearby.push(hit);
+        }
+      }
+      if (nearby.length > 0) {
+        // Sort by distance
+        nearby.sort((a, b) => Math.hypot(mx - a.x, my - a.y) - Math.hypot(mx - b.x, my - b.y));
         pjTooltip.value = {
           x: e.clientX - rect.left + 14, y: e.clientY - rect.top - 10,
-          name: m.name, phase: m.phase,
-          ps: m.planned_start || m.slowest_start,
-          pe: m.planned_end || m.slowest_end,
-          status: m.status
+          items: nearby.map(h => ({
+            name: h.milestone.name, phase: h.milestone.phase,
+            ps: h.milestone.planned_start || h.milestone.slowest_start,
+            pe: h.milestone.planned_end || h.milestone.slowest_end,
+            status: h.milestone.status,
+          }))
         };
         canvas.style.cursor = 'pointer';
       } else {
@@ -3236,24 +3289,34 @@ createApp({
       }
     }
 
+    function pjTooltipStatusColor(status) {
+      return STATUS_COLORS[status] || '#94A3B8';
+    }
+
     function pjCanvasMouseDown(e) {
       const canvas = pjCanvas.value;
       if (!canvas || !canvas._hits) return;
       const rect = canvas.getBoundingClientRect();
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
+      // Find closest hit (not just first)
+      let best = null, bestDist = Infinity;
       for (const hit of canvas._hits) {
         if (Math.abs(mx - hit.x) <= (hit.w || hit.r || 8) && Math.abs(my - hit.y) <= (hit.h || hit.r || 8)) {
-          pjDragState.value = {
-            mode: 'milestone',
-            project: hit.project, milestone: hit.milestone,
-            startX: mx, origDate: hit.milestone.planned_start || hit.milestone.slowest_start,
-            canvas: canvas
-          };
-          canvas.style.cursor = 'grabbing';
-          e.preventDefault();
-          return;
+          const d = Math.hypot(mx - hit.x, my - hit.y);
+          if (d < bestDist) { bestDist = d; best = hit; }
         }
+      }
+      if (best) {
+        pjDragState.value = {
+          mode: 'milestone',
+          project: best.project, milestone: best.milestone,
+          startX: mx, origDate: best.milestone.planned_start || best.milestone.slowest_start,
+          canvas: canvas
+        };
+        canvas.style.cursor = 'grabbing';
+        e.preventDefault();
+        return;
       }
       // Empty space → start panning
       pjDragState.value = {
@@ -3454,6 +3517,7 @@ createApp({
       pjCanvas, pjCanvasWrap, pjCanvasWidth, pjCanvasHeight,
       pjRenderGantt, pjCanvasClick, pjUpdateMilestone, pjUpdatePlannedDates,
       pjZoom, pjViewportStart, pjTooltip, pjDragState,
+      pjTooltipStatusColor,
       pjCanvasMouseMove, pjCanvasMouseDown, pjCanvasMouseUp,
       pjMilestoneName, pjAvailableDependencies, pjAddDependency, pjRemoveDependency,
       pjJumpToToday, pjJumpToNextMilestone, pjFormatDate,
