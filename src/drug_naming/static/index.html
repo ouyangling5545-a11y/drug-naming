@@ -653,6 +653,104 @@ input[type="range"] {
   color: var(--color-muted-foreground); font-size: 13px; text-align: center;
   padding: 24px 0;
 }
+.pj-results-bar {
+  display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--color-border);
+}
+.pj-result-item {
+  display: flex; align-items: center; gap: 6px; font-size: 13px;
+}
+.pj-result-label {
+  font-weight: 600; color: var(--color-foreground); min-width: 42px; flex-shrink: 0;
+}
+.pj-result-input {
+  flex: 1; min-width: 0; padding: 4px 8px; border: 1px solid var(--color-border);
+  border-radius: 4px; font-size: 12px; font-family: var(--font-body);
+  background: #FFF;
+}
+.pj-result-input:hover { border-color: #94A3B8; }
+.pj-result-input:focus { border-color: var(--color-primary); outline: none; }
+.pj-result-input::placeholder { color: #CBD5E1; font-size: 11px; }
+.pj-result-date {
+  color: var(--color-muted-foreground); font-size: 11px; white-space: nowrap;
+}
+.pj-phase-group { margin-bottom: 2px; }
+.pj-phase-header {
+  display: flex; align-items: center; gap: 6px; padding: 7px 8px;
+  border-radius: var(--radius-sm); cursor: pointer; user-select: none;
+  transition: background 0.15s; font-size: 13px;
+}
+.pj-phase-header:hover { background: #EFF6FF; }
+.pj-phase-arrow { font-size: 10px; color: var(--color-muted-foreground); width: 12px; flex-shrink: 0; }
+.pj-phase-name { font-weight: 600; color: var(--color-foreground); flex: 1; }
+.pj-phase-badge {
+  background: #E2E8F0; color: #64748B; font-size: 11px; font-weight: 600;
+  padding: 1px 7px; border-radius: 10px; min-width: 20px; text-align: center;
+}
+.pj-ms-add {
+  width: 20px; height: 20px; border: 1px dashed #CBD5E1; background: none;
+  color: #94A3B8; cursor: pointer; font-size: 14px; border-radius: 4px;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  margin-left: auto; transition: all 0.15s;
+}
+.pj-ms-add:hover { border-color: var(--color-primary); color: var(--color-primary); background: #EFF6FF; }
+.pj-path-toggle {
+  display: flex; align-items: center; gap: 8px; padding: 4px 18px; font-size: 12px;
+}
+.pj-path-toggle label {
+  font-weight: 600; color: #475569; white-space: nowrap;
+}
+.pj-path-toggle select {
+  flex: 1; padding: 5px 8px; border: 1px solid var(--color-border);
+  border-radius: 4px; font-size: 12px; background: #fff; cursor: pointer;
+}
+.pj-path-toggle select:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.15); }
+.form-select {
+  width: 100%; padding: 8px 12px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm); font-size: 14px; background: #fff; cursor: pointer;
+  font-family: var(--font-body);
+}
+.form-select:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.15); }
+.pj-ms-reorder {
+  display: flex; flex-direction: column; gap: 0; flex-shrink: 0;
+}
+.pj-ms-reorder button {
+  width: 14px; height: 10px; border: none; background: none; color: #CBD5E1;
+  cursor: pointer; font-size: 7px; padding: 0; line-height: 1;
+  transition: color 0.15s;
+}
+.pj-ms-reorder button:hover { color: var(--color-primary); }
+.pj-phase-body { padding: 2px 0 6px 18px; }
+.pj-ms-row {
+  display: flex; align-items: center; gap: 6px; padding: 4px 6px;
+  border-radius: 4px; font-size: 12px;
+}
+.pj-ms-row:hover { background: #F8FAFC; }
+.pj-ms-name {
+  flex: 1; min-width: 0; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; color: var(--color-muted-foreground);
+}
+.pj-ms-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.pj-ms-date {
+  width: 110px; padding: 3px 6px; border: 1px solid var(--color-border);
+  border-radius: 4px; font-size: 11px; font-family: var(--font-body);
+  background: #FFF; color: var(--color-foreground);
+}
+.pj-ms-date:focus { border-color: var(--color-primary); outline: none; }
+.pj-ms-status {
+  width: 68px; padding: 3px 4px; border: 1px solid var(--color-border);
+  border-radius: 4px; font-size: 11px; font-family: var(--font-body);
+  background: #FFF; color: var(--color-foreground); cursor: pointer;
+}
+.pj-ms-status:focus { border-color: var(--color-primary); outline: none; }
+.pj-ms-del {
+  width: 20px; height: 20px; border: none; background: none; color: #94A3B8;
+  cursor: pointer; font-size: 14px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+  opacity: 0; transition: opacity 0.15s, color 0.15s, background 0.15s;
+}
+.pj-ms-row:hover .pj-ms-del { opacity: 1; }
+.pj-ms-del:hover { color: #DC2626; background: #FEE2E2; }
 .pj-main-area { flex: 1; min-width: 0; }
 .gantt-tooltip {
   position: absolute; background: #1E293B; color: white; padding: 8px 12px;
@@ -1070,7 +1168,7 @@ input[type="range"] {
               <span v-if="recStats.flag_counts.trigram_match_with_existing"> · 三字母重叠 {{ recStats.flag_counts.trigram_match_with_existing }}</span>
             </span>
           </span>
-          <span style="color:var(--color-primary);">→ POCA阈值过滤 {{ recStats.filtered_by_poca_threshold }}</span>
+          <span style="color:var(--color-primary);">→ 全库POCA过滤 {{ recStats.filtered_by_poca_threshold }}（阈值{{ recPocaThreshold }}%）</span>
           <span style="font-weight:600;">→ 最终 {{ recRecommendCandidates.length }} 个</span>
         </div>
 
@@ -1152,11 +1250,13 @@ input[type="range"] {
       </template>
       <template v-if="pjViewMode==='gantt' && pjFiltered.length > 0">
         <span style="font-size:12px;color:var(--color-muted-foreground);margin:0 4px;">|</span>
-        <button class="btn btn-outline pan-btn" @click="pjViewportStart = new Date(pjViewportStart.getFullYear(), pjViewportStart.getMonth() - 3, 1); pjRenderGantt()" title="向左滚动3个月">◀</button>
+        <button class="btn btn-outline pan-btn" @click="pjPanLeft(); pjRenderGantt()" title="向左滚动">◀</button>
+        <button class="btn btn-outline" :style="{background:pjZoom==='day'?'var(--color-primary)':'',color:pjZoom==='day'?'white':''}" @click="pjZoom='day';pjRenderGantt()" style="font-size:11px;padding:4px 10px;">日</button>
+        <button class="btn btn-outline" :style="{background:pjZoom==='week'?'var(--color-primary)':'',color:pjZoom==='week'?'white':''}" @click="pjZoom='week';pjRenderGantt()" style="font-size:11px;padding:4px 10px;">周</button>
         <button class="btn btn-outline" :style="{background:pjZoom==='month'?'var(--color-primary)':'',color:pjZoom==='month'?'white':''}" @click="pjZoom='month';pjRenderGantt()" style="font-size:11px;padding:4px 10px;">月</button>
         <button class="btn btn-outline" :style="{background:pjZoom==='quarter'?'var(--color-primary)':'',color:pjZoom==='quarter'?'white':''}" @click="pjZoom='quarter';pjRenderGantt()" style="font-size:11px;padding:4px 10px;">季</button>
         <button class="btn btn-outline" :style="{background:pjZoom==='year'?'var(--color-primary)':'',color:pjZoom==='year'?'white':''}" @click="pjZoom='year';pjRenderGantt()" style="font-size:11px;padding:4px 10px;">年</button>
-        <button class="btn btn-outline pan-btn" @click="pjViewportStart = new Date(pjViewportStart.getFullYear(), pjViewportStart.getMonth() + 3, 1); pjRenderGantt()" title="向右滚动3个月">▶</button>
+        <button class="btn btn-outline pan-btn" @click="pjPanRight(); pjRenderGantt()" title="向右滚动">▶</button>
         <button class="btn btn-outline" @click="pjJumpToToday()" style="font-size:11px;padding:4px 10px;">回到今天</button>
         <button class="btn btn-outline" @click="pjJumpToNextMilestone()" style="font-size:11px;padding:4px 10px;">下一节点</button>
       </template>
@@ -1175,22 +1275,59 @@ input[type="range"] {
       <!-- Left Info Panel — shows 4 key task result rows for selected project -->
       <div class="pj-info-panel" v-if="pjSelectedProject">
         <h3>{{ pjSelectedProject.name }}<button class="pj-close-btn" @click="pjClosePanel" title="关闭">×</button></h3>
-        <div class="pj-info-row" v-for="km in pjKeyMilestones(pjSelectedProject)" :key="km.id">
-          <span class="pj-task-label">{{ km.label }}</span>
-          <span class="pj-task-start">{{ km.fastest_start || '—' }}</span>
-          <input
-            :value="km.result"
-            @blur="pjSaveResult(pjSelectedProject.id, km.id, $event.target)"
-            @keyup.enter="pjSaveAndClose(pjSelectedProject.id, km.id, $event.target)"
-            :placeholder="km.hint"
-          />
-          <button class="pj-clear-btn" :class="{show: km.result}" @click="pjClearResult(pjSelectedProject.id, km.id)" title="清除">×</button>
+        <div class="pj-info-empty" v-if="!pjSelectedProject.phases || pjSelectedProject.phases.length === 0">
+          暂无任务数据
+        </div>
+        <!-- Key Results: compact inputs for the 4 critical milestones -->
+        <div class="pj-results-bar">
+          <div class="pj-result-item" v-for="kr in pjKeyResults(pjSelectedProject)" :key="kr.id">
+            <span class="pj-result-label">{{ kr.label }}</span>
+            <input class="pj-result-input"
+              :value="kr.result"
+              @blur="pjSaveResult(pjSelectedProject.id, kr.id, $event.target)"
+              @keyup.enter="pjSaveResult(pjSelectedProject.id, kr.id, $event.target); $event.target.blur()"
+              :placeholder="kr.hint">
+            <span class="pj-result-date" v-if="kr.start_date">{{ kr.start_date }}</span>
+          </div>
+        </div>
+        <div v-for="phase in pjSelectedProject.phases" :key="phase.id" class="pj-phase-group">
+          <div class="pj-phase-header" @click="pjTogglePhase(phase.id)">
+            <span class="pj-phase-arrow">{{ pjExpandedPhases[phase.id] ? '▾' : '▸' }}</span>
+            <span class="pj-phase-name">{{ pjPhaseName(phase.id) }}</span>
+            <span class="pj-phase-badge">{{ pjVisibleMilestones(phase).length }}</span>
+            <button class="pj-ms-add" @click.stop="pjShowAddMs(phase)" title="添加里程碑">+</button>
+          </div>
+          <div v-if="phase.id==='pharmacopoeia_review' && pjExpandedPhases[phase.id]" class="pj-path-toggle">
+            <label>核名路径</label>
+            <select @change="pjSwitchPath($event.target.value)">
+              <option value="A" :selected="pjSelectedProject.active_path==='A'">自动核准</option>
+              <option value="B" :selected="pjSelectedProject.active_path==='B'">主动申报</option>
+            </select>
+          </div>
+          <div v-if="pjExpandedPhases[phase.id]" class="pj-phase-body">
+            <div v-for="(m, mi) in pjVisibleMilestones(phase)" :key="m.id" class="pj-ms-row">
+              <span class="pj-ms-reorder">
+                <button v-if="mi > 0" @click.stop="pjMoveMilestone(pjSelectedProject.id, phase, m.id, 'up')" title="上移">▲</button>
+                <button v-if="mi < pjVisibleMilestones(phase).length - 1" @click.stop="pjMoveMilestone(pjSelectedProject.id, phase, m.id, 'down')" title="下移">▼</button>
+              </span>
+              <span class="pj-ms-name" :title="m.name">{{ m.name }}</span>
+              <div class="pj-ms-controls">
+                <input type="date" class="pj-ms-date"
+                  :value="m.planned_start || m.slowest_start"
+                  @change="m.planned_start = $event.target.value; pjUpdatePlannedDates(pjSelectedProject.id, m)">
+                <select class="pj-ms-status" v-model="m.status" @change="pjUpdateMilestone(pjSelectedProject.id, m)">
+                  <option value="pending">待开始</option>
+                  <option value="in_progress">进行中</option>
+                  <option value="completed">已完成</option>
+                  <option value="blocked">阻塞</option>
+                </select>
+                <button class="pj-ms-del" @click.stop="pjDeleteMilestone(pjSelectedProject.id, m, phase)" title="删除此里程碑">×</button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="pj-info-nda" v-if="pjSelectedProject.nda_date">
           NDA：{{ pjSelectedProject.nda_date }}
-        </div>
-        <div class="pj-info-empty" v-if="pjKeyMilestones(pjSelectedProject).length === 0">
-          暂无任务数据
         </div>
       </div>
 
@@ -1245,23 +1382,11 @@ input[type="range"] {
         <label>计划NDA提交日期 <span style="font-weight:400;">(用于判断核名路径)</span></label>
         <input type="date" v-model="pjForm.nda_date">
         <label>药典委核名路径</label>
-        <div class="path-selector">
-          <label class="path-option" :class="{ active: pjForm.manual_path === 'auto' }">
-            <input type="radio" v-model="pjForm.manual_path" value="auto" style="display:none;">
-            <span class="path-label">自动</span>
-            <span class="path-desc">根据NDA日期自动判断</span>
-          </label>
-          <label class="path-option" :class="{ active: pjForm.manual_path === 'A' }">
-            <input type="radio" v-model="pjForm.manual_path" value="A" style="display:none;">
-            <span class="path-label">路径A：</span>
-            <span class="path-desc">NDA ≥ pINN+11月，药典委自动公示，无CDE审评</span>
-          </label>
-          <label class="path-option" :class="{ active: pjForm.manual_path === 'B' }">
-            <input type="radio" v-model="pjForm.manual_path" value="B" style="display:none;">
-            <span class="path-label">路径B：</span>
-            <span class="path-desc">NDA &lt; pINN+11月，CDE受理后药典委技术审评</span>
-          </label>
-        </div>
+        <select v-model="pjForm.manual_path" class="form-select">
+          <option value="auto">自动判断（根据NDA日期）</option>
+          <option value="A">自动核准 — NDA ≥ pINN+11月，药典委自动公示</option>
+          <option value="B">主动申报 — NDA &lt; pINN+11月，CDE技术审评</option>
+        </select>
         <label>靶点分类</label>
         <select v-model="pjForm.target_class">
           <option v-for="t in pjTargetClasses" :value="t">{{ t }}</option>
@@ -2009,9 +2134,14 @@ createApp({
 
     async function recEvaluateName(name) {
       try {
-        const res = await fetch(API + '/poca/smart-score?proposed_name=' + encodeURIComponent(name) + '&max_refs=15', { method: 'POST' });
+        const res = await fetch(API + '/poca/evaluate?proposed_name=' + encodeURIComponent(name) + '&threshold=50', { method: 'POST' });
         const data = await res.json();
-        alert('POCA 评估: ' + name + '\n综合最高分: ' + (data.worst_score ? (data.worst_score*100).toFixed(0) + '%' : 'N/A') + '\n评估: ' + (data.overall_safety_assessment || 'N/A') + '\n参考名: ' + (data.worst_comparison || 'N/A'));
+        alert('POCA 全库评估: ' + name +
+          '\n综合最高分: ' + (data.poca_score ? (data.poca_score*100).toFixed(0) + '%' : 'N/A') +
+          '\n语音分: ' + (data.phonetic_score ? (data.phonetic_score*100).toFixed(0) + '%' : 'N/A') +
+          '\n字形分: ' + (data.orthographic_score ? (data.orthographic_score*100).toFixed(0) + '%' : 'N/A') +
+          '\n评估: ' + (data.poca_assessment || 'N/A') +
+          '\n最接近参考名: ' + (data.worst_comparison || 'N/A'));
       } catch(e) { alert('评估失败: ' + e.message); }
     }
 
@@ -2023,42 +2153,172 @@ createApp({
     const pjTriggerFile = ref(null);
     const pjDrawer = ref(null);
     const pjSelectedProject = ref(null);
+    const pjExpandedPhases = reactive({});
     const pjZoom = ref('month');
 
-    // Key milestone IDs → label + hint for the left info panel
-    const PJ_KEY_MILESTONES = [
-      { id: 'cas_obtain',      label: 'CAS',    hint: 'CAS号' },
-      { id: 'inn_rinn',        label: 'INN',    hint: 'INN名称' },
-      { id: 'pharm_approval',  label: '中文名',  hint: '中文通用名' },
-      { id: 'tm_notice',       label: '商标',    hint: '商品名' },
-    ];
-
-    function pjKeyMilestones(project) {
-      if (!project || !project.phases) return [];
-      const byId = {};
-      for (const ph of project.phases) {
-        for (const m of ph.milestones) { byId[m.id] = m; }
+    function pjPanLeft() {
+      const d = new Date(pjViewportStart.value);
+      const shift = { day: -7, week: -14, month: -3, quarter: -9, year: -12 }[pjZoom.value] || -3;
+      if (pjZoom.value === 'day' || pjZoom.value === 'week') {
+        d.setDate(d.getDate() + shift);
+      } else {
+        d.setMonth(d.getMonth() + shift);
       }
-      return PJ_KEY_MILESTONES.map(km => {
-        const m = byId[km.id];
-        return {
-          id: km.id,
-          label: km.label,
-          hint: km.hint,
-          fastest_start: m ? (m.fastest_start || m.slowest_start || '') : '',
-          result: m ? (m.result || '') : '',
-        };
-      });
+      d.setDate(1);
+      pjViewportStart.value = d;
+    }
+    function pjPanRight() {
+      const d = new Date(pjViewportStart.value);
+      const shift = { day: 7, week: 14, month: 3, quarter: 9, year: 12 }[pjZoom.value] || 3;
+      if (pjZoom.value === 'day' || pjZoom.value === 'week') {
+        d.setDate(d.getDate() + shift);
+      } else {
+        d.setMonth(d.getMonth() + shift);
+      }
+      d.setDate(1);
+      pjViewportStart.value = d;
     }
 
     function pjSelectProject(project) {
       pjSelectedProject.value = project;
+      // Reset expanded phases for the new project
+      for (const k of Object.keys(pjExpandedPhases)) delete pjExpandedPhases[k];
       if (pjViewMode.value === 'gantt') setTimeout(pjRenderGantt, 50);
     }
 
     function pjClosePanel() {
       pjSelectedProject.value = null;
       if (pjViewMode.value === 'gantt') setTimeout(pjRenderGantt, 50);
+    }
+
+    function pjTogglePhase(phaseId) {
+      pjExpandedPhases[phaseId] = !pjExpandedPhases[phaseId];
+    }
+
+    function pjVisibleMilestones(phase) {
+      if (!phase || !phase.milestones) return [];
+      if (phase.id !== 'pharmacopoeia_review') return phase.milestones;
+      const ap = pjSelectedProject.value?.active_path || 'A';
+      return phase.milestones.filter(m => !m.path || m.path === ap);
+    }
+
+    async function pjSwitchPath(path) {
+      if (!pjSelectedProject.value) return;
+      try {
+        const res = await fetch(`/api/v1/projects/${pjSelectedProject.value.id}/path`, {
+          method: 'PATCH', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ active_path: path })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const updated = await res.json();
+        const idx = pjProjects.value.findIndex(p => p.id === updated.id);
+        if (idx >= 0) { pjProjects.value[idx] = updated; pjProjects.value = [...pjProjects.value]; }
+        pjSelectedProject.value = updated;
+        pjRenderGantt();
+      } catch(e) { alert('切换路径失败: ' + e.message); }
+    }
+
+    async function pjCreateMilestone(projectId, phaseId, name) {
+      try {
+        const res = await fetch(`/api/v1/projects/${projectId}/phases/${phaseId}/milestones`, {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ name, fastest_days: 30, slowest_days: 60 })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const updated = await res.json();
+        const idx = pjProjects.value.findIndex(p => p.id === projectId);
+        if (idx >= 0) { pjProjects.value[idx] = updated; pjProjects.value = [...pjProjects.value]; }
+        if (pjSelectedProject.value && pjSelectedProject.value.id === projectId) {
+          pjSelectedProject.value = updated;
+        }
+        pjRenderGantt();
+      } catch(e) { alert('添加失败: ' + e.message); }
+    }
+
+    function pjShowAddMs(phase) {
+      const name = prompt('输入新里程碑名称：');
+      if (name && name.trim() && pjSelectedProject.value) {
+        pjCreateMilestone(pjSelectedProject.value.id, phase.id, name.trim());
+      }
+    }
+
+    async function pjMoveMilestone(projectId, phase, msId, direction) {
+      const visible = pjVisibleMilestones(phase);
+      const idx = visible.findIndex(m => m.id === msId);
+      if (idx < 0) return;
+      const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (swapIdx < 0 || swapIdx >= visible.length) return;
+      // Swap in full milestone list
+      const fullList = phase.milestones;
+      const fullIdx = fullList.findIndex(m => m.id === visible[idx].id);
+      const fullSwap = fullList.findIndex(m => m.id === visible[swapIdx].id);
+      if (fullIdx < 0 || fullSwap < 0) return;
+      const tmp = fullList[fullIdx];
+      fullList[fullIdx] = fullList[fullSwap];
+      fullList[fullSwap] = tmp;
+      // Reassign orders
+      const orderedIds = fullList.map(m => m.id);
+      try {
+        const res = await fetch(`/api/v1/projects/${projectId}/phases/${phase.id}/milestones/reorder`, {
+          method: 'PUT', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ milestone_ids: orderedIds })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const updated = await res.json();
+        const pidx = pjProjects.value.findIndex(p => p.id === projectId);
+        if (pidx >= 0) { pjProjects.value[pidx] = updated; pjProjects.value = [...pjProjects.value]; }
+        if (pjSelectedProject.value && pjSelectedProject.value.id === projectId) {
+          pjSelectedProject.value = updated;
+        }
+        pjRenderGantt();
+      } catch(e) { alert('移动失败: ' + e.message); }
+    }
+
+    function pjKeyResults(project) {
+      const keys = [
+        { id: 'cas_obtain',     label: 'CAS',   hint: 'CAS号',   hasCas: false },
+        { id: 'inn_rinn',       label: 'INN',   hint: 'INN名',   hasCas: true },
+        { id: 'pharm_approval', label: '中文名', hint: '中文通用名', hasCas: true },
+        { id: 'tm_notice',      label: '商标',  hint: '商品名',   hasCas: true },
+      ];
+      if (!project || !project.phases) return [];
+      const byId = {};
+      for (const ph of project.phases) {
+        for (const m of ph.milestones) { byId[m.id] = m; }
+      }
+      return keys.map(k => {
+        const m = byId[k.id];
+        return {
+          id: k.id, label: k.label, hint: k.hint,
+          result: m ? (m.result || '') : '',
+          start_date: m ? ((m.planned_start || m.slowest_start || '').toString().slice(0, 10)) : '',
+        };
+      });
+    }
+
+    async function pjDeleteMilestone(projectId, milestone, phase) {
+      if (!confirm(`确认删除里程碑「${milestone.name}」？\n该操作不可恢复。`)) return;
+      try {
+        const res = await fetch(`/api/v1/projects/${projectId}/milestones/${milestone.id}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const updated = await res.json();
+        const idx = pjProjects.value.findIndex(p => p.id === projectId);
+        if (idx >= 0) {
+          pjProjects.value[idx] = updated;
+          pjProjects.value = [...pjProjects.value];
+        }
+        if (pjSelectedProject.value && pjSelectedProject.value.id === projectId) {
+          pjSelectedProject.value = updated;
+        }
+        // Auto-collapse phase if it becomes empty
+        const updatedPhase = (updated.phases || []).find(p => p.id === phase.id);
+        if (updatedPhase && updatedPhase.milestones.length === 0) {
+          delete pjExpandedPhases[phase.id];
+        }
+        pjRenderGantt();
+      } catch(e) { alert('删除失败: ' + e.message); }
     }
 
     async function pjSaveAndClose(projectId, milestoneId, inputEl) {
@@ -2114,7 +2374,7 @@ createApp({
       } catch(e) { /* silent fail on blur — user can retry */ }
     }
     const pjViewportStart = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-    const pjVisibleMonths = computed(() => ({ month: 12, quarter: 36, year: 60 }[pjZoom.value] || 12));
+    const pjVisibleMonths = computed(() => ({ day: 1, week: 3, month: 12, quarter: 36, year: 60 }[pjZoom.value] || 12));
     const pjTooltip = ref(null);
     const pjDragState = ref(null);
     function pjFormatDate(date) { return date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日'; }
@@ -2145,7 +2405,7 @@ createApp({
       return list;
     });
 
-    const pjPhaseName = (id) => ({ cas_application:'CAS申请', inn_naming:'INN命名', chinese_submission:'中文名提交', pharmacopoeia_review:'药典委核名', trademark:'商标品牌' }[id] || id);
+    const pjPhaseName = (id) => ({ cas_application:'CAS申请', inn_naming:'INN命名', pharmacopoeia_review:'药典委核名', trademark:'商标品牌', nda_filing:'NDA申报' }[id] || id);
     const pjStatusLabel = (s) => ({ on_track:'进行中', at_risk:'有风险', delayed:'已延误', completed:'已完成' }[s] || s);
     const pjStatusBadgeClass = (s) => s;
 
@@ -2180,7 +2440,6 @@ createApp({
     const pjPhaseColors = [
       ['cas_application', '#94a3b8', 'CAS申请'],
       ['inn_naming', '#3b82f6', 'INN命名'],
-      ['chinese_submission', '#10b981', '中文名提交'],
       ['pharmacopoeia_review', '#f59e0b', '药典委核名'],
       ['trademark', '#8b5cf6', '商标品牌'],
     ];
@@ -2338,16 +2597,23 @@ createApp({
 
     const PHASE_COLORS = {
       cas_application: '#E2E8F0', inn_naming: '#DBEAFE',
-      chinese_submission: '#D1FAE5', pharmacopoeia_review: '#EDE9FE',
+      pharmacopoeia_review: '#EDE9FE',
       trademark: '#FED7AA',
+    };
+    // 同色系逐渐加深（中→深），与淡底色拉开对比度，用于日/周进度条
+    const PHASE_SHADES = {
+      cas_application:      ['#CBD5E1','#94A3B8','#64748B','#475569','#334155'],
+      inn_naming:           ['#93C5FD','#60A5FA','#3B82F6','#2563EB','#1D4ED8'],
+      pharmacopoeia_review: ['#C4B5FD','#A78BFA','#7C3AED','#6D28D9','#5B21B6'],
+      trademark:            ['#FDBA74','#FB923C','#F97316','#EA580C','#C2410C'],
     };
     const STATUS_COLORS = {
       pending: '#94A3B8', in_progress: '#3B82F6',
       completed: '#10B981', blocked: '#EF4444',
     };
-    const ROW_LABELS = ['CAS申请', 'INN命名', '中文名（+药典委）', '商标'];
-    const PHASE_TO_ROW = { cas_application:0, inn_naming:1, chinese_submission:2, pharmacopoeia_review:2, trademark:3 };
-    const SUB_LANE_OFFSET = { chinese_submission: -6, pharmacopoeia_review: 6 };
+    const ROW_LABELS = ['CAS申请', 'INN命名', '药典委核名', '商标'];
+    const PHASE_TO_ROW = { cas_application:0, inn_naming:1, pharmacopoeia_review:2, trademark:3 };
+    const SUB_LANE_OFFSET = { pharmacopoeia_review: 0 };
     const ROW_H = 36;
     const ROWS_PER_PROJECT = 4;
     const PJ_HEADER_H = 32;
@@ -2355,17 +2621,14 @@ createApp({
 
     // Row index → key milestone id for task info display in gantt
     const ROW_KEY_MILESTONE = { 0: 'cas_obtain', 1: 'inn_rinn', 2: 'pharm_approval', 3: 'tm_notice' };
-    const ROW_KEY_LABEL = { 0: 'CAS', 1: 'INN', 2: '中文名', 3: '商标' };
+    const ROW_KEY_LABEL = { 0: 'CAS', 1: 'INN', 2: '药典委', 3: '商标' };
 
     function pjRowMilestones(project, rowIdx) {
       const result = [];
       for (const phase of (project.phases || [])) {
         if (PHASE_TO_ROW[phase.id] !== rowIdx) continue;
         for (const m of (phase.milestones || [])) {
-          if (phase.id === 'pharmacopoeia_review') {
-            if (project.active_path === 'A' && m.id === 'pharm_tech_review') continue;
-            if (project.active_path === 'B' && m.id === 'pharm_auto_notice') continue;
-          }
+          if (m.path && phase.id === 'pharmacopoeia_review' && m.path !== (project.active_path || 'A')) continue;
           result.push({ milestone: m, phase: phase });
         }
       }
@@ -2382,6 +2645,22 @@ createApp({
 
     function pjProjectHeight(project) {
       return PJ_HEADER_H + pjActiveRows(project).length * ROW_H + PROJECT_GAP;
+    }
+
+    function _drawRoundedRect(ctx, x, y, w, h, r) {
+      if (w < 0) { x += w; w = -w; }
+      r = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.arcTo(x + w, y, x + w, y + r, r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+      ctx.lineTo(x + r, y + h);
+      ctx.arcTo(x, y + h, x, y + h - r, r);
+      ctx.lineTo(x, y + r);
+      ctx.arcTo(x, y, x + r, y, r);
+      ctx.closePath();
     }
 
     function pjRenderGantt() {
@@ -2431,7 +2710,60 @@ createApp({
         // ---- Time headers ----
         ctx.font = '600 13px "Noto Sans", sans-serif';
 
-        if (pjZoom.value === 'month') {
+        if (pjZoom.value === 'day') {
+          const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+          let cursor = new Date(viewportStart);
+          let di = 0;
+          while (cursor <= viewportEnd) {
+            const x = dateToX(cursor);
+            const isWeekend = cursor.getDay() === 0 || cursor.getDay() === 6;
+            const isToday = cursor.toDateString() === new Date().toDateString();
+            ctx.fillStyle = isToday ? '#DBEAFE' : isWeekend ? '#F1F5F9' : (di % 2 === 0) ? '#F8FAFC' : '#FFFFFF';
+            ctx.fillRect(x, 0, effectiveDayW, totalH);
+            ctx.fillStyle = '#94A3B8';
+            ctx.font = '10px "Noto Sans", sans-serif';
+            ctx.fillText(String(cursor.getDate()), x + 2, headerH - 12);
+            ctx.fillText(dayNames[cursor.getDay()], x + 2, headerH - 24);
+            if (cursor.getDate() === 1) {
+              ctx.fillStyle = '#0F172A';
+              ctx.font = '600 11px "Noto Sans", sans-serif';
+              ctx.fillText((cursor.getMonth() + 1) + '月', x + 2, headerH - 34);
+            }
+            ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 0.3;
+            ctx.beginPath(); ctx.moveTo(x, headerH); ctx.lineTo(x, totalH); ctx.stroke();
+            di++;
+            cursor.setDate(cursor.getDate() + 1);
+          }
+        } else if (pjZoom.value === 'week') {
+          let cursor = new Date(viewportStart);
+          // Align to Monday
+          const dow = cursor.getDay();
+          cursor.setDate(cursor.getDate() - (dow === 0 ? 6 : dow - 1));
+          let wi = 0;
+          while (cursor <= viewportEnd) {
+            const wEnd = new Date(cursor);
+            wEnd.setDate(wEnd.getDate() + 6);
+            const x = dateToX(cursor);
+            const w = daysToW(7);
+            const now = new Date();
+            const isCurrentWeek = cursor <= now && wEnd >= now;
+            ctx.fillStyle = isCurrentWeek ? '#E8F0FE' : (wi % 2 === 0) ? '#F8FAFC' : '#FFFFFF';
+            ctx.fillRect(x, 0, w, totalH);
+            ctx.fillStyle = '#94A3B8';
+            ctx.font = '11px "Noto Sans", sans-serif';
+            const mLabel = (cursor.getMonth() + 1) + '/' + cursor.getDate();
+            ctx.fillText(mLabel, x + 4, headerH - 12);
+            if (cursor.getMonth() !== (new Date(cursor.getFullYear(), cursor.getMonth() + 7)).getMonth() || wi === 0) {
+              ctx.fillStyle = '#0F172A';
+              ctx.font = '600 12px "Noto Sans", sans-serif';
+              ctx.fillText(String(cursor.getFullYear()), x + 4, headerH - 24);
+            }
+            ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.moveTo(x, headerH); ctx.lineTo(x, totalH); ctx.stroke();
+            wi++;
+            cursor.setDate(cursor.getDate() + 7);
+          }
+        } else if (pjZoom.value === 'month') {
           let cursor = new Date(viewportStart);
           let mi = 0;
           while (cursor <= viewportEnd) {
@@ -2617,10 +2949,7 @@ createApp({
           if (project.active_path === 'A' || project.active_path === 'B') {
             const ph4 = (project.phases || []).find(ph => ph.id === 'pharmacopoeia_review');
             if (ph4) {
-              const activeM = ph4.milestones.find(m =>
-                (project.active_path === 'A' && m.id === 'pharm_auto_notice') ||
-                (project.active_path === 'B' && m.id === 'pharm_tech_review')
-              );
+              const activeM = ph4.milestones.find(m => m.id === (project.active_path === 'A' ? 'pharm_auto_notice' : 'pharm_tech_review'));
               if (activeM) {
                 const pStart = activeM.planned_start || activeM.slowest_start;
                 if (pStart) {
@@ -2638,15 +2967,16 @@ createApp({
             }
           }
 
-          // Render each active row's timeline
+          // Render each active row's timeline (day/week = bars, month+ = start-aligned dots)
           for (let vi = 0; vi < activeRows.length; vi++) {
             const ri = activeRows[vi];
             const rowMs = pjRowMilestones(project, ri);
             if (rowMs.length === 0) continue;
 
             const ry = baseY + PJ_HEADER_H + vi * ROW_H;
+            const isDayWeek = pjZoom.value === 'day' || pjZoom.value === 'week';
+            const showNames = pjZoom.value === 'day' || pjZoom.value === 'week' || pjZoom.value === 'month';
 
-            // Group by phase for sub-lane rendering
             const byPhase = {};
             for (const { milestone, phase } of rowMs) {
               if (!byPhase[phase.id]) byPhase[phase.id] = { phase, milestones: [] };
@@ -2656,73 +2986,121 @@ createApp({
             for (const phaseId of Object.keys(byPhase)) {
               const { phase, milestones } = byPhase[phaseId];
               const sorted = [...milestones].sort((a, b) => a.order - b.order);
-              const hasLane = SUB_LANE_OFFSET[phaseId] !== undefined;
-              const laneY = ry + ROW_H / 2 + (hasLane ? SUB_LANE_OFFSET[phaseId] : 0);
 
-              const lineColor = phaseId === 'pharmacopoeia_review' ? '#7C3AED' : '#3B82F6';
+              if (isDayWeek) {
+                // Day/Week: colored progress bars from start → end, deepening shades per milestone
+                for (const m of sorted) {
+                  const ps = m.planned_start || m.slowest_start;
+                  const pe = m.planned_end || m.slowest_end;
+                  if (!ps || !pe) continue;
+                  const msDate = new Date(ps);
+                  const meDate = new Date(pe);
+                  if (meDate < viewportStart || msDate > viewportEnd) continue;
 
-              ctx.strokeStyle = lineColor;
-              ctx.lineWidth = 2.5;
-              if (phaseId === 'pharmacopoeia_review') ctx.setLineDash([5, 4]);
+                  let sx = dateToX(msDate);
+                  let ex = dateToX(meDate);
+                  if (msDate < viewportStart) sx = leftPad;
+                  if (meDate > viewportEnd) ex = leftPad + contentW;
 
-              ctx.beginPath();
-              let first = true;
-              for (const m of sorted) {
-                const ps = m.planned_start || m.slowest_start;
-                const pe = m.planned_end || m.slowest_end;
-                if (!ps || !pe) continue;
+                  const barH = ROW_H - 10;
+                  const barY = ry + 5;
+                  const barW = Math.max(ex - sx, 4);
+                  const shades = PHASE_SHADES[phaseId] || ['#94A3B8','#64748B'];
+                  const shadeIdx = sorted.indexOf(m);
+                  const shadeColor = shades[Math.min(shadeIdx, shades.length - 1)];
 
-                const msDate = new Date(ps);
-                const meDate = new Date(pe);
-                if (meDate < viewportStart || msDate > viewportEnd) continue;
+                  ctx.fillStyle = shadeColor;
+                  ctx.globalAlpha = 0.35;
+                  _drawRoundedRect(ctx, sx, barY, barW, barH, 3);
+                  ctx.fill();
+                  ctx.globalAlpha = 1.0;
 
-                let sx = dateToX(msDate);
-                let ex = dateToX(meDate);
-                const extendsLeft = msDate < viewportStart;
-                const extendsRight = meDate > viewportEnd;
+                  ctx.strokeStyle = shadeColor;
+                  ctx.lineWidth = 1.5;
+                  _drawRoundedRect(ctx, sx, barY, barW, barH, 3);
+                  ctx.stroke();
 
-                if (extendsLeft) {
-                  sx = leftPad;
-                  ctx.fillStyle = STATUS_COLORS[m.status] || '#94A3B8';
-                  ctx.beginPath(); ctx.moveTo(leftPad, laneY); ctx.lineTo(leftPad + 7, laneY - 3); ctx.lineTo(leftPad + 7, laneY + 3); ctx.closePath(); ctx.fill();
-                  ctx.strokeStyle = lineColor; ctx.lineWidth = 2.5;
-                  if (phaseId === 'pharmacopoeia_review') ctx.setLineDash([5, 4]);
+                  if (showNames && barW > 20 && msDate >= viewportStart) {
+                    ctx.fillStyle = '#1E293B';
+                    ctx.font = '10px "Noto Sans", sans-serif';
+                    const nameW = ctx.measureText(m.name).width;
+                    if (nameW < barW - 8) {
+                      ctx.fillText(m.name, sx + 5, barY + barH / 2 + 4);
+                    } else if (barW > 40) {
+                      let display = m.name;
+                      while (ctx.measureText(display + '…').width > barW - 8 && display.length > 1) display = display.slice(0, -1);
+                      ctx.fillText(display + '…', sx + 5, barY + barH / 2 + 4);
+                    }
+                  }
+
+                  _hits.push({ x: sx + barW / 2, y: barY + barH / 2, w: barW / 2, h: barH / 2, project, milestone: m });
                 }
-                if (extendsRight) {
-                  ex = leftPad + contentW;
-                  ctx.fillStyle = STATUS_COLORS[m.status] || '#94A3B8';
-                  ctx.beginPath(); ctx.moveTo(leftPad + contentW, laneY); ctx.lineTo(leftPad + contentW - 7, laneY - 3); ctx.lineTo(leftPad + contentW - 7, laneY + 3); ctx.closePath(); ctx.fill();
-                  ctx.strokeStyle = lineColor; ctx.lineWidth = 2.5;
-                  if (phaseId === 'pharmacopoeia_review') ctx.setLineDash([5, 4]);
-                }
+              } else {
+                // Month/Quarter/Year: connecting line with dots aligned to START dates
+                const laneY = ry + ROW_H / 2;
+                const lineColor = phaseId === 'pharmacopoeia_review' ? '#7C3AED' : '#3B82F6';
 
-                if (first) { ctx.moveTo(sx, laneY); first = false; }
-                else { ctx.lineTo(sx, laneY); }
-                ctx.lineTo(ex, laneY);
-
-                ctx.fillStyle = STATUS_COLORS[m.status] || '#94A3B8';
-                ctx.beginPath();
-                ctx.arc(ex, laneY, 5, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2;
-                ctx.setLineDash([]);
-                ctx.stroke();
-                ctx.strokeStyle = lineColor; ctx.lineWidth = 2.5;
+                ctx.strokeStyle = lineColor;
+                ctx.lineWidth = 2.5;
                 if (phaseId === 'pharmacopoeia_review') ctx.setLineDash([5, 4]);
 
-                _hits.push({ x: ex, y: laneY, r: 8, project, milestone: m });
-
-                if (pjZoom.value === 'month' && meDate <= viewportEnd) {
-                  ctx.fillStyle = '#334155';
-                  ctx.font = '9px "Noto Sans", sans-serif';
-                  ctx.fillText(m.name, ex + 8, laneY + 3);
-                }
-
                 ctx.beginPath();
-                ctx.moveTo(ex, laneY);
+                let first = true;
+                for (const m of sorted) {
+                  const ps = m.planned_start || m.slowest_start;
+                  const pe = m.planned_end || m.slowest_end;
+                  if (!ps || !pe) continue;
+
+                  const msDate = new Date(ps);
+                  const meDate = new Date(pe);
+                  if (meDate < viewportStart || msDate > viewportEnd) continue;
+
+                  let sx = dateToX(msDate);
+                  const extendsLeft = msDate < viewportStart;
+                  const extendsRight = meDate > viewportEnd;
+
+                  if (extendsLeft) {
+                    sx = leftPad;
+                    ctx.fillStyle = STATUS_COLORS[m.status] || '#94A3B8';
+                    ctx.beginPath(); ctx.moveTo(leftPad, laneY); ctx.lineTo(leftPad + 7, laneY - 3); ctx.lineTo(leftPad + 7, laneY + 3); ctx.closePath(); ctx.fill();
+                    ctx.strokeStyle = lineColor; ctx.lineWidth = 2.5;
+                    if (phaseId === 'pharmacopoeia_review') ctx.setLineDash([5, 4]);
+                  }
+                  if (extendsRight) {
+                    ctx.fillStyle = STATUS_COLORS[m.status] || '#94A3B8';
+                    ctx.beginPath(); ctx.moveTo(leftPad + contentW, laneY); ctx.lineTo(leftPad + contentW - 7, laneY - 3); ctx.lineTo(leftPad + contentW - 7, laneY + 3); ctx.closePath(); ctx.fill();
+                    ctx.strokeStyle = lineColor; ctx.lineWidth = 2.5;
+                    if (phaseId === 'pharmacopoeia_review') ctx.setLineDash([5, 4]);
+                  }
+
+                  if (first) { ctx.moveTo(sx, laneY); first = false; }
+                  else { ctx.lineTo(sx, laneY); }
+
+                  // Dot at START date
+                  ctx.fillStyle = STATUS_COLORS[m.status] || '#94A3B8';
+                  ctx.beginPath();
+                  ctx.arc(sx, laneY, 5, 0, Math.PI * 2);
+                  ctx.fill();
+                  ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2;
+                  ctx.setLineDash([]);
+                  ctx.stroke();
+                  ctx.strokeStyle = lineColor; ctx.lineWidth = 2.5;
+                  if (phaseId === 'pharmacopoeia_review') ctx.setLineDash([5, 4]);
+
+                  _hits.push({ x: sx, y: laneY, w: 8, h: 8, project, milestone: m });
+
+                  if (showNames && msDate >= viewportStart && msDate <= viewportEnd) {
+                    ctx.fillStyle = '#334155';
+                    ctx.font = '9px "Noto Sans", sans-serif';
+                    ctx.fillText(m.name, sx + 8, laneY + 3);
+                  }
+
+                  ctx.beginPath();
+                  ctx.moveTo(sx, laneY);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
               }
-              ctx.stroke();
-              ctx.setLineDash([]);
             }
           }
         }
@@ -2771,6 +3149,9 @@ createApp({
           pjProjects.value[idx] = updated;
           pjProjects.value = [...pjProjects.value];
         }
+        if (pjSelectedProject.value && pjSelectedProject.value.id === projectId) {
+          pjSelectedProject.value = updated;
+        }
         pjRenderGantt();
       } catch(e) { alert('更新失败: '+e.message); }
     }
@@ -2792,6 +3173,9 @@ createApp({
           if (idx >= 0) {
             pjProjects.value[idx] = updated;
             pjProjects.value = [...pjProjects.value];
+            if (pjSelectedProject.value && pjSelectedProject.value.id === projectId) {
+              pjSelectedProject.value = updated;
+            }
             for (const ph of updated.phases || []) {
               for (const m of ph.milestones || []) {
                 if (m.id === milestone.id) {
@@ -2832,7 +3216,7 @@ createApp({
       const my = e.clientY - rect.top;
       let found = null;
       for (const hit of canvas._hits) {
-        if (Math.sqrt((mx-hit.x)**2 + (my-hit.y)**2) <= hit.r) {
+        if (Math.abs(mx - hit.x) <= (hit.w || hit.r || 8) && Math.abs(my - hit.y) <= (hit.h || hit.r || 8)) {
           found = hit; break;
         }
       }
@@ -2859,7 +3243,7 @@ createApp({
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
       for (const hit of canvas._hits) {
-        if (Math.sqrt((mx-hit.x)**2 + (my-hit.y)**2) <= hit.r) {
+        if (Math.abs(mx - hit.x) <= (hit.w || hit.r || 8) && Math.abs(my - hit.y) <= (hit.h || hit.r || 8)) {
           pjDragState.value = {
             mode: 'milestone',
             project: hit.project, milestone: hit.milestone,
@@ -3061,7 +3445,8 @@ createApp({
       pjForm, pjTargetClasses, pjMechanisms, pjChemicalClasses,
       pjFiltered, pjPhaseName, pjStatusLabel, pjStatusBadgeClass,
       pjLoadProjects, pjCreateProject, pjImportCsv, pjDeleteProject,
-      pjSelectedProject, pjKeyMilestones, pjSelectProject, pjSaveResult, pjClearResult, pjClosePanel, pjSaveAndClose, pjMoveProject,
+      pjSelectedProject, pjExpandedPhases, pjTogglePhase, pjKeyResults, pjDeleteMilestone, pjSelectProject, pjSaveResult, pjClearResult, pjClosePanel, pjSaveAndClose, pjMoveProject,
+      pjVisibleMilestones, pjSwitchPath, pjShowAddMs, pjMoveMilestone, pjCreateMilestone, pjPanLeft, pjPanRight,
       pjShowPreview, pjPreviewProject, pjPreviewLoading, pjPreviewDates,
       pjPreviewCreate, setPrevDate, pjCloseCreate, previewSection,
       pjPhaseColors, pjPhaseColor, pjTimelineMin, pjTimelineMax, pjTimelineDays,

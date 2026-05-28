@@ -8,7 +8,10 @@ from ..models.naming import (
     NameGenerationResponse,
 )
 from ..data.targets import find_target
-from ..data.prefixes import CORE_PREFIXES, SMALL_MOLECULE_PREFIXES, ANTIBODY_PREFIXES
+from ..data.prefixes import (
+    CORE_PREFIXES, SMALL_MOLECULE_PREFIXES,
+    ANTIBODY_PREFIXES, ANTIBODY_PREFIXES_L1,
+)
 from ..engines.phonotactic import (
     count_syllables,
     has_invalid_consonant_cluster,
@@ -19,6 +22,94 @@ from collections import OrderedDict
 
 VOWELS = frozenset("aeiouy")
 CONSONANTS = frozenset("bcdfghjklmnpqrstvwxz")
+
+# ── Syllable-template prefix generation ───────────────────────────────────
+
+def _generate_syllable_prefixes() -> dict[int, list[str]]:
+    """Generate phonotactically valid prefixes using English syllable templates."""
+    from ..engines.phonotactic import (
+        VALID_ONSET_CLUSTERS, VALID_TRIPLE_ONSETS, VALID_CODA_CLUSTERS,
+    )
+
+    single_cons = sorted(CONSONANTS)
+    vowels = sorted(VOWELS)
+    onsets = sorted(VALID_ONSET_CLUSTERS)
+    triples = sorted(VALID_TRIPLE_ONSETS)
+    codas = sorted(VALID_CODA_CLUSTERS)
+    single_codas = ['b', 'd', 'f', 'g', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'x', 'z']
+
+    by_length: dict[int, list[str]] = {2: [], 3: [], 4: [], 5: [], 6: []}
+
+    # 2-letter: C + V
+    for c in single_cons:
+        for v in vowels:
+            by_length[2].append(c + v)
+
+    # 3-letter: onset_cluster + V
+    for cl in onsets:
+        for v in vowels:
+            by_length[3].append(cl + v)
+
+    # 3-letter: C + V + coda
+    for c in single_cons:
+        for v in vowels:
+            for cd in single_codas:
+                if c != cd:
+                    by_length[3].append(c + v + cd)
+
+    # 4-letter: onset_cluster + V + coda
+    for cl in onsets:
+        for v in vowels:
+            for cd in single_codas:
+                by_length[4].append(cl + v + cd)
+
+    # 4-letter: C + V + coda_cluster
+    for c in single_cons:
+        for v in vowels:
+            for cc in codas:
+                by_length[4].append(c + v + cc)
+
+    # 5-letter: triple_onset + V
+    for to in triples:
+        for v in vowels:
+            by_length[5].append(to + v)
+
+    # 5-letter: onset_cluster + V + coda_cluster
+    for cl in onsets:
+        for v in vowels:
+            for cc in codas:
+                by_length[5].append(cl + v + cc)
+
+    # 6-letter: triple_onset + V + coda
+    for to in triples:
+        for v in vowels:
+            for cd in single_codas:
+                by_length[6].append(to + v + cd)
+
+    # Filter: remove double-start and triple-repeated letters
+    for length in by_length:
+        filtered = []
+        for p in by_length[length]:
+            if len(p) >= 2 and p[0] == p[1]:
+                continue
+            if any(p[i] == p[i + 1] == p[i + 2] for i in range(len(p) - 2)):
+                continue
+            filtered.append(p)
+        by_length[length] = filtered
+
+    return by_length
+
+
+_SYLLABLE_PREFIXES: dict[int, list[str]] | None = None
+
+
+def _get_syllable_prefixes() -> dict[int, list[str]]:
+    """Lazily build and return the syllable-template prefix cache."""
+    global _SYLLABLE_PREFIXES
+    if _SYLLABLE_PREFIXES is None:
+        _SYLLABLE_PREFIXES = _generate_syllable_prefixes()
+    return _SYLLABLE_PREFIXES
+
 
 # WHO Rule 7: ph→f, th→t, y→i, avoid h/k
 _WHO_NORMALIZE = str.maketrans("", "", "hk")  # strip h/k entirely
@@ -102,51 +193,48 @@ class NameGenerationEngine:
                 if "h" in prefix.lower() or "k" in prefix.lower():
                     continue
                 for infix, suffix in stem_combos:
-                    # If no infix and prefix→suffix boundary is bad, try bridging vowels
-                    if infix is None and suffix is not None and not boundary_cluster_valid(prefix, suffix):
-                        bridged = False
-                        for bridge in ["i", "o", "a", "e"]:
-                            if boundary_cluster_valid(prefix, bridge) and boundary_cluster_valid(bridge, suffix):
-                                parts = [p for p in [prefix, bridge, suffix] if p]
-                                name = "".join(parts)
-                                all_candidates.append(NameCandidate(
-                                    name=name,
-                                    stems_used=[sm],
-                                    prefix=prefix,
-                                    infix=bridge,
-                                    suffix=suffix,
-                                    generation_method="structured",
-                                ))
-                                bridged = True
-                        if bridged:
-                            continue
-                        # No bridge works — skip this combination
-                        boundary_skips += 1
-                        continue
+                    # Use harmonizer: if prefix-suffix boundary is bad, auto-fix
+                    # with bridging vowels instead of discarding the combination.
+                    if suffix is not None:
+                        pfx_variants = self._harmonize_prefix(prefix, suffix)
+                    else:
+                        pfx_variants = [prefix]
 
-                    parts = [p for p in [prefix, infix, suffix] if p]
-                    # Check boundary consonant clusters between adjacent parts
-                    if any(
-                        not boundary_cluster_valid(parts[i], parts[i + 1])
-                        for i in range(len(parts) - 1)
-                    ):
-                        boundary_skips += 1
-                        continue
-                    name = "".join(parts)
-                    all_candidates.append(NameCandidate(
-                        name=name,
-                        stems_used=[sm],
-                        prefix=prefix,
-                        infix=infix,
-                        suffix=suffix,
-                        generation_method="structured",
-                    ))
+                    for pfx in pfx_variants:
+                        if infix is None and suffix is not None:
+                            # prefix is already harmonized — combine directly
+                            parts = [p for p in [pfx, suffix] if p]
+                        else:
+                            parts = [p for p in [pfx, infix, suffix] if p]
+
+                        # Check boundary between adjacent parts
+                        if any(
+                            not boundary_cluster_valid(parts[i], parts[i + 1])
+                            for i in range(len(parts) - 1)
+                        ):
+                            boundary_skips += 1
+                            continue
+
+                        name = "".join(parts)
+                        # Detect if prefix was bridged (infix is a single vowel)
+                        actual_infix = infix
+                        if infix is None and pfx != prefix:
+                            actual_infix = pfx[len(prefix):]
+
+                        all_candidates.append(NameCandidate(
+                            name=name,
+                            stems_used=[sm],
+                            prefix=prefix,
+                            infix=actual_infix if actual_infix else infix,
+                            suffix=suffix,
+                            generation_method="structured",
+                        ))
 
         total_generated = len(all_candidates)
 
-        # Phonological scoring
+        # Composite scoring (phonological + Chinese + WHO letter + length)
         for c in all_candidates:
-            c.phonological_score = self._phonological_score(c.name)
+            c.phonological_score = self._composite_score(c.name, c.prefix)
 
         # Merge with INN reference db
         if self._inn_db is not None:
@@ -324,15 +412,43 @@ class NameGenerationEngine:
         """Return the appropriate base prefix pool for the chemical class.
 
         Small molecules get phonotactically-generated syllable prefixes (2-6 chars).
-        Antibodies use a curated single-syllable pool for mAb naming conventions.
+        Antibodies use a merged pool: L1 (453 real WHO prefixes, 2-5 chars) + core
+        (55 single-syllable prefixes), with L1 first for priority. L1 prefixes ending
+        in consonants are included — _harmonize_prefix handles boundary fixes.
         """
         if cc in ('monoclonal_antibody', 'antibody_fragment', 'bispecific_antibody', 'antibody_drug_conjugate'):
-            return ANTIBODY_PREFIXES
+            # L1 first (proven WHO-compliant), then core (basic syllables)
+            merged = list(OrderedDict.fromkeys(ANTIBODY_PREFIXES_L1 + ANTIBODY_PREFIXES))
+            return merged
         sp = _get_syllable_prefixes()
         result: list[str] = []
         for length in (6, 5, 4, 3, 2):
             result.extend(sp.get(length, []))
         return result
+
+    @staticmethod
+    def _harmonize_prefix(prefix: str, suffix: str) -> list[str]:
+        """Return boundary-safe variants of a prefix for a given suffix.
+
+        When the prefix-suffix boundary forms an invalid consonant cluster
+        (e.g. cd + kitug → "cdk"), inject bridging vowels to create valid
+        English phonotactic transitions.  Returns the original prefix if no
+        fix is needed.
+        """
+        if boundary_cluster_valid(prefix, suffix):
+            return [prefix]
+
+        variants: list[str] = []
+        for vowel in ["a", "e", "i", "o"]:
+            variant = prefix + vowel
+            if boundary_cluster_valid(variant, suffix):
+                variants.append(variant)
+        # Also try with the prefix stripped of its trailing consonant
+        if prefix and prefix[-1] in CONSONANTS:
+            stripped = prefix[:-1]
+            if len(stripped) >= 1 and boundary_cluster_valid(stripped, suffix):
+                variants.append(stripped)
+        return variants if variants else [prefix]
 
     # ── Stem combo building ─────────────────────────────────────────────────
 
@@ -448,6 +564,87 @@ class NameGenerationEngine:
             score -= 0.15
 
         return max(0.0, min(1.0, score))
+
+    @staticmethod
+    def _chinese_transliterability(prefix: str) -> float:
+        """Pre-check how well a prefix can be transliterated into Chinese.
+
+        Returns 0.0-1.0 where 1.0 means every syllable in the prefix has
+        at least one good Chinese character mapping in SYLLABLE_TO_CHAR.
+        """
+        from ..engines.chinese_transliteration import SYLLABLE_TO_CHAR
+        if not prefix:
+            return 0.0
+
+        pfx = prefix.lower()
+        # Greedy syllable split (same as transliteration engine)
+        syllables: list[str] = []
+        pos = 0
+        while pos < len(pfx):
+            matched = False
+            for syl, ch in SYLLABLE_TO_CHAR:
+                if pfx.startswith(syl, pos):
+                    syllables.append(syl)
+                    pos += len(syl)
+                    matched = True
+                    break
+            if not matched:
+                pos += 1  # skip unmapped char
+
+        if not syllables:
+            return 0.5  # can't parse → neutral
+
+        mapped = sum(1 for syl in syllables
+                     if any(s == syl for s, ch in SYLLABLE_TO_CHAR))
+        return mapped / len(syllables)
+
+    @staticmethod
+    def _who_letter_score(name: str) -> float:
+        """Score prefix/name by WHO-preferred letter distribution.
+
+        WHO recommends: b, c, d, g, p, t, v, z for drug names.
+        Avoids: h, j, k, w, y (Rule 7).
+        Returns 0.0-1.0 bonus.
+        """
+        preferred = frozenset("bcdgptvz")
+        avoided = frozenset("hjkw")
+        s = name.lower()
+        if not s:
+            return 0.0
+        pref_ratio = sum(1 for ch in s if ch in preferred) / len(s)
+        avoid_ratio = sum(1 for ch in s if ch in avoided) / len(s)
+        return max(0.0, min(1.0, 0.5 + pref_ratio * 0.4 - avoid_ratio * 0.3))
+
+    def _composite_score(self, name: str, prefix: str | None) -> float:
+        """Multi-dimensional composite score for candidate ranking.
+
+        Combines:
+          - phonological quality  (0.40) — CVCV rhythm, syllable count, endings
+          - Chinese transliterability (0.30) — how well prefix maps to Chinese
+          - WHO letter preference (0.15) — preferred/avoided letters
+          - length bonus            (0.15) — 7-12 chars ideal for antibodies
+        """
+        phono = self._phonological_score(name)
+        chinese = self._chinese_transliterability(prefix or name)
+        who = self._who_letter_score(prefix or name)
+
+        # Length bonus: 7-12 chars ideal (most WHO-approved names)
+        nlen = len(name)
+        if 7 <= nlen <= 12:
+            length_bonus = 1.0
+        elif 5 <= nlen <= 6:
+            length_bonus = 0.7
+        elif 13 <= nlen <= 15:
+            length_bonus = 0.6
+        else:
+            length_bonus = 0.3
+
+        return (
+            0.40 * phono
+            + 0.30 * chinese
+            + 0.15 * who
+            + 0.15 * length_bonus
+        )
 
     # ── Validation helpers ──────────────────────────────────────────────────
 

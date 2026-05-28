@@ -229,6 +229,34 @@ def update_milestone(project_id: UUID, milestone_id: str, body: UpdateMilestoneB
     return project
 
 
+@router.delete("/{project_id}/milestones/{milestone_id}", response_model=Project)
+def delete_milestone(project_id: UUID, milestone_id: str) -> Project:
+    """Delete a milestone from its phase and recalculate project dates."""
+    projects = _load()
+    project = projects.get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    found = False
+    for phase in project.phases:
+        for i, m in enumerate(phase.milestones):
+            if m.id == milestone_id:
+                del phase.milestones[i]
+                found = True
+                break
+        if found:
+            break
+
+    if not found:
+        raise HTTPException(status_code=404, detail="Milestone not found")
+
+    recalculate_project_dates(project)
+    _update_project_status(project)
+    project.updated_at = datetime.now(timezone.utc)
+    _save(projects)
+    return project
+
+
 @router.post("/{project_id}/recalculate", response_model=Project)
 def recalculate_project(project_id: UUID) -> Project:
     """Recalculate all milestone dates after dependency changes."""
@@ -237,6 +265,101 @@ def recalculate_project(project_id: UUID) -> Project:
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     recalculate_project_dates(project)
+    project.updated_at = datetime.now(timezone.utc)
+    _save(projects)
+    return project
+
+
+class CreateMilestoneBody(BaseModel):
+    name: str
+    fastest_days: int = 30
+    slowest_days: int = 60
+    path: str | None = None
+
+
+@router.post("/{project_id}/phases/{phase_id}/milestones", response_model=Project)
+def create_milestone(project_id: UUID, phase_id: str, body: CreateMilestoneBody) -> Project:
+    """Add a new milestone to a phase."""
+    projects = _load()
+    project = projects.get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    phase = next((p for p in project.phases if p.id == phase_id), None)
+    if not phase:
+        raise HTTPException(status_code=404, detail="Phase not found")
+
+    max_order = max((m.order for m in phase.milestones), default=0)
+    new_id = f"custom_{phase_id}_{max_order + 1}"
+    new_ms = Milestone(
+        id=new_id,
+        name=body.name,
+        phase=phase_id,
+        order=max_order + 1,
+        fastest_days=body.fastest_days,
+        slowest_days=body.slowest_days,
+        path=body.path,
+    )
+    phase.milestones.append(new_ms)
+    recalculate_project_dates(project)
+    _update_project_status(project)
+    project.updated_at = datetime.now(timezone.utc)
+    _save(projects)
+    return project
+
+
+class ReorderMilestonesBody(BaseModel):
+    milestone_ids: list[str]  # New order
+
+
+@router.put("/{project_id}/phases/{phase_id}/milestones/reorder", response_model=Project)
+def reorder_milestones(project_id: UUID, phase_id: str, body: ReorderMilestonesBody) -> Project:
+    """Reorder milestones within a phase."""
+    projects = _load()
+    project = projects.get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    phase = next((p for p in project.phases if p.id == phase_id), None)
+    if not phase:
+        raise HTTPException(status_code=404, detail="Phase not found")
+
+    by_id = {m.id: m for m in phase.milestones}
+    new_order = []
+    for i, mid in enumerate(body.milestone_ids):
+        m = by_id.get(mid)
+        if m:
+            m.order = i + 1
+            new_order.append(m)
+    # Append any milestones not in the reorder list
+    for m in phase.milestones:
+        if m not in new_order:
+            m.order = len(new_order) + 1
+            new_order.append(m)
+    phase.milestones = new_order
+    recalculate_project_dates(project)
+    _update_project_status(project)
+    project.updated_at = datetime.now(timezone.utc)
+    _save(projects)
+    return project
+
+
+class UpdatePathBody(BaseModel):
+    active_path: str  # "A" or "B"
+
+
+@router.patch("/{project_id}/path", response_model=Project)
+def update_project_path(project_id: UUID, body: UpdatePathBody) -> Project:
+    """Switch active path for pharmacopoeia (A=auto, B=active)."""
+    if body.active_path not in ("A", "B"):
+        raise HTTPException(status_code=400, detail="active_path must be 'A' or 'B'")
+    projects = _load()
+    project = projects.get(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    project.active_path = body.active_path
+    recalculate_project_dates(project)
+    _update_project_status(project)
     project.updated_at = datetime.now(timezone.utc)
     _save(projects)
     return project

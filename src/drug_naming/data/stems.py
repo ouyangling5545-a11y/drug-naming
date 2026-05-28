@@ -9727,6 +9727,24 @@ STEMS: list[INNStem] = [
         priority=0,
         source="化学药物INN词干定义",
     ),
+    INNStem(
+        stem="-kitug",
+        position=StemPosition.SUFFIX,
+        category=StemCategory.CHEMICAL_CLASS_STEM,
+        meaning="immunoglobulins (ki-series monoclonal antibody)",
+        who_definition=None,
+        chinese="奇塔单抗",
+        target_classes=[],
+        mechanisms=["antibody"],
+        chemical_classes=["monoclonal_antibody"],
+        indications=[],
+        examples=[],
+        infix_required=False,
+        allowed_infixes=[],
+        exclusion_rules=[],
+        priority=5,
+        source="User-defined",
+    ),
 ]
 
 # ── Query helpers ──

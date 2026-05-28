@@ -47,6 +47,7 @@ class RecommendCandidate(BaseModel):
     combined_score: float = Field(description="POCA 2D worst score, 0-100")
     phonetic_score: float
     orthographic_score: float
+    worst_comparison: str = Field(default="", description="Closest-matching INN reference name")
     chinese_transliterations: list[str] = Field(description="3 Chinese transliteration variants")
     poca_assessment: str = Field(description="PASS / REVIEW / REJECT")
 
@@ -190,7 +191,7 @@ def recommend_names(body: RecommendRequest) -> RecommendResponse:
     )
     gen_response = gen_engine.generate(gen_request)
 
-    # 5. Build POCA engine with trigram-indexed full INN reference list
+    # 5. Build POCA engine + trigram index over FULL INN reference database
     all_stems = [s.stem for s in provider.get_all_stems()]
     inn_db = get_inn_reference_db()
     poca_engine = POCAScoringEngine(
@@ -198,70 +199,126 @@ def recommend_names(body: RecommendRequest) -> RecommendResponse:
         inn_reference_db=inn_db,
     )
 
-    stem_core = stem_obj.stem.strip("-")
-    smart_refs = poca_engine.smart_references(stem_core + "ib", max_refs=30)
-    if not smart_refs:
-        smart_refs = ["imatinib", "erlotinib", "gefitinib", "osimertinib",
-                      "dasatinib", "nilotinib", "sorafenib", "sunitinib",
-                      "ibrutinib", "acalabrutinib"]
-
-    # Build trigram index over all INN refs for fast cross-stem lookup
     all_inn_refs_list = sorted(inn_db.english_names) if inn_db else []
-    trigram_index: dict[str, list[str]] = {}
+    trigram_index: dict[str, set[str]] = {}
+    prefix_index: dict[str, set[str]] = {}  # 2-4 char prefix → matching INN refs
     for ref in all_inn_refs_list:
-        for i in range(len(ref) - 2):
-            t = ref[i:i + 3].lower()
-            trigram_index.setdefault(t, []).append(ref)
+        rl = ref.lower()
+        for i in range(len(rl) - 2):
+            t = rl[i:i + 3]
+            trigram_index.setdefault(t, set()).add(ref)
+        for plen in (2, 3, 4):
+            if len(rl) >= plen:
+                p = rl[:plen]
+                prefix_index.setdefault(p, set()).add(ref)
 
     # 6. Chinese transliteration prep: suffix stem detection
     suffix_cn = stem_obj.chinese.lstrip("-").strip() if stem_obj.chinese else ""
     suffix_core = stem_obj.stem.strip("-").lower()
 
-    # 7. Score each candidate: smart refs + trigram-matching refs, early stop at 3 over threshold
+    # 7. Score each candidate against the FULL INN DB with smart references,
+    #    trigram overlap, and prefix matching (1000 ref cap). Score all refs
+    #    for accurate worst-score, then apply stop-strategy filter: if ≥3 refs
+    #    exceed threshold OR any ref ≥80%, the candidate is too similar.
+    smart_base = poca_engine.smart_references(suffix_core + "ib", max_refs=500)
+    if not smart_base:
+        smart_base = ["imatinib", "erlotinib", "gefitinib", "osimertinib",
+                      "dasatinib", "nilotinib", "sorafenib", "sunitinib",
+                      "ibrutinib", "acalabrutinib"]
+
     poca_threshold_ratio = body.poca_threshold / 100.0
-    poca_filtered = 0
+    stop_strategy_filtered = 0
+    poca_scored = 0
+    MAX_REFS_PER_CANDIDATE = 1000
     results: list[RecommendCandidate] = []
+
     for c in gen_response.candidates:
+        name_lower = c.name.lower()
+
+        # Collect trigram-matched refs, ranked by overlap count
+        overlap: dict[str, int] = {}  # lower_name → overlap count
+        for i in range(len(name_lower) - 2):
+            t = name_lower[i:i + 3]
+            for ref in trigram_index.get(t, ()):
+                rl = ref.lower()
+                if rl != name_lower:
+                    overlap[rl] = overlap.get(rl, 0) + 1
+
+        # Collect prefix-matched refs (same 2-4 char prefix with INN names)
+        prefix_overlap: dict[str, int] = {}
+        for plen in (2, 3, 4):
+            if len(name_lower) >= plen:
+                pfx = name_lower[:plen]
+                for ref in prefix_index.get(pfx, ()):
+                    rl = ref.lower()
+                    if rl != name_lower:
+                        prefix_overlap[rl] = prefix_overlap.get(rl, 0) + 1
+
+        # Build ref list: smart_base → trigram overlap → prefix match
+        refs_to_check: list[str] = []
+        added: set[str] = set()
+        for ref in smart_base:
+            rl = ref.lower()
+            if rl != name_lower and rl not in added:
+                refs_to_check.append(ref)
+                added.add(rl)
+
+        for rl in sorted(overlap, key=overlap.get, reverse=True):
+            if len(refs_to_check) >= MAX_REFS_PER_CANDIDATE:
+                break
+            if rl not in added:
+                refs_to_check.append(rl)
+                added.add(rl)
+
+        for rl in sorted(prefix_overlap, key=prefix_overlap.get, reverse=True):
+            if len(refs_to_check) >= MAX_REFS_PER_CANDIDATE:
+                break
+            if rl not in added:
+                refs_to_check.append(rl)
+                added.add(rl)
+
+        if not refs_to_check:
+            results.append(RecommendCandidate(
+                name=c.name, prefix=c.prefix, infix=c.infix, suffix=c.suffix,
+                phonological_score=round(c.phonological_score, 3),
+                combined_score=0, phonetic_score=0, orthographic_score=0,
+                worst_comparison="",
+                chinese_transliterations=[],
+                poca_assessment="PASS",
+            ))
+            continue
+
+        # Score against all selected refs to find the true worst pair.
+        # Also track stop-strategy counters: if ≥3 refs exceed threshold
+        # OR any ref ≥80%, the candidate is too similar to existing INN names.
         worst_score = 0.0
         worst_phonetic = 0.0
         worst_ortho = 0.0
+        worst_comp = ""
         over_threshold_count = 0
-
-        # Collect trigram-matching refs for this candidate (capped at 50 total)
-        name_lower = c.name.lower()
-        seen_refs = set(smart_refs)
-        refs_to_check = list(smart_refs)
-        MAX_REFS = 50
-        for i in range(len(name_lower) - 2):
-            if len(refs_to_check) >= MAX_REFS:
-                break
-            t = name_lower[i:i + 3]
-            for ref in trigram_index.get(t, []):
-                if ref not in seen_refs:
-                    seen_refs.add(ref)
-                    refs_to_check.append(ref)
-                    if len(refs_to_check) >= MAX_REFS:
-                        break
-
+        found_80pct = False
+        poca_scored += 1
         for ref in refs_to_check:
             detail = poca_engine.score_pair(c.name, ref, mode="fda")
             if detail.overall_poca_score > worst_score:
                 worst_score = detail.overall_poca_score
                 worst_phonetic = detail.phonetic_score
                 worst_ortho = detail.orthographic_score
+                worst_comp = ref
+
             if detail.overall_poca_score >= poca_threshold_ratio:
                 over_threshold_count += 1
-                if over_threshold_count >= 3:
-                    break  # early stop: 3 references above threshold → reject candidate
+            if detail.overall_poca_score >= 0.80:
+                found_80pct = True
 
-        if over_threshold_count >= 3:
-            poca_filtered += 1
+        # Filter candidates matching the stop strategy (too similar to existing INN)
+        if over_threshold_count >= 3 or found_80pct:
+            stop_strategy_filtered += 1
             continue
 
         combined = round(worst_score * 100)
 
         # Chinese transliteration: transliterate prefix + known suffix Chinese
-        name_lower = c.name.lower()
         pfx = c.prefix or ""
         if suffix_cn and name_lower.endswith(suffix_core):
             pfx_variants = _transliterate_prefix_variants(pfx, n=3)
@@ -288,6 +345,7 @@ def recommend_names(body: RecommendRequest) -> RecommendResponse:
             combined_score=combined,
             phonetic_score=round(worst_phonetic * 100),
             orthographic_score=round(worst_ortho * 100),
+            worst_comparison=worst_comp,
             chinese_transliterations=cn_variants,
             poca_assessment=assessment,
         ))
@@ -333,7 +391,7 @@ def recommend_names(body: RecommendRequest) -> RecommendResponse:
         stats={
             "total_generated": gen_response.total_generated,
             "filtered_by_generation": gen_response.filtered_out,
-            "filtered_by_poca_threshold": poca_filtered,
+            "filtered_by_poca_threshold": stop_strategy_filtered,
             "flag_counts": gen_response.flag_counts,
         },
     )

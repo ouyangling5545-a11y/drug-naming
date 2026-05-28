@@ -42,6 +42,7 @@
             "planned_end": "2026-06-05",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -65,6 +66,7 @@
               "cas_doc_prep"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -88,8 +90,9 @@
               "cas_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
-            "result": ""
+            "result": "2968436-32-8"
           }
         ],
         "is_parallel": false,
@@ -118,6 +121,7 @@
             "planned_end": "2026-06-25",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -141,6 +145,7 @@
               "inn_name_determined"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -164,6 +169,7 @@
               "inn_submission"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -187,6 +193,7 @@
               "inn_consultation"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -210,6 +217,7 @@
               "inn_pinn_published"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -233,6 +241,7 @@
               "inn_pinn_objection"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -263,6 +272,7 @@
             "planned_end": "2026-09-30",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -286,6 +296,7 @@
               "chin_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -316,6 +327,7 @@
             "planned_end": "2027-12-31",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径A: pINN后10-11个月自动触发，公示1个月",
             "result": ""
           },
@@ -337,6 +349,7 @@
             "planned_end": "2027-08-25",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径B: CDE受理后流转，无公示期",
             "result": ""
           },
@@ -361,6 +374,7 @@
               "pharm_tech_review"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -391,6 +405,7 @@
             "planned_end": "2027-01-29",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -414,6 +429,7 @@
               "tm_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -437,6 +453,7 @@
               "tm_cde_check"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -460,6 +477,7 @@
               "tm_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -493,6 +511,7 @@
               "tm_notice"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "药典委核准 + 商标公示均完成后触发",
             "result": ""
           }
@@ -501,13 +520,13 @@
         "parallel_trigger": null
       }
     ],
-    "current_phase": "",
-    "current_milestone": "",
+    "current_phase": "cas_application",
+    "current_milestone": "cas_doc_prep",
     "overall_status": "on_track",
     "nda_date": "2028-03-31",
     "active_path": "A",
     "created_at": "2026-05-27T07:21:12.465032Z",
-    "updated_at": "2026-05-27T07:21:12.465035Z",
+    "updated_at": "2026-05-28T08:02:38.979928Z",
     "csv_source": null,
     "sort_order": 7
   },
@@ -541,19 +560,20 @@
             "name": "CAS资料准备",
             "phase": "cas_application",
             "order": 1,
-            "status": "pending",
+            "status": "completed",
             "fastest_days": 3,
             "slowest_days": 7,
-            "fastest_start": "2026-05-27",
-            "fastest_end": "2026-06-01",
-            "slowest_start": "2026-05-27",
-            "slowest_end": "2026-06-05",
+            "fastest_start": "2026-05-28",
+            "fastest_end": "2026-06-02",
+            "slowest_start": "2026-05-28",
+            "slowest_end": "2026-06-08",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-05-27",
-            "planned_end": "2026-06-05",
+            "planned_start": "2025-10-27",
+            "planned_end": "2025-10-31",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -562,21 +582,22 @@
             "name": "CAS申请递交",
             "phase": "cas_application",
             "order": 2,
-            "status": "pending",
+            "status": "completed",
             "fastest_days": 1,
             "slowest_days": 3,
-            "fastest_start": "2026-06-02",
-            "fastest_end": "2026-06-03",
-            "slowest_start": "2026-06-08",
-            "slowest_end": "2026-06-11",
+            "fastest_start": "2026-06-03",
+            "fastest_end": "2026-06-04",
+            "slowest_start": "2026-06-09",
+            "slowest_end": "2026-06-12",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-06-08",
-            "planned_end": "2026-06-11",
+            "planned_start": "2025-11-03",
+            "planned_end": "2025-11-03",
             "depends_on": [
               "cas_doc_prep"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -585,23 +606,24 @@
             "name": "CAS号获取",
             "phase": "cas_application",
             "order": 3,
-            "status": "pending",
+            "status": "completed",
             "fastest_days": 5,
             "slowest_days": 15,
-            "fastest_start": "2026-06-04",
-            "fastest_end": "2026-06-11",
-            "slowest_start": "2026-06-12",
-            "slowest_end": "2026-07-03",
+            "fastest_start": "2026-06-05",
+            "fastest_end": "2026-06-12",
+            "slowest_start": "2026-06-15",
+            "slowest_end": "2026-07-06",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-06-12",
-            "planned_end": "2026-07-03",
+            "planned_start": "2025-11-03",
+            "planned_end": "2025-11-14",
             "depends_on": [
               "cas_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
-            "result": ""
+            "result": "3105270-13-8"
           }
         ],
         "is_parallel": false,
@@ -617,19 +639,20 @@
             "name": "确定申报名",
             "phase": "inn_naming",
             "order": 1,
-            "status": "pending",
+            "status": "completed",
             "fastest_days": 4,
             "slowest_days": 10,
-            "fastest_start": "2026-06-11",
-            "fastest_end": "2026-06-17",
-            "slowest_start": "2026-06-11",
-            "slowest_end": "2026-06-25",
+            "fastest_start": "2026-06-12",
+            "fastest_end": "2026-06-18",
+            "slowest_start": "2026-06-12",
+            "slowest_end": "2026-06-26",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-06-11",
-            "planned_end": "2026-06-25",
+            "planned_start": "2025-11-10",
+            "planned_end": "2025-12-19",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -638,21 +661,22 @@
             "name": "INN申请提交",
             "phase": "inn_naming",
             "order": 2,
-            "status": "pending",
+            "status": "completed",
             "fastest_days": 5,
             "slowest_days": 10,
-            "fastest_start": "2026-06-18",
-            "fastest_end": "2026-06-25",
-            "slowest_start": "2026-06-26",
-            "slowest_end": "2026-07-10",
+            "fastest_start": "2026-06-19",
+            "fastest_end": "2026-06-26",
+            "slowest_start": "2026-06-29",
+            "slowest_end": "2026-07-13",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-06-26",
-            "planned_end": "2026-07-10",
+            "planned_start": "2025-12-19",
+            "planned_end": "2025-12-19",
             "depends_on": [
               "inn_name_determined"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -661,7 +685,7 @@
             "name": "INN会议",
             "phase": "inn_naming",
             "order": 3,
-            "status": "pending",
+            "status": "completed",
             "fastest_days": 0,
             "slowest_days": 0,
             "fastest_start": "2026-10-01",
@@ -676,6 +700,7 @@
               "inn_submission"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -699,29 +724,7 @@
               "inn_consultation"
             ],
             "parallel_with": null,
-            "notes": "",
-            "result": ""
-          },
-          {
-            "id": "inn_pinn_objection",
-            "name": "pINN反对期",
-            "phase": "inn_naming",
-            "order": 5,
-            "status": "pending",
-            "fastest_days": 80,
-            "slowest_days": 80,
-            "fastest_start": "2026-12-25",
-            "fastest_end": "2027-04-16",
-            "slowest_start": "2027-01-22",
-            "slowest_end": "2027-05-14",
-            "actual_start": null,
-            "actual_end": null,
-            "planned_start": "2027-01-22",
-            "planned_end": "2027-05-14",
-            "depends_on": [
-              "inn_pinn_published"
-            ],
-            "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -733,10 +736,10 @@
             "status": "pending",
             "fastest_days": 100,
             "slowest_days": 120,
-            "fastest_start": "2027-04-19",
-            "fastest_end": "2027-09-06",
-            "slowest_start": "2027-05-17",
-            "slowest_end": "2027-11-01",
+            "fastest_start": "2026-10-01",
+            "fastest_end": "2027-02-18",
+            "slowest_start": "2026-10-01",
+            "slowest_end": "2027-03-18",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2027-01-18",
@@ -745,6 +748,7 @@
               "inn_pinn_objection"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -765,16 +769,17 @@
             "status": "pending",
             "fastest_days": 3,
             "slowest_days": 7,
-            "fastest_start": "2026-09-21",
-            "fastest_end": "2026-09-24",
-            "slowest_start": "2026-09-21",
-            "slowest_end": "2026-09-30",
+            "fastest_start": "2026-09-22",
+            "fastest_end": "2026-09-25",
+            "slowest_start": "2026-09-22",
+            "slowest_end": "2026-10-01",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-09-21",
-            "planned_end": "2026-09-30",
+            "planned_start": "2027-12-01",
+            "planned_end": "2027-12-27",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -786,18 +791,19 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 15,
-            "fastest_start": "2026-09-25",
-            "fastest_end": "2026-10-02",
-            "slowest_start": "2026-10-01",
-            "slowest_end": "2026-10-22",
+            "fastest_start": "2026-09-28",
+            "fastest_end": "2026-10-05",
+            "slowest_start": "2026-10-02",
+            "slowest_end": "2026-10-23",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-10-01",
-            "planned_end": "2026-10-22",
+            "planned_start": "2027-12-31",
+            "planned_end": "2027-12-31",
             "depends_on": [
               "chin_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -818,16 +824,17 @@
             "status": "pending",
             "fastest_days": 200,
             "slowest_days": 220,
-            "fastest_start": "2027-06-02",
-            "fastest_end": "2028-03-08",
-            "slowest_start": "2027-06-02",
-            "slowest_end": "2028-04-05",
+            "fastest_start": "2026-10-30",
+            "fastest_end": "2027-08-06",
+            "slowest_start": "2026-10-30",
+            "slowest_end": "2027-09-03",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2027-05-24",
             "planned_end": "2027-06-23",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径A: pINN后10-11个月自动触发，公示1个月",
             "result": ""
           },
@@ -839,16 +846,17 @@
             "status": "pending",
             "fastest_days": 30,
             "slowest_days": 60,
-            "fastest_start": "2027-06-02",
-            "fastest_end": "2027-07-14",
-            "slowest_start": "2027-06-02",
-            "slowest_end": "2027-08-25",
+            "fastest_start": "2026-10-30",
+            "fastest_end": "2026-12-11",
+            "slowest_start": "2026-10-30",
+            "slowest_end": "2027-01-22",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2027-06-02",
-            "planned_end": "2027-08-25",
+            "planned_start": "2028-01-17",
+            "planned_end": "2028-02-28",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径B: CDE受理后流转，无公示期",
             "result": ""
           },
@@ -860,19 +868,20 @@
             "status": "pending",
             "fastest_days": 10,
             "slowest_days": 20,
-            "fastest_start": "2028-03-09",
-            "fastest_end": "2028-03-23",
-            "slowest_start": "2028-04-06",
-            "slowest_end": "2028-05-04",
+            "fastest_start": "2027-08-06",
+            "fastest_end": "2027-08-20",
+            "slowest_start": "2027-08-06",
+            "slowest_end": "2027-09-03",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2028-04-06",
-            "planned_end": "2028-05-04",
+            "planned_start": "2028-03-06",
+            "planned_end": "2028-03-13",
             "depends_on": [
               "pharm_auto_notice",
               "pharm_tech_review"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -893,16 +902,17 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 10,
-            "fastest_start": "2026-09-21",
-            "fastest_end": "2026-09-28",
-            "slowest_start": "2026-09-21",
-            "slowest_end": "2026-10-05",
+            "fastest_start": "2026-09-22",
+            "fastest_end": "2026-09-29",
+            "slowest_start": "2026-09-22",
+            "slowest_end": "2026-10-06",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-09-26",
             "planned_end": "2026-10-27",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -914,10 +924,10 @@
             "status": "pending",
             "fastest_days": 20,
             "slowest_days": 35,
-            "fastest_start": "2026-09-29",
-            "fastest_end": "2026-10-27",
-            "slowest_start": "2026-10-06",
-            "slowest_end": "2026-11-24",
+            "fastest_start": "2026-09-30",
+            "fastest_end": "2026-10-28",
+            "slowest_start": "2026-10-07",
+            "slowest_end": "2026-11-25",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-10-28",
@@ -926,6 +936,7 @@
               "tm_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -937,18 +948,19 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 10,
-            "fastest_start": "2026-10-28",
-            "fastest_end": "2026-11-04",
-            "slowest_start": "2026-11-25",
-            "slowest_end": "2026-12-09",
+            "fastest_start": "2026-10-29",
+            "fastest_end": "2026-11-05",
+            "slowest_start": "2026-11-26",
+            "slowest_end": "2026-12-10",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-11-25",
+            "planned_start": "2026-11-30",
             "planned_end": "2026-12-09",
             "depends_on": [
               "tm_cde_check"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -960,18 +972,19 @@
             "status": "pending",
             "fastest_days": 180,
             "slowest_days": 180,
-            "fastest_start": "2026-11-05",
-            "fastest_end": "2027-07-15",
-            "slowest_start": "2026-12-10",
-            "slowest_end": "2027-08-19",
+            "fastest_start": "2026-11-06",
+            "fastest_end": "2027-07-16",
+            "slowest_start": "2026-12-11",
+            "slowest_end": "2027-08-20",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-11-30",
-            "planned_end": "2027-09-30",
+            "planned_start": "2026-05-31",
+            "planned_end": "2027-08-31",
             "depends_on": [
               "tm_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -992,10 +1005,10 @@
             "status": "pending",
             "fastest_days": 0,
             "slowest_days": 0,
-            "fastest_start": "2028-03-24",
-            "fastest_end": "2028-03-24",
-            "slowest_start": "2028-05-05",
-            "slowest_end": "2028-05-05",
+            "fastest_start": "2027-08-24",
+            "fastest_end": "2027-08-24",
+            "slowest_start": "2027-10-05",
+            "slowest_end": "2027-10-05",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2027-12-31",
@@ -1005,6 +1018,7 @@
               "tm_notice"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "药典委核准 + 商标公示均完成后触发",
             "result": ""
           }
@@ -1013,13 +1027,13 @@
         "parallel_trigger": null
       }
     ],
-    "current_phase": "",
-    "current_milestone": "",
+    "current_phase": "inn_naming",
+    "current_milestone": "inn_pinn_published",
     "overall_status": "on_track",
     "nda_date": "2027-12-31",
     "active_path": "A",
     "created_at": "2026-05-27T07:21:12.467931Z",
-    "updated_at": "2026-05-27T07:21:12.467933Z",
+    "updated_at": "2026-05-28T09:42:21.440190Z",
     "csv_source": null,
     "sort_order": 6
   },
@@ -1056,16 +1070,17 @@
             "status": "pending",
             "fastest_days": 3,
             "slowest_days": 7,
-            "fastest_start": "2026-05-27",
-            "fastest_end": "2026-06-01",
-            "slowest_start": "2026-05-27",
-            "slowest_end": "2026-06-05",
+            "fastest_start": "2026-05-28",
+            "fastest_end": "2026-06-02",
+            "slowest_start": "2026-05-28",
+            "slowest_end": "2026-06-08",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-05-27",
-            "planned_end": "2026-06-05",
+            "planned_start": "2028-11-06",
+            "planned_end": "2028-11-13",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1077,18 +1092,19 @@
             "status": "pending",
             "fastest_days": 1,
             "slowest_days": 3,
-            "fastest_start": "2026-06-02",
-            "fastest_end": "2026-06-03",
-            "slowest_start": "2026-06-08",
-            "slowest_end": "2026-06-11",
+            "fastest_start": "2026-06-03",
+            "fastest_end": "2026-06-04",
+            "slowest_start": "2026-06-09",
+            "slowest_end": "2026-06-12",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-06-08",
-            "planned_end": "2026-06-11",
+            "planned_start": "2028-11-13",
+            "planned_end": "2028-11-15",
             "depends_on": [
               "cas_doc_prep"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1100,18 +1116,19 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 15,
-            "fastest_start": "2026-06-04",
-            "fastest_end": "2026-06-11",
-            "slowest_start": "2026-06-12",
-            "slowest_end": "2026-07-03",
+            "fastest_start": "2026-06-05",
+            "fastest_end": "2026-06-12",
+            "slowest_start": "2026-06-15",
+            "slowest_end": "2026-07-06",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2028-11-13",
+            "planned_start": "2028-11-15",
             "planned_end": "2028-11-29",
             "depends_on": [
               "cas_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -1132,16 +1149,17 @@
             "status": "pending",
             "fastest_days": 4,
             "slowest_days": 10,
-            "fastest_start": "2026-06-11",
-            "fastest_end": "2026-06-17",
-            "slowest_start": "2026-06-11",
-            "slowest_end": "2026-06-25",
+            "fastest_start": "2026-06-12",
+            "fastest_end": "2026-06-18",
+            "slowest_start": "2026-06-12",
+            "slowest_end": "2026-06-26",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-06-11",
-            "planned_end": "2026-06-25",
+            "planned_start": "2028-10-09",
+            "planned_end": "2028-11-17",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1153,18 +1171,19 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 10,
-            "fastest_start": "2026-06-18",
-            "fastest_end": "2026-06-25",
-            "slowest_start": "2026-06-26",
-            "slowest_end": "2026-07-10",
+            "fastest_start": "2026-06-19",
+            "fastest_end": "2026-06-26",
+            "slowest_start": "2026-06-29",
+            "slowest_end": "2026-07-13",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2028-11-30",
-            "planned_end": "2029-02-23",
+            "planned_start": "2028-11-20",
+            "planned_end": "2026-01-10",
             "depends_on": [
               "inn_name_determined"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1188,6 +1207,7 @@
               "inn_submission"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1211,29 +1231,7 @@
               "inn_consultation"
             ],
             "parallel_with": null,
-            "notes": "",
-            "result": ""
-          },
-          {
-            "id": "inn_pinn_objection",
-            "name": "pINN反对期",
-            "phase": "inn_naming",
-            "order": 5,
-            "status": "pending",
-            "fastest_days": 80,
-            "slowest_days": 80,
-            "fastest_start": "2026-12-25",
-            "fastest_end": "2027-04-16",
-            "slowest_start": "2027-01-22",
-            "slowest_end": "2027-05-14",
-            "actual_start": null,
-            "actual_end": null,
-            "planned_start": "2027-01-22",
-            "planned_end": "2027-05-14",
-            "depends_on": [
-              "inn_pinn_published"
-            ],
-            "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1245,10 +1243,10 @@
             "status": "pending",
             "fastest_days": 100,
             "slowest_days": 120,
-            "fastest_start": "2027-04-19",
-            "fastest_end": "2027-09-06",
-            "slowest_start": "2027-05-17",
-            "slowest_end": "2027-11-01",
+            "fastest_start": "2026-10-01",
+            "fastest_end": "2027-02-18",
+            "slowest_start": "2026-10-01",
+            "slowest_end": "2027-03-18",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2030-01-25",
@@ -1257,6 +1255,7 @@
               "inn_pinn_objection"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -1277,16 +1276,17 @@
             "status": "pending",
             "fastest_days": 3,
             "slowest_days": 7,
-            "fastest_start": "2026-09-21",
-            "fastest_end": "2026-09-24",
-            "slowest_start": "2026-09-21",
-            "slowest_end": "2026-09-30",
+            "fastest_start": "2026-09-22",
+            "fastest_end": "2026-09-25",
+            "slowest_start": "2026-09-22",
+            "slowest_end": "2026-10-01",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-09-21",
             "planned_end": "2026-09-30",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1298,18 +1298,19 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 15,
-            "fastest_start": "2026-09-25",
-            "fastest_end": "2026-10-02",
-            "slowest_start": "2026-10-01",
-            "slowest_end": "2026-10-22",
+            "fastest_start": "2026-09-28",
+            "fastest_end": "2026-10-05",
+            "slowest_start": "2026-10-02",
+            "slowest_end": "2026-10-23",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-10-01",
-            "planned_end": "2026-10-22",
+            "planned_start": "2030-10-22",
+            "planned_end": "2030-10-29",
             "depends_on": [
               "chin_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -1330,16 +1331,17 @@
             "status": "pending",
             "fastest_days": 200,
             "slowest_days": 220,
-            "fastest_start": "2027-06-02",
-            "fastest_end": "2028-03-08",
-            "slowest_start": "2027-06-02",
-            "slowest_end": "2028-04-05",
+            "fastest_start": "2026-10-30",
+            "fastest_end": "2027-08-06",
+            "slowest_start": "2026-10-30",
+            "slowest_end": "2027-09-03",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2030-05-24",
             "planned_end": "2030-06-24",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径A: pINN后10-11个月自动触发，公示1个月",
             "result": ""
           },
@@ -1351,16 +1353,17 @@
             "status": "pending",
             "fastest_days": 30,
             "slowest_days": 60,
-            "fastest_start": "2027-06-02",
-            "fastest_end": "2027-07-14",
-            "slowest_start": "2027-06-02",
-            "slowest_end": "2027-08-25",
+            "fastest_start": "2026-10-30",
+            "fastest_end": "2026-12-11",
+            "slowest_start": "2026-10-30",
+            "slowest_end": "2027-01-22",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2027-06-02",
             "planned_end": "2027-08-25",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径B: CDE受理后流转，无公示期",
             "result": ""
           },
@@ -1372,10 +1375,10 @@
             "status": "pending",
             "fastest_days": 10,
             "slowest_days": 20,
-            "fastest_start": "2028-03-09",
-            "fastest_end": "2028-03-23",
-            "slowest_start": "2028-04-06",
-            "slowest_end": "2028-05-04",
+            "fastest_start": "2027-08-06",
+            "fastest_end": "2027-08-20",
+            "slowest_start": "2027-08-06",
+            "slowest_end": "2027-09-03",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2028-04-06",
@@ -1385,6 +1388,7 @@
               "pharm_tech_review"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -1405,16 +1409,17 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 10,
-            "fastest_start": "2026-09-21",
-            "fastest_end": "2026-09-28",
-            "slowest_start": "2026-09-21",
-            "slowest_end": "2026-10-05",
+            "fastest_start": "2026-09-22",
+            "fastest_end": "2026-09-29",
+            "slowest_start": "2026-09-22",
+            "slowest_end": "2026-10-06",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2029-07-23",
             "planned_end": "2029-08-24",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1426,10 +1431,10 @@
             "status": "pending",
             "fastest_days": 20,
             "slowest_days": 35,
-            "fastest_start": "2026-09-29",
-            "fastest_end": "2026-10-27",
-            "slowest_start": "2026-10-06",
-            "slowest_end": "2026-11-24",
+            "fastest_start": "2026-09-30",
+            "fastest_end": "2026-10-28",
+            "slowest_start": "2026-10-07",
+            "slowest_end": "2026-11-25",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2029-08-27",
@@ -1438,6 +1443,7 @@
               "tm_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1449,10 +1455,10 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 10,
-            "fastest_start": "2026-10-28",
-            "fastest_end": "2026-11-04",
-            "slowest_start": "2026-11-25",
-            "slowest_end": "2026-12-09",
+            "fastest_start": "2026-10-29",
+            "fastest_end": "2026-11-05",
+            "slowest_start": "2026-11-26",
+            "slowest_end": "2026-12-10",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-11-25",
@@ -1461,6 +1467,7 @@
               "tm_cde_check"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1472,10 +1479,10 @@
             "status": "pending",
             "fastest_days": 180,
             "slowest_days": 180,
-            "fastest_start": "2026-11-05",
-            "fastest_end": "2027-07-15",
-            "slowest_start": "2026-12-10",
-            "slowest_end": "2027-08-19",
+            "fastest_start": "2026-11-06",
+            "fastest_end": "2027-07-16",
+            "slowest_start": "2026-12-11",
+            "slowest_end": "2027-08-20",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2029-09-28",
@@ -1484,6 +1491,7 @@
               "tm_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -1504,10 +1512,10 @@
             "status": "pending",
             "fastest_days": 0,
             "slowest_days": 0,
-            "fastest_start": "2028-03-24",
-            "fastest_end": "2028-03-24",
-            "slowest_start": "2028-05-05",
-            "slowest_end": "2028-05-05",
+            "fastest_start": "2027-08-24",
+            "fastest_end": "2027-08-24",
+            "slowest_start": "2027-10-05",
+            "slowest_end": "2027-10-05",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2030-10-22",
@@ -1517,6 +1525,7 @@
               "tm_notice"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "药典委核准 + 商标公示均完成后触发",
             "result": ""
           }
@@ -1525,13 +1534,13 @@
         "parallel_trigger": null
       }
     ],
-    "current_phase": "",
-    "current_milestone": "",
+    "current_phase": "cas_application",
+    "current_milestone": "cas_doc_prep",
     "overall_status": "on_track",
     "nda_date": "2030-10-22",
     "active_path": "A",
     "created_at": "2026-05-27T07:21:12.470729Z",
-    "updated_at": "2026-05-27T07:21:12.470730Z",
+    "updated_at": "2026-05-28T09:29:06.462418Z",
     "csv_source": null,
     "sort_order": 5
   },
@@ -1578,6 +1587,7 @@
             "planned_end": "2026-06-05",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1601,6 +1611,7 @@
               "cas_doc_prep"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1624,6 +1635,7 @@
               "cas_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -1654,6 +1666,7 @@
             "planned_end": "2026-06-25",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1677,6 +1690,7 @@
               "inn_name_determined"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1700,6 +1714,7 @@
               "inn_submission"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1723,6 +1738,7 @@
               "inn_consultation"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1746,6 +1762,7 @@
               "inn_pinn_published"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1769,6 +1786,7 @@
               "inn_pinn_objection"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -1799,6 +1817,7 @@
             "planned_end": "2026-09-30",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1822,6 +1841,7 @@
               "chin_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -1852,6 +1872,7 @@
             "planned_end": "2029-06-29",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径A: pINN后10-11个月自动触发，公示1个月",
             "result": ""
           },
@@ -1873,6 +1894,7 @@
             "planned_end": "2027-08-25",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径B: CDE受理后流转，无公示期",
             "result": ""
           },
@@ -1897,6 +1919,7 @@
               "pharm_tech_review"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -1927,6 +1950,7 @@
             "planned_end": "2028-08-11",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1950,6 +1974,7 @@
               "tm_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1973,6 +1998,7 @@
               "tm_cde_check"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -1996,6 +2022,7 @@
               "tm_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -2029,6 +2056,7 @@
               "tm_notice"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "药典委核准 + 商标公示均完成后触发",
             "result": ""
           }
@@ -2080,16 +2108,17 @@
             "status": "pending",
             "fastest_days": 3,
             "slowest_days": 7,
-            "fastest_start": "2026-05-27",
-            "fastest_end": "2026-06-01",
-            "slowest_start": "2026-05-27",
-            "slowest_end": "2026-06-05",
+            "fastest_start": "2026-05-28",
+            "fastest_end": "2026-06-02",
+            "slowest_start": "2026-05-28",
+            "slowest_end": "2026-06-08",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-05-27",
             "planned_end": "2026-06-05",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2101,10 +2130,10 @@
             "status": "pending",
             "fastest_days": 1,
             "slowest_days": 3,
-            "fastest_start": "2026-06-02",
-            "fastest_end": "2026-06-03",
-            "slowest_start": "2026-06-08",
-            "slowest_end": "2026-06-11",
+            "fastest_start": "2026-06-03",
+            "fastest_end": "2026-06-04",
+            "slowest_start": "2026-06-09",
+            "slowest_end": "2026-06-12",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-06-08",
@@ -2113,6 +2142,7 @@
               "cas_doc_prep"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2124,10 +2154,10 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 15,
-            "fastest_start": "2026-06-04",
-            "fastest_end": "2026-06-11",
-            "slowest_start": "2026-06-12",
-            "slowest_end": "2026-07-03",
+            "fastest_start": "2026-06-05",
+            "fastest_end": "2026-06-12",
+            "slowest_start": "2026-06-15",
+            "slowest_end": "2026-07-06",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-06-12",
@@ -2136,8 +2166,9 @@
               "cas_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
-            "result": ""
+            "result": "2379980-45-5"
           }
         ],
         "is_parallel": false,
@@ -2156,16 +2187,17 @@
             "status": "pending",
             "fastest_days": 4,
             "slowest_days": 10,
-            "fastest_start": "2026-06-11",
-            "fastest_end": "2026-06-17",
-            "slowest_start": "2026-06-11",
-            "slowest_end": "2026-06-25",
+            "fastest_start": "2026-06-12",
+            "fastest_end": "2026-06-18",
+            "slowest_start": "2026-06-12",
+            "slowest_end": "2026-06-26",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-06-11",
             "planned_end": "2026-06-25",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2177,10 +2209,10 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 10,
-            "fastest_start": "2026-06-18",
-            "fastest_end": "2026-06-25",
-            "slowest_start": "2026-06-26",
-            "slowest_end": "2026-07-10",
+            "fastest_start": "2026-06-19",
+            "fastest_end": "2026-06-26",
+            "slowest_start": "2026-06-29",
+            "slowest_end": "2026-07-13",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-06-26",
@@ -2189,6 +2221,7 @@
               "inn_name_determined"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2212,6 +2245,7 @@
               "inn_submission"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2235,6 +2269,7 @@
               "inn_consultation"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2258,6 +2293,7 @@
               "inn_pinn_published"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2275,14 +2311,15 @@
             "slowest_end": "2027-11-01",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2027-05-17",
+            "planned_start": "2027-05-23",
             "planned_end": "2027-11-01",
             "depends_on": [
               "inn_pinn_objection"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
-            "result": ""
+            "result": "davalomilast"
           }
         ],
         "is_parallel": false,
@@ -2301,16 +2338,17 @@
             "status": "pending",
             "fastest_days": 3,
             "slowest_days": 7,
-            "fastest_start": "2026-09-21",
-            "fastest_end": "2026-09-24",
-            "slowest_start": "2026-09-21",
-            "slowest_end": "2026-09-30",
+            "fastest_start": "2026-09-22",
+            "fastest_end": "2026-09-25",
+            "slowest_start": "2026-09-22",
+            "slowest_end": "2026-10-01",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-09-21",
             "planned_end": "2026-09-30",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2322,10 +2360,10 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 15,
-            "fastest_start": "2026-09-25",
-            "fastest_end": "2026-10-02",
-            "slowest_start": "2026-10-01",
-            "slowest_end": "2026-10-22",
+            "fastest_start": "2026-09-28",
+            "fastest_end": "2026-10-05",
+            "slowest_start": "2026-10-02",
+            "slowest_end": "2026-10-23",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-10-01",
@@ -2334,6 +2372,7 @@
               "chin_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -2354,16 +2393,17 @@
             "status": "pending",
             "fastest_days": 200,
             "slowest_days": 220,
-            "fastest_start": "2027-06-02",
-            "fastest_end": "2028-03-08",
-            "slowest_start": "2027-06-02",
-            "slowest_end": "2028-04-05",
+            "fastest_start": "2027-06-03",
+            "fastest_end": "2028-03-09",
+            "slowest_start": "2027-06-03",
+            "slowest_end": "2028-04-06",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-05-20",
             "planned_end": "2026-06-19",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径A: pINN后10-11个月自动触发，公示1个月",
             "result": ""
           },
@@ -2375,16 +2415,17 @@
             "status": "pending",
             "fastest_days": 30,
             "slowest_days": 60,
-            "fastest_start": "2027-06-02",
-            "fastest_end": "2027-07-14",
-            "slowest_start": "2027-06-02",
-            "slowest_end": "2027-08-25",
+            "fastest_start": "2027-06-03",
+            "fastest_end": "2027-07-15",
+            "slowest_start": "2027-06-03",
+            "slowest_end": "2027-08-26",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2027-06-02",
             "planned_end": "2027-08-25",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径B: CDE受理后流转，无公示期",
             "result": ""
           },
@@ -2398,8 +2439,8 @@
             "slowest_days": 20,
             "fastest_start": "2028-03-09",
             "fastest_end": "2028-03-23",
-            "slowest_start": "2028-04-06",
-            "slowest_end": "2028-05-04",
+            "slowest_start": "2028-03-09",
+            "slowest_end": "2028-04-06",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2028-04-06",
@@ -2409,8 +2450,9 @@
               "pharm_tech_review"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
-            "result": ""
+            "result": "达罗米司特"
           }
         ],
         "is_parallel": false,
@@ -2429,16 +2471,17 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 10,
-            "fastest_start": "2026-09-21",
-            "fastest_end": "2026-09-28",
-            "slowest_start": "2026-09-21",
-            "slowest_end": "2026-10-05",
+            "fastest_start": "2026-09-22",
+            "fastest_end": "2026-09-29",
+            "slowest_start": "2026-09-22",
+            "slowest_end": "2026-10-06",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2030-09-27",
             "planned_end": "2030-10-28",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2450,10 +2493,10 @@
             "status": "pending",
             "fastest_days": 20,
             "slowest_days": 35,
-            "fastest_start": "2026-09-29",
-            "fastest_end": "2026-10-27",
-            "slowest_start": "2026-10-06",
-            "slowest_end": "2026-11-24",
+            "fastest_start": "2026-09-30",
+            "fastest_end": "2026-10-28",
+            "slowest_start": "2026-10-07",
+            "slowest_end": "2026-11-25",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2030-10-29",
@@ -2462,6 +2505,7 @@
               "tm_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2473,10 +2517,10 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 10,
-            "fastest_start": "2026-10-28",
-            "fastest_end": "2026-11-04",
-            "slowest_start": "2026-11-25",
-            "slowest_end": "2026-12-09",
+            "fastest_start": "2026-10-29",
+            "fastest_end": "2026-11-05",
+            "slowest_start": "2026-11-26",
+            "slowest_end": "2026-12-10",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-11-25",
@@ -2485,6 +2529,7 @@
               "tm_cde_check"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2496,10 +2541,10 @@
             "status": "pending",
             "fastest_days": 180,
             "slowest_days": 180,
-            "fastest_start": "2026-11-05",
-            "fastest_end": "2027-07-15",
-            "slowest_start": "2026-12-10",
-            "slowest_end": "2027-08-19",
+            "fastest_start": "2026-11-06",
+            "fastest_end": "2027-07-16",
+            "slowest_start": "2026-12-11",
+            "slowest_end": "2027-08-20",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2030-11-30",
@@ -2508,6 +2553,7 @@
               "tm_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -2528,10 +2574,10 @@
             "status": "pending",
             "fastest_days": 0,
             "slowest_days": 0,
-            "fastest_start": "2028-03-24",
-            "fastest_end": "2028-03-24",
-            "slowest_start": "2028-05-05",
-            "slowest_end": "2028-05-05",
+            "fastest_start": "2028-03-27",
+            "fastest_end": "2028-03-27",
+            "slowest_start": "2028-05-08",
+            "slowest_end": "2028-05-08",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2031-12-31",
@@ -2541,6 +2587,7 @@
               "tm_notice"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "药典委核准 + 商标公示均完成后触发",
             "result": ""
           }
@@ -2549,13 +2596,13 @@
         "parallel_trigger": null
       }
     ],
-    "current_phase": "",
-    "current_milestone": "",
+    "current_phase": "cas_application",
+    "current_milestone": "cas_doc_prep",
     "overall_status": "on_track",
     "nda_date": "2031-12-31",
     "active_path": "A",
     "created_at": "2026-05-27T07:21:12.479200Z",
-    "updated_at": "2026-05-27T07:21:12.479201Z",
+    "updated_at": "2026-05-28T09:24:14.230841Z",
     "csv_source": null,
     "sort_order": 3
   },
@@ -2602,6 +2649,7 @@
             "planned_end": "2026-06-05",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2625,6 +2673,7 @@
               "cas_doc_prep"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2648,6 +2697,7 @@
               "cas_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -2678,6 +2728,7 @@
             "planned_end": "2026-06-25",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2701,6 +2752,7 @@
               "inn_name_determined"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2724,6 +2776,7 @@
               "inn_submission"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2747,6 +2800,7 @@
               "inn_consultation"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2770,6 +2824,7 @@
               "inn_pinn_published"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2793,6 +2848,7 @@
               "inn_pinn_objection"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -2823,6 +2879,7 @@
             "planned_end": "2026-09-30",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2846,6 +2903,7 @@
               "chin_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -2876,6 +2934,7 @@
             "planned_end": "2029-06-29",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径A: pINN后10-11个月自动触发，公示1个月",
             "result": ""
           },
@@ -2897,6 +2956,7 @@
             "planned_end": "2027-08-25",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径B: CDE受理后流转，无公示期",
             "result": ""
           },
@@ -2921,6 +2981,7 @@
               "pharm_tech_review"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -2951,6 +3012,7 @@
             "planned_end": "2028-07-31",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2974,6 +3036,7 @@
               "tm_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -2997,6 +3060,7 @@
               "tm_cde_check"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3020,6 +3084,7 @@
               "tm_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -3053,6 +3118,7 @@
               "tm_notice"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "药典委核准 + 商标公示均完成后触发",
             "result": ""
           }
@@ -3101,19 +3167,20 @@
             "name": "CAS资料准备",
             "phase": "cas_application",
             "order": 1,
-            "status": "pending",
+            "status": "completed",
             "fastest_days": 3,
             "slowest_days": 7,
-            "fastest_start": "2026-05-27",
-            "fastest_end": "2026-06-01",
-            "slowest_start": "2026-05-27",
-            "slowest_end": "2026-06-05",
+            "fastest_start": "2026-05-28",
+            "fastest_end": "2026-06-02",
+            "slowest_start": "2026-05-28",
+            "slowest_end": "2026-06-08",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-05-27",
-            "planned_end": "2026-06-05",
+            "planned_start": "2026-01-01",
+            "planned_end": "2026-01-01",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3122,21 +3189,22 @@
             "name": "CAS申请递交",
             "phase": "cas_application",
             "order": 2,
-            "status": "pending",
+            "status": "completed",
             "fastest_days": 1,
             "slowest_days": 3,
-            "fastest_start": "2026-06-02",
-            "fastest_end": "2026-06-03",
-            "slowest_start": "2026-06-08",
-            "slowest_end": "2026-06-11",
+            "fastest_start": "2026-06-03",
+            "fastest_end": "2026-06-04",
+            "slowest_start": "2026-06-09",
+            "slowest_end": "2026-06-12",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-06-08",
-            "planned_end": "2026-06-11",
+            "planned_start": "2026-01-01",
+            "planned_end": "2026-01-01",
             "depends_on": [
               "cas_doc_prep"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3145,23 +3213,24 @@
             "name": "CAS号获取",
             "phase": "cas_application",
             "order": 3,
-            "status": "pending",
+            "status": "completed",
             "fastest_days": 5,
             "slowest_days": 15,
-            "fastest_start": "2026-06-04",
-            "fastest_end": "2026-06-11",
-            "slowest_start": "2026-06-12",
-            "slowest_end": "2026-07-03",
+            "fastest_start": "2026-06-05",
+            "fastest_end": "2026-06-12",
+            "slowest_start": "2026-06-15",
+            "slowest_end": "2026-07-06",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-06-12",
-            "planned_end": "2026-07-03",
+            "planned_start": "2026-01-01",
+            "planned_end": "2026-01-01",
             "depends_on": [
               "cas_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
-            "result": ""
+            "result": "1814918-91-6"
           }
         ],
         "is_parallel": false,
@@ -3177,19 +3246,20 @@
             "name": "确定申报名",
             "phase": "inn_naming",
             "order": 1,
-            "status": "pending",
+            "status": "completed",
             "fastest_days": 4,
             "slowest_days": 10,
-            "fastest_start": "2026-06-11",
-            "fastest_end": "2026-06-17",
-            "slowest_start": "2026-06-11",
-            "slowest_end": "2026-06-25",
+            "fastest_start": "2026-06-12",
+            "fastest_end": "2026-06-18",
+            "slowest_start": "2026-06-12",
+            "slowest_end": "2026-06-26",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-06-11",
-            "planned_end": "2026-06-25",
+            "planned_start": "2025-01-01",
+            "planned_end": "2025-01-01",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3198,21 +3268,22 @@
             "name": "INN申请提交",
             "phase": "inn_naming",
             "order": 2,
-            "status": "pending",
+            "status": "completed",
             "fastest_days": 5,
             "slowest_days": 10,
-            "fastest_start": "2026-06-18",
-            "fastest_end": "2026-06-25",
-            "slowest_start": "2026-06-26",
-            "slowest_end": "2026-07-10",
+            "fastest_start": "2026-06-19",
+            "fastest_end": "2026-06-26",
+            "slowest_start": "2026-06-29",
+            "slowest_end": "2026-07-13",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-06-26",
-            "planned_end": "2026-07-10",
+            "planned_start": "2025-02-15",
+            "planned_end": "2025-02-15",
             "depends_on": [
               "inn_name_determined"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3221,7 +3292,7 @@
             "name": "INN会议",
             "phase": "inn_naming",
             "order": 3,
-            "status": "pending",
+            "status": "completed",
             "fastest_days": 0,
             "slowest_days": 0,
             "fastest_start": "2026-10-01",
@@ -3230,12 +3301,13 @@
             "slowest_end": "2026-10-01",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-10-01",
+            "planned_start": "2025-10-01",
             "planned_end": "2026-10-01",
             "depends_on": [
               "inn_submission"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3244,7 +3316,7 @@
             "name": "pINN公示",
             "phase": "inn_naming",
             "order": 4,
-            "status": "pending",
+            "status": "in_progress",
             "fastest_days": 60,
             "slowest_days": 80,
             "fastest_start": "2026-10-01",
@@ -3253,35 +3325,13 @@
             "slowest_end": "2027-01-21",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-01-29",
-            "planned_end": "2026-05-29",
+            "planned_start": "2026-01-26",
+            "planned_end": "2027-05-26",
             "depends_on": [
               "inn_consultation"
             ],
             "parallel_with": null,
-            "notes": "",
-            "result": ""
-          },
-          {
-            "id": "inn_pinn_objection",
-            "name": "pINN反对期",
-            "phase": "inn_naming",
-            "order": 5,
-            "status": "pending",
-            "fastest_days": 80,
-            "slowest_days": 80,
-            "fastest_start": "2026-12-25",
-            "fastest_end": "2027-04-16",
-            "slowest_start": "2027-01-22",
-            "slowest_end": "2027-05-14",
-            "actual_start": null,
-            "actual_end": null,
-            "planned_start": "2027-01-22",
-            "planned_end": "2027-05-14",
-            "depends_on": [
-              "inn_pinn_published"
-            ],
-            "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3293,20 +3343,21 @@
             "status": "pending",
             "fastest_days": 100,
             "slowest_days": 120,
-            "fastest_start": "2027-04-19",
-            "fastest_end": "2027-09-06",
-            "slowest_start": "2027-05-17",
-            "slowest_end": "2027-11-01",
+            "fastest_start": "2026-10-01",
+            "fastest_end": "2027-02-18",
+            "slowest_start": "2026-10-01",
+            "slowest_end": "2027-03-18",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-10-23",
-            "planned_end": "2026-11-23",
+            "planned_start": "2026-09-01",
+            "planned_end": "2026-09-30",
             "depends_on": [
               "inn_pinn_objection"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
-            "result": ""
+            "result": "soralimixin"
           }
         ],
         "is_parallel": false,
@@ -3325,16 +3376,17 @@
             "status": "pending",
             "fastest_days": 3,
             "slowest_days": 7,
-            "fastest_start": "2026-09-21",
-            "fastest_end": "2026-09-24",
-            "slowest_start": "2026-09-21",
-            "slowest_end": "2026-09-30",
+            "fastest_start": "2026-09-22",
+            "fastest_end": "2026-09-25",
+            "slowest_start": "2026-09-22",
+            "slowest_end": "2026-10-01",
             "actual_start": null,
             "actual_end": null,
-            "planned_start": "2026-09-21",
-            "planned_end": "2026-09-30",
+            "planned_start": "2026-07-01",
+            "planned_end": "2026-07-30",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3346,10 +3398,10 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 15,
-            "fastest_start": "2026-09-25",
-            "fastest_end": "2026-10-02",
-            "slowest_start": "2026-10-01",
-            "slowest_end": "2026-10-22",
+            "fastest_start": "2026-09-28",
+            "fastest_end": "2026-10-05",
+            "slowest_start": "2026-10-02",
+            "slowest_end": "2026-10-23",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-10-01",
@@ -3358,6 +3410,7 @@
               "chin_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -3371,59 +3424,17 @@
         "order": 4,
         "milestones": [
           {
-            "id": "pharm_auto_notice",
-            "name": "药典委自动公示",
-            "phase": "pharmacopoeia_review",
-            "order": 1,
-            "status": "pending",
-            "fastest_days": 200,
-            "slowest_days": 220,
-            "fastest_start": "2027-06-02",
-            "fastest_end": "2028-03-08",
-            "slowest_start": "2027-06-02",
-            "slowest_end": "2028-04-05",
-            "actual_start": null,
-            "actual_end": null,
-            "planned_start": "2026-12-21",
-            "planned_end": "2027-01-22",
-            "depends_on": [],
-            "parallel_with": null,
-            "notes": "路径A: pINN后10-11个月自动触发，公示1个月",
-            "result": ""
-          },
-          {
-            "id": "pharm_tech_review",
-            "name": "药典委技术审评",
-            "phase": "pharmacopoeia_review",
-            "order": 2,
-            "status": "pending",
-            "fastest_days": 30,
-            "slowest_days": 60,
-            "fastest_start": "2027-06-02",
-            "fastest_end": "2027-07-14",
-            "slowest_start": "2027-06-02",
-            "slowest_end": "2027-08-25",
-            "actual_start": null,
-            "actual_end": null,
-            "planned_start": "2027-06-02",
-            "planned_end": "2027-08-25",
-            "depends_on": [],
-            "parallel_with": null,
-            "notes": "路径B: CDE受理后流转，无公示期",
-            "result": ""
-          },
-          {
             "id": "pharm_approval",
             "name": "收到核准文件",
             "phase": "pharmacopoeia_review",
-            "order": 3,
+            "order": 1,
             "status": "pending",
             "fastest_days": 10,
             "slowest_days": 20,
-            "fastest_start": "2028-03-09",
-            "fastest_end": "2028-03-23",
-            "slowest_start": "2028-04-06",
-            "slowest_end": "2028-05-04",
+            "fastest_start": "2027-08-06",
+            "fastest_end": "2027-08-20",
+            "slowest_start": "2027-08-06",
+            "slowest_end": "2027-09-03",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2028-04-06",
@@ -3433,7 +3444,52 @@
               "pharm_tech_review"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
+            "result": ""
+          },
+          {
+            "id": "pharm_auto_notice",
+            "name": "药典委自动公示",
+            "phase": "pharmacopoeia_review",
+            "order": 2,
+            "status": "pending",
+            "fastest_days": 200,
+            "slowest_days": 220,
+            "fastest_start": "2026-10-30",
+            "fastest_end": "2027-08-06",
+            "slowest_start": "2026-10-30",
+            "slowest_end": "2027-09-03",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2026-11-21",
+            "planned_end": "2027-01-22",
+            "depends_on": [],
+            "parallel_with": null,
+            "path": null,
+            "notes": "路径A: pINN后10-11个月自动触发，公示1个月",
+            "result": ""
+          },
+          {
+            "id": "pharm_tech_review",
+            "name": "药典委技术审评",
+            "phase": "pharmacopoeia_review",
+            "order": 3,
+            "status": "pending",
+            "fastest_days": 30,
+            "slowest_days": 60,
+            "fastest_start": "2026-10-30",
+            "fastest_end": "2026-12-11",
+            "slowest_start": "2026-10-30",
+            "slowest_end": "2027-01-22",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2027-06-02",
+            "planned_end": "2027-08-25",
+            "depends_on": [],
+            "parallel_with": null,
+            "path": null,
+            "notes": "路径B: CDE受理后流转，无公示期",
             "result": ""
           }
         ],
@@ -3453,16 +3509,17 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 10,
-            "fastest_start": "2026-09-21",
-            "fastest_end": "2026-09-28",
-            "slowest_start": "2026-09-21",
-            "slowest_end": "2026-10-05",
+            "fastest_start": "2026-09-22",
+            "fastest_end": "2026-09-29",
+            "slowest_start": "2026-09-22",
+            "slowest_end": "2026-10-06",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2028-07-03",
             "planned_end": "2028-07-31",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3474,10 +3531,10 @@
             "status": "pending",
             "fastest_days": 20,
             "slowest_days": 35,
-            "fastest_start": "2026-09-29",
-            "fastest_end": "2026-10-27",
-            "slowest_start": "2026-10-06",
-            "slowest_end": "2026-11-24",
+            "fastest_start": "2026-09-30",
+            "fastest_end": "2026-10-28",
+            "slowest_start": "2026-10-07",
+            "slowest_end": "2026-11-25",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2028-08-01",
@@ -3486,6 +3543,7 @@
               "tm_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3497,10 +3555,10 @@
             "status": "pending",
             "fastest_days": 5,
             "slowest_days": 10,
-            "fastest_start": "2026-10-28",
-            "fastest_end": "2026-11-04",
-            "slowest_start": "2026-11-25",
-            "slowest_end": "2026-12-09",
+            "fastest_start": "2026-10-29",
+            "fastest_end": "2026-11-05",
+            "slowest_start": "2026-11-26",
+            "slowest_end": "2026-12-10",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2026-11-25",
@@ -3509,6 +3567,7 @@
               "tm_cde_check"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3520,10 +3579,10 @@
             "status": "pending",
             "fastest_days": 180,
             "slowest_days": 180,
-            "fastest_start": "2026-11-05",
-            "fastest_end": "2027-07-15",
-            "slowest_start": "2026-12-10",
-            "slowest_end": "2027-08-19",
+            "fastest_start": "2026-11-06",
+            "fastest_end": "2027-07-16",
+            "slowest_start": "2026-12-11",
+            "slowest_end": "2027-08-20",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2028-08-31",
@@ -3532,6 +3591,7 @@
               "tm_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -3552,10 +3612,10 @@
             "status": "pending",
             "fastest_days": 0,
             "slowest_days": 0,
-            "fastest_start": "2028-03-24",
-            "fastest_end": "2028-03-24",
-            "slowest_start": "2028-05-05",
-            "slowest_end": "2028-05-05",
+            "fastest_start": "2027-08-24",
+            "fastest_end": "2027-08-24",
+            "slowest_start": "2027-10-05",
+            "slowest_end": "2027-10-05",
             "actual_start": null,
             "actual_end": null,
             "planned_start": "2029-12-30",
@@ -3565,6 +3625,7 @@
               "tm_notice"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "药典委核准 + 商标公示均完成后触发",
             "result": ""
           }
@@ -3573,13 +3634,13 @@
         "parallel_trigger": null
       }
     ],
-    "current_phase": "",
-    "current_milestone": "",
+    "current_phase": "inn_naming",
+    "current_milestone": "inn_pinn_published",
     "overall_status": "on_track",
     "nda_date": "2029-12-30",
     "active_path": "A",
     "created_at": "2026-05-27T07:21:12.488045Z",
-    "updated_at": "2026-05-27T07:21:12.488046Z",
+    "updated_at": "2026-05-28T09:00:27.154764Z",
     "csv_source": null,
     "sort_order": 0
   },
@@ -3626,6 +3687,7 @@
             "planned_end": "2026-07-05",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3649,6 +3711,7 @@
               "cas_doc_prep"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3672,6 +3735,7 @@
               "cas_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": "143256893"
           }
@@ -3702,6 +3766,7 @@
             "planned_end": "2026-06-25",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3725,6 +3790,7 @@
               "inn_name_determined"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3748,6 +3814,7 @@
               "inn_submission"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3771,6 +3838,7 @@
               "inn_consultation"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3794,6 +3862,7 @@
               "inn_pinn_published"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3817,6 +3886,7 @@
               "inn_pinn_objection"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -3847,6 +3917,7 @@
             "planned_end": "2026-09-30",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3870,6 +3941,7 @@
               "chin_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -3900,6 +3972,7 @@
             "planned_end": "2031-01-24",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径A: pINN后10-11个月自动触发，公示1个月",
             "result": ""
           },
@@ -3921,6 +3994,7 @@
             "planned_end": "2027-08-25",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "路径B: CDE受理后流转，无公示期",
             "result": ""
           },
@@ -3945,6 +4019,7 @@
               "pharm_tech_review"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -3975,6 +4050,7 @@
             "planned_end": "2030-03-28",
             "depends_on": [],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -3998,6 +4074,7 @@
               "tm_name_draft"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -4021,6 +4098,7 @@
               "tm_cde_check"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           },
@@ -4044,6 +4122,7 @@
               "tm_submit"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "",
             "result": ""
           }
@@ -4077,6 +4156,7 @@
               "tm_notice"
             ],
             "parallel_with": null,
+            "path": null,
             "notes": "药典委核准 + 商标公示均完成后触发",
             "result": ""
           }
@@ -4091,8 +4171,457 @@
     "nda_date": "2031-05-31",
     "active_path": "A",
     "created_at": "2026-05-27T07:21:12.492941Z",
-    "updated_at": "2026-05-27T09:30:53.823196Z",
+    "updated_at": "2026-05-28T08:00:50.188294Z",
     "csv_source": null,
     "sort_order": 1
+  },
+  {
+    "id": "b6227b78-28f5-4928-a833-50e769b7ef23",
+    "name": "test",
+    "cas_number": null,
+    "molecule": {
+      "molecule_id": "test",
+      "common_name": "test",
+      "properties": {
+        "target_class": "kinase",
+        "mechanism": "inhibitor",
+        "chemical_class": "small_molecule",
+        "indication": "",
+        "chemical_scaffold": null,
+        "therapeutic_area": null,
+        "chemical_structure_substructure": null,
+        "additional_targets": [],
+        "additional_mechanisms": []
+      }
+    },
+    "phases": [
+      {
+        "id": "cas_application",
+        "name": "CAS申请",
+        "order": 1,
+        "milestones": [
+          {
+            "id": "cas_doc_prep",
+            "name": "CAS资料准备",
+            "phase": "cas_application",
+            "order": 1,
+            "status": "pending",
+            "fastest_days": 1,
+            "slowest_days": 3,
+            "fastest_start": "2026-05-28",
+            "fastest_end": "2026-05-29",
+            "slowest_start": "2026-05-28",
+            "slowest_end": "2026-06-02",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2026-05-28",
+            "planned_end": "2026-06-02",
+            "depends_on": [],
+            "parallel_with": null,
+            "path": null,
+            "notes": "",
+            "result": ""
+          },
+          {
+            "id": "cas_submit",
+            "name": "CAS申请递交",
+            "phase": "cas_application",
+            "order": 2,
+            "status": "pending",
+            "fastest_days": 1,
+            "slowest_days": 2,
+            "fastest_start": "2026-06-01",
+            "fastest_end": "2026-06-02",
+            "slowest_start": "2026-06-03",
+            "slowest_end": "2026-06-05",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2026-06-03",
+            "planned_end": "2026-06-05",
+            "depends_on": [
+              "cas_doc_prep"
+            ],
+            "parallel_with": null,
+            "path": null,
+            "notes": "",
+            "result": ""
+          },
+          {
+            "id": "cas_obtain",
+            "name": "CAS号获取",
+            "phase": "cas_application",
+            "order": 3,
+            "status": "pending",
+            "fastest_days": 5,
+            "slowest_days": 10,
+            "fastest_start": "2026-06-03",
+            "fastest_end": "2026-06-10",
+            "slowest_start": "2026-06-08",
+            "slowest_end": "2026-06-22",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2026-06-08",
+            "planned_end": "2026-06-22",
+            "depends_on": [
+              "cas_submit"
+            ],
+            "parallel_with": null,
+            "path": null,
+            "notes": "",
+            "result": ""
+          }
+        ],
+        "is_parallel": false,
+        "parallel_trigger": null
+      },
+      {
+        "id": "inn_naming",
+        "name": "INN命名",
+        "order": 2,
+        "milestones": [
+          {
+            "id": "inn_submission",
+            "name": "INN资料准备与提交",
+            "phase": "inn_naming",
+            "order": 1,
+            "status": "pending",
+            "fastest_days": 68,
+            "slowest_days": 95,
+            "fastest_start": "2026-06-10",
+            "fastest_end": "2026-09-14",
+            "slowest_start": "2026-06-10",
+            "slowest_end": "2026-10-21",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2026-06-10",
+            "planned_end": "2026-10-21",
+            "depends_on": [],
+            "parallel_with": null,
+            "path": null,
+            "notes": "",
+            "result": ""
+          },
+          {
+            "id": "inn_consultation",
+            "name": "INN会议",
+            "phase": "inn_naming",
+            "order": 2,
+            "status": "pending",
+            "fastest_days": 0,
+            "slowest_days": 0,
+            "fastest_start": "2027-04-01",
+            "fastest_end": "2027-04-01",
+            "slowest_start": "2027-04-01",
+            "slowest_end": "2027-04-01",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2027-04-01",
+            "planned_end": "2027-04-01",
+            "depends_on": [
+              "inn_submission"
+            ],
+            "parallel_with": null,
+            "path": null,
+            "notes": "",
+            "result": ""
+          },
+          {
+            "id": "inn_pinn_published",
+            "name": "pINN公示",
+            "phase": "inn_naming",
+            "order": 3,
+            "status": "pending",
+            "fastest_days": 120,
+            "slowest_days": 126,
+            "fastest_start": "2027-04-01",
+            "fastest_end": "2027-09-16",
+            "slowest_start": "2027-04-01",
+            "slowest_end": "2027-09-24",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2027-04-01",
+            "planned_end": "2027-09-24",
+            "depends_on": [
+              "inn_consultation"
+            ],
+            "parallel_with": null,
+            "path": null,
+            "notes": "",
+            "result": ""
+          },
+          {
+            "id": "inn_rinn",
+            "name": "rINN时间",
+            "phase": "inn_naming",
+            "order": 4,
+            "status": "pending",
+            "fastest_days": 60,
+            "slowest_days": 90,
+            "fastest_start": "2027-09-17",
+            "fastest_end": "2027-12-10",
+            "slowest_start": "2027-09-27",
+            "slowest_end": "2028-01-31",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2027-09-27",
+            "planned_end": "2028-01-31",
+            "depends_on": [
+              "inn_pinn_published"
+            ],
+            "parallel_with": null,
+            "path": null,
+            "notes": "",
+            "result": ""
+          }
+        ],
+        "is_parallel": false,
+        "parallel_trigger": null
+      },
+      {
+        "id": "pharmacopoeia_review",
+        "name": "药典委核名",
+        "order": 3,
+        "milestones": [
+          {
+            "id": "pharm_auto_notice",
+            "name": "药典委自动公示",
+            "phase": "pharmacopoeia_review",
+            "order": 1,
+            "status": "pending",
+            "fastest_days": 30,
+            "slowest_days": 40,
+            "fastest_start": "2027-05-27",
+            "fastest_end": "2027-07-08",
+            "slowest_start": "2027-05-27",
+            "slowest_end": "2027-07-22",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2027-05-27",
+            "planned_end": "2027-07-22",
+            "depends_on": [],
+            "parallel_with": null,
+            "path": "A",
+            "notes": "",
+            "result": ""
+          },
+          {
+            "id": "pharm_chin_draft",
+            "name": "中文通用名拟定",
+            "phase": "pharmacopoeia_review",
+            "order": 2,
+            "status": "pending",
+            "fastest_days": 5,
+            "slowest_days": 10,
+            "fastest_start": "2027-05-27",
+            "fastest_end": "2027-06-03",
+            "slowest_start": "2027-05-27",
+            "slowest_end": "2027-06-10",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2027-05-27",
+            "planned_end": "2027-06-10",
+            "depends_on": [],
+            "parallel_with": null,
+            "path": "B",
+            "notes": "",
+            "result": ""
+          },
+          {
+            "id": "pharm_chin_submit",
+            "name": "资料提交",
+            "phase": "pharmacopoeia_review",
+            "order": 3,
+            "status": "pending",
+            "fastest_days": 5,
+            "slowest_days": 15,
+            "fastest_start": "2027-06-04",
+            "fastest_end": "2027-06-11",
+            "slowest_start": "2027-06-11",
+            "slowest_end": "2027-07-02",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2027-06-11",
+            "planned_end": "2027-07-02",
+            "depends_on": [
+              "pharm_chin_draft"
+            ],
+            "parallel_with": null,
+            "path": "B",
+            "notes": "",
+            "result": ""
+          },
+          {
+            "id": "pharm_tech_review",
+            "name": "技术审评",
+            "phase": "pharmacopoeia_review",
+            "order": 4,
+            "status": "pending",
+            "fastest_days": 30,
+            "slowest_days": 60,
+            "fastest_start": "2027-06-14",
+            "fastest_end": "2027-07-26",
+            "slowest_start": "2027-07-05",
+            "slowest_end": "2027-09-27",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2027-07-05",
+            "planned_end": "2027-09-27",
+            "depends_on": [
+              "pharm_chin_submit"
+            ],
+            "parallel_with": null,
+            "path": "B",
+            "notes": "",
+            "result": ""
+          },
+          {
+            "id": "pharm_approval",
+            "name": "收到核准文件",
+            "phase": "pharmacopoeia_review",
+            "order": 5,
+            "status": "pending",
+            "fastest_days": 5,
+            "slowest_days": 10,
+            "fastest_start": "2027-07-26",
+            "fastest_end": "2027-08-02",
+            "slowest_start": "2027-07-26",
+            "slowest_end": "2027-08-09",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2027-05-27",
+            "planned_end": "2027-06-10",
+            "depends_on": [],
+            "parallel_with": null,
+            "path": null,
+            "notes": "",
+            "result": ""
+          }
+        ],
+        "is_parallel": false,
+        "parallel_trigger": null
+      },
+      {
+        "id": "trademark",
+        "name": "商标品牌",
+        "order": 4,
+        "milestones": [
+          {
+            "id": "tm_name_draft",
+            "name": "候选名库构建",
+            "phase": "trademark",
+            "order": 1,
+            "status": "pending",
+            "fastest_days": 25,
+            "slowest_days": 32,
+            "fastest_start": "2027-03-03",
+            "fastest_end": "2027-04-07",
+            "slowest_start": "2027-03-03",
+            "slowest_end": "2027-04-16",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2027-03-03",
+            "planned_end": "2027-04-16",
+            "depends_on": [],
+            "parallel_with": null,
+            "path": null,
+            "notes": "",
+            "result": ""
+          },
+          {
+            "id": "tm_cde_check",
+            "name": "商标检索及CDE比对",
+            "phase": "trademark",
+            "order": 2,
+            "status": "pending",
+            "fastest_days": 25,
+            "slowest_days": 32,
+            "fastest_start": "2027-04-08",
+            "fastest_end": "2027-05-13",
+            "slowest_start": "2027-04-19",
+            "slowest_end": "2027-06-02",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2027-04-19",
+            "planned_end": "2027-06-02",
+            "depends_on": [
+              "tm_name_draft"
+            ],
+            "parallel_with": null,
+            "path": null,
+            "notes": "",
+            "result": ""
+          },
+          {
+            "id": "tm_notice",
+            "name": "商标申请至公告",
+            "phase": "trademark",
+            "order": 3,
+            "status": "pending",
+            "fastest_days": 300,
+            "slowest_days": 310,
+            "fastest_start": "2027-05-14",
+            "fastest_end": "2028-07-07",
+            "slowest_start": "2027-06-03",
+            "slowest_end": "2028-08-10",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2027-06-03",
+            "planned_end": "2028-08-10",
+            "depends_on": [
+              "tm_cde_check"
+            ],
+            "parallel_with": null,
+            "path": null,
+            "notes": "",
+            "result": ""
+          }
+        ],
+        "is_parallel": true,
+        "parallel_trigger": "inn_pinn_published"
+      },
+      {
+        "id": "nda_filing",
+        "name": "NDA申报",
+        "order": 5,
+        "milestones": [
+          {
+            "id": "nda_submit",
+            "name": "NDA递交",
+            "phase": "nda_filing",
+            "order": 1,
+            "status": "pending",
+            "fastest_days": 0,
+            "slowest_days": 0,
+            "fastest_start": "2028-07-10",
+            "fastest_end": "2028-07-10",
+            "slowest_start": "2028-08-11",
+            "slowest_end": "2028-08-11",
+            "actual_start": null,
+            "actual_end": null,
+            "planned_start": "2028-08-11",
+            "planned_end": "2028-08-11",
+            "depends_on": [
+              "pharm_approval",
+              "tm_notice"
+            ],
+            "parallel_with": null,
+            "path": null,
+            "notes": "药典委核准 + 商标公告均完成后触发",
+            "result": ""
+          }
+        ],
+        "is_parallel": false,
+        "parallel_trigger": null
+      }
+    ],
+    "current_phase": "cas_application",
+    "current_milestone": "cas_doc_prep",
+    "overall_status": "on_track",
+    "nda_date": null,
+    "active_path": "B",
+    "created_at": "2026-05-28T09:01:03.345733Z",
+    "updated_at": "2026-05-28T09:01:24.419340Z",
+    "csv_source": null,
+    "sort_order": 0
   }
 ]

@@ -31,6 +31,7 @@ class Milestone(BaseModel):
     planned_end: date | None = None
     depends_on: list[str] = Field(default_factory=list)
     parallel_with: str | None = None
+    path: str | None = None  # "A" or "B" for pharmacopoeia dual-path; None = both paths
     notes: str = ""
     result: str = ""
 
@@ -77,6 +78,8 @@ class MilestoneDateOverride(BaseModel):
 def build_default_phases(has_cas: bool) -> list[Phase]:
     """Build the default 5-phase pipeline structure.
 
+    Durations calibrated from 8 real project timelines (May 2026).
+
     Args:
         has_cas: True if CAS number is already known (skip Phase 1).
 
@@ -85,82 +88,76 @@ def build_default_phases(has_cas: bool) -> list[Phase]:
     """
     phases: list[Phase] = []
 
+    # Phase 1: CAS申请 (6-16 days total in real data)
     if not has_cas:
         phases.append(Phase(
             id="cas_application",
             name="CAS申请",
             order=1,
             milestones=[
-                Milestone(id="cas_doc_prep", name="CAS资料准备", phase="cas_application", order=1, fastest_days=3, slowest_days=7),
-                Milestone(id="cas_submit", name="CAS申请递交", phase="cas_application", order=2, fastest_days=1, slowest_days=3, depends_on=["cas_doc_prep"]),
-                Milestone(id="cas_obtain", name="CAS号获取", phase="cas_application", order=3, fastest_days=5, slowest_days=15, depends_on=["cas_submit"]),
+                Milestone(id="cas_doc_prep", name="CAS资料准备", phase="cas_application", order=1, fastest_days=1, slowest_days=3),
+                Milestone(id="cas_submit", name="CAS申请递交", phase="cas_application", order=2, fastest_days=1, slowest_days=2, depends_on=["cas_doc_prep"]),
+                Milestone(id="cas_obtain", name="CAS号获取", phase="cas_application", order=3, fastest_days=5, slowest_days=10, depends_on=["cas_submit"]),
             ],
         ))
 
+    # Phase 2: INN命名 — 4 milestones matching real workflow
     phase2_order = 2 if not has_cas else 1
     phases.append(Phase(
         id="inn_naming",
         name="INN命名",
         order=phase2_order,
         milestones=[
-            Milestone(id="inn_name_determined", name="确定申报名", phase="inn_naming", order=1, fastest_days=4, slowest_days=10),
-            Milestone(id="inn_submission", name="INN申请提交", phase="inn_naming", order=2, fastest_days=5, slowest_days=10, depends_on=["inn_name_determined"]),
-            Milestone(id="inn_consultation", name="INN会议", phase="inn_naming", order=3, fastest_days=0, slowest_days=0, depends_on=["inn_submission"]),
-            Milestone(id="inn_pinn_published", name="pINN公示", phase="inn_naming", order=4, fastest_days=60, slowest_days=80, depends_on=["inn_consultation"]),
-            Milestone(id="inn_pinn_objection", name="pINN反对期", phase="inn_naming", order=5, fastest_days=80, slowest_days=80, depends_on=["inn_pinn_published"]),
-            Milestone(id="inn_rinn", name="rINN时间", phase="inn_naming", order=6, fastest_days=100, slowest_days=120, depends_on=["inn_pinn_objection"]),
+            Milestone(id="inn_submission", name="INN资料准备与提交", phase="inn_naming", order=1, fastest_days=68, slowest_days=95),
+            Milestone(id="inn_consultation", name="INN会议", phase="inn_naming", order=2, fastest_days=0, slowest_days=0, depends_on=["inn_submission"]),
+            Milestone(id="inn_pinn_published", name="pINN公示", phase="inn_naming", order=3, fastest_days=120, slowest_days=126, depends_on=["inn_consultation"]),
+            Milestone(id="inn_rinn", name="rINN时间", phase="inn_naming", order=4, fastest_days=60, slowest_days=90, depends_on=["inn_pinn_published"]),
         ],
     ))
 
+    # Phase 3: 药典委核名 — dual-path (Path A: auto, Path B: active submission)
     phase3_order = phase2_order + 1
-    phases.append(Phase(
-        id="chinese_submission",
-        name="中文名提交",
-        order=phase3_order,
-        is_parallel=True,
-        parallel_trigger="inn_pinn_published",
-        milestones=[
-            Milestone(id="chin_name_draft", name="中文名拟定", phase="chinese_submission", order=1, fastest_days=3, slowest_days=7),
-            Milestone(id="chin_doc_submit", name="通用名资料提交", phase="chinese_submission", order=2, fastest_days=5, slowest_days=15, depends_on=["chin_name_draft"]),
-        ],
-    ))
-
-    phase4_order = phase3_order + 1
     phases.append(Phase(
         id="pharmacopoeia_review",
         name="药典委核名",
-        order=phase4_order,
+        order=phase3_order,
         milestones=[
-            Milestone(id="pharm_auto_notice", name="药典委自动公示", phase="pharmacopoeia_review", order=1, fastest_days=200, slowest_days=220, notes="路径A: pINN后10-11个月自动触发，公示1个月"),
-            Milestone(id="pharm_tech_review", name="药典委技术审评", phase="pharmacopoeia_review", order=2, fastest_days=30, slowest_days=60, notes="路径B: CDE受理后流转，无公示期"),
-            Milestone(id="pharm_approval", name="收到核准文件", phase="pharmacopoeia_review", order=3, fastest_days=10, slowest_days=20, depends_on=["pharm_auto_notice", "pharm_tech_review"]),
+            # Path A: 自动核准
+            Milestone(id="pharm_auto_notice", name="药典委自动公示", phase="pharmacopoeia_review", order=1, fastest_days=30, slowest_days=40, path="A"),
+            # Path B: 主动申报
+            Milestone(id="pharm_chin_draft", name="中文通用名拟定", phase="pharmacopoeia_review", order=2, fastest_days=5, slowest_days=10, path="B"),
+            Milestone(id="pharm_chin_submit", name="资料提交", phase="pharmacopoeia_review", order=3, fastest_days=5, slowest_days=15, depends_on=["pharm_chin_draft"], path="B"),
+            Milestone(id="pharm_tech_review", name="技术审评", phase="pharmacopoeia_review", order=4, fastest_days=30, slowest_days=60, depends_on=["pharm_chin_submit"], path="B"),
+            # Common final step (both paths converge here)
+            Milestone(id="pharm_approval", name="收到核准文件", phase="pharmacopoeia_review", order=5, fastest_days=5, slowest_days=10, path=None),
         ],
     ))
 
-    phase5_order = phase4_order + 1
+    # Phase 4: 商标品牌 — 3 milestones (parallel, triggered by pINN)
+    phase4_order = phase3_order + 1
     phases.append(Phase(
         id="trademark",
         name="商标品牌",
-        order=phase5_order,
+        order=phase4_order,
         is_parallel=True,
         parallel_trigger="inn_pinn_published",
         milestones=[
-            Milestone(id="tm_name_draft", name="商品名拟定", phase="trademark", order=1, fastest_days=5, slowest_days=10),
-            Milestone(id="tm_cde_check", name="商标检索及CDE比对", phase="trademark", order=2, fastest_days=20, slowest_days=35, depends_on=["tm_name_draft"]),
-            Milestone(id="tm_submit", name="商品名提交", phase="trademark", order=3, fastest_days=5, slowest_days=10, depends_on=["tm_cde_check"]),
-            Milestone(id="tm_notice", name="商品名公示", phase="trademark", order=4, fastest_days=180, slowest_days=180, depends_on=["tm_submit"]),
+            Milestone(id="tm_name_draft", name="候选名库构建", phase="trademark", order=1, fastest_days=25, slowest_days=32),
+            Milestone(id="tm_cde_check", name="商标检索及CDE比对", phase="trademark", order=2, fastest_days=25, slowest_days=32, depends_on=["tm_name_draft"]),
+            Milestone(id="tm_notice", name="商标申请至公告", phase="trademark", order=3, fastest_days=300, slowest_days=310, depends_on=["tm_cde_check"]),
         ],
     ))
 
-    phase6_order = phase5_order + 1
+    # Phase 5: NDA申报
+    phase5_order = phase4_order + 1
     phases.append(Phase(
         id="nda_filing",
         name="NDA申报",
-        order=phase6_order,
+        order=phase5_order,
         milestones=[
             Milestone(id="nda_submit", name="NDA递交", phase="nda_filing", order=1, fastest_days=0, slowest_days=0,
                       depends_on=["pharm_approval", "tm_notice"],
-                      notes="药典委核准 + 商标公示均完成后触发"),
+                      notes="药典委核准 + 商标公告均完成后触发"),
         ],
     ))
 

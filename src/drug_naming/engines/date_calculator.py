@@ -191,6 +191,17 @@ def recalculate_project_dates(project) -> None:
     # Determine active path (A or B) based on NDA date
     project.active_path = determine_active_path(project)
 
+    # Resolve pharmacopoeia pharm_approval dependency based on active path
+    for phase in project.phases:
+        if phase.id == "pharmacopoeia_review":
+            by_id = {m.id: m for m in phase.milestones}
+            approval = by_id.get("pharm_approval")
+            if approval:
+                trigger_id = "pharm_auto_notice" if project.active_path == "A" else "pharm_tech_review"
+                trigger = by_id.get(trigger_id)
+                if trigger and trigger.fastest_end:
+                    recalculate_milestone_dates([approval], start_date=trigger.fastest_end)
+
 
 def determine_active_path(project) -> str:
     """Determine whether Path A (auto 药典委) or Path B (active CDE) applies.
