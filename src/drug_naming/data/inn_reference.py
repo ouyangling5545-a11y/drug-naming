@@ -162,3 +162,28 @@ class InnReferenceDB:
     def get_stem_examples(self, stem: str, limit: int = 10) -> list[str]:
         """Get example INN names for a given stem."""
         return self._by_stem.get(stem, [])[:limit]
+
+    def get_prefixes_for_stem(self, stem: str) -> list[str]:
+        """Extract all unique prefixes used before the given stem in existing INN names.
+
+        For example, get_prefixes_for_stem('tinib') returns:
+        ['ima', 'gefi', 'erlo', 'suni', 'crizo', 'osimer', 'lapati', ...]
+
+        Falls back to full-scan of _english_set when stem is not in the
+        pre-indexed _by_stem (hardcoded common_stems list).
+        """
+        prefixes: list[str] = []
+        seen: set[str] = set()
+
+        names = self._by_stem.get(stem)
+        if names is None:
+            names = [n for n in self._english_set if stem in n]
+
+        for name in names:
+            idx = name.find(stem)
+            if idx > 0:
+                pfx = name[:idx]
+                if pfx not in seen:
+                    seen.add(pfx)
+                    prefixes.append(pfx)
+        return prefixes

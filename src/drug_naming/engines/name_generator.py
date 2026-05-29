@@ -167,6 +167,16 @@ class NameGenerationEngine:
                 if i < len(group):
                     prefixes.append(group[i])
 
+        # ── Build existing-prefix avoidance space ──────────────────────────
+        # Look up all prefixes already used by drugs sharing the same stem(s)
+        # so we can steer new candidates away from already-taken patterns.
+        existing_prefixes: list[str] = []
+        if self._inn_db is not None:
+            for sm in request.matched_stems:
+                stem_text = sm.stem.stem.strip("-")
+                existing_prefixes.extend(self._inn_db.get_prefixes_for_stem(stem_text))
+        prefix_space = self._analyze_prefix_space(existing_prefixes)
+
         all_candidates: list[NameCandidate] = []
         prefix_blacklist = set(p.lower() for p in constraints.prefix_blacklist)
         prefix_whitelist = set(p.lower() for p in constraints.prefix_whitelist) if constraints.prefix_whitelist else None
@@ -191,6 +201,9 @@ class NameGenerationEngine:
                     continue
                 # WHO Rule 7: avoid h and k in prefixes
                 if "h" in prefix.lower() or "k" in prefix.lower():
+                    continue
+                # Avoidance: skip prefixes that exactly match an existing same-stem drug's prefix
+                if existing_prefixes and prefix.lower() in prefix_space["full_set"]:
                     continue
                 for infix, suffix in stem_combos:
                     # Use harmonizer: if prefix-suffix boundary is bad, auto-fix
@@ -232,9 +245,10 @@ class NameGenerationEngine:
 
         total_generated = len(all_candidates)
 
-        # Composite scoring (phonological + Chinese + WHO letter + length)
+        # Composite scoring (phonological + Chinese + WHO letter + length + avoidance)
         for c in all_candidates:
-            c.phonological_score = self._composite_score(c.name, c.prefix)
+            avoidance = self._avoidance_score(c.prefix or "", prefix_space) if existing_prefixes else 0.0
+            c.phonological_score = self._composite_score(c.name, c.prefix, avoidance)
 
         # Merge with INN reference db
         if self._inn_db is not None:
@@ -353,10 +367,16 @@ class NameGenerationEngine:
         properties: PharmacologicalProperties,
         target_meta,
     ) -> list[str]:
-        """Generate prefixes derived from the target, mechanism, or indication."""
+        """Generate prefixes derived from target name and indication.
+
+        Kept minimal and meaningful — Variant 1 (direct target root) and
+        Variant 4 (indication keywords) only.  Consonant substitution and
+        vowel mutation removed because they produce near-duplicate prefixes
+        that trigger mass POCA conflicts (e.g. eg→bg,dg,fg,lg,mg,ng...).
+        """
         prefixes = []
 
-        # Variant 1: Target root direct (e.g., egfr → eg, ef)
+        # Variant 1: Target root direct (e.g., egfr → eg, egr, egfr)
         if len(target_root) >= 2:
             prefixes.append(target_root[:2])
             if len(target_root) >= 3:
@@ -364,22 +384,7 @@ class NameGenerationEngine:
             if len(target_root) >= 4:
                 prefixes.append(target_root[:4])
 
-        # Variant 2: Target root with vowel mutation (eg → ig, ag, og)
-        if len(target_root) >= 2:
-            first_char = target_root[0]
-            for v in ['a', 'e', 'i', 'o', 'u']:
-                variant = v + target_root[1:min(3, len(target_root))]
-                if variant != target_root[:len(variant)]:
-                    prefixes.append(variant)
-
-        # Variant 3: Target root substitution at position 1 (swap consonant)
-        if len(target_root) >= 2 and target_root[0] in CONSONANTS:
-            for c in ['b', 'd', 'f', 'g', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'z']:
-                variant = c + target_root[1:min(3, len(target_root))]
-                if variant != target_root[:len(variant)]:
-                    prefixes.append(variant)
-
-        # Variant 4: From indication keywords
+        # Variant 2: From indication keywords
         if properties.indication:
             ind_words = properties.indication.replace('（', ' ').replace('）', ' ').replace('/', ' ').split()
             for w in ind_words:
@@ -389,7 +394,7 @@ class NameGenerationEngine:
                     prefixes.append(w_alpha[:2])
                     prefixes.append(w_alpha[:3])
 
-        # Variant 5: From scaffold
+        # Variant 3: From scaffold
         if properties.chemical_scaffold:
             sub = "".join(c for c in properties.chemical_scaffold.lower() if c.isalpha())
             sub = _who_normalize(sub)
@@ -407,24 +412,91 @@ class NameGenerationEngine:
                 result.append(p)
         return result
 
+    # ═══ Existing-prefix avoidance analysis ═══════════════════════════════════
+
+    @staticmethod
+    def _analyze_prefix_space(existing_prefixes: list[str]) -> dict:
+        """Build a compact lookup of which prefix patterns are already taken.
+
+        Returns a dict with:
+          - starts:    set of single starting letters in use
+          - starts2:   set of starting 2-char sequences in use
+          - starts3:   set of starting 3-char sequences in use
+          - full_set:  set of all exact existing prefixes (lowercased)
+        """
+        start1: set[str] = set()
+        start2: set[str] = set()
+        start3: set[str] = set()
+        full: set[str] = set()
+
+        for pfx in existing_prefixes:
+            p = pfx.lower()
+            full.add(p)
+            if len(p) >= 1:
+                start1.add(p[0])
+            if len(p) >= 2:
+                start2.add(p[:2])
+            if len(p) >= 3:
+                start3.add(p[:3])
+
+        return {"starts": start1, "starts2": start2, "starts3": start3, "full_set": full}
+
+    @staticmethod
+    def _avoidance_score(prefix: str, space: dict) -> float:
+        """Score a candidate prefix by how different it is from existing ones.
+
+        Returns 0.0 (best — explores new territory) to 1.0 (worst — too close).
+        Lower is better.
+        """
+        p = prefix.lower()
+        score = 0.0
+
+        # Exact match to existing prefix → strongest penalty
+        if p in space["full_set"]:
+            score += 1.0
+
+        # Same first 3 characters → strong penalty (confusingly similar)
+        if len(p) >= 3 and p[:3] in space["starts3"]:
+            score += 0.6
+
+        # Same first 2 characters → moderate penalty
+        if len(p) >= 2 and p[:2] in space["starts2"]:
+            score += 0.3
+
+        # Same first character → light penalty (crowded letter)
+        if len(p) >= 1 and p[:1] in space["starts"]:
+            score += 0.1
+
+        return min(score, 1.0)
+
     @staticmethod
     def _base_prefix_pool(cc: str) -> list[str]:
         """Return the appropriate base prefix pool for the chemical class.
 
-        Small molecules get phonotactically-generated syllable prefixes (2-6 chars).
-        Antibodies use a merged pool: L1 (453 real WHO prefixes, 2-5 chars) + core
-        (55 single-syllable prefixes), with L1 first for priority. L1 prefixes ending
-        in consonants are included — _harmonize_prefix handles boundary fixes.
+        Small molecules now use CORE_PREFIXES (54 single-syllable) +
+        SMALL_MOLECULE_PREFIXES (40+ two-letter) as the primary pool,
+        ordered by length (4→3→2) for diversity.
+
+        Antibodies keep the merged L1 (453 real WHO prefixes) + core
+        (55 single-syllable).
         """
         if cc in ('monoclonal_antibody', 'antibody_fragment', 'bispecific_antibody', 'antibody_drug_conjugate'):
-            # L1 first (proven WHO-compliant), then core (basic syllables)
             merged = list(OrderedDict.fromkeys(ANTIBODY_PREFIXES_L1 + ANTIBODY_PREFIXES))
             return merged
+
+        # Small molecules: CORE_PREFIXES + SMALL_MOLECULE_PREFIXES as primary,
+        # plus a small sample of longer syllable-template prefixes for length diversity.
+        merged = list(OrderedDict.fromkeys(CORE_PREFIXES + SMALL_MOLECULE_PREFIXES))
+        # Sample ~12 per length from syllable templates (3,4,5,6) as fallback
         sp = _get_syllable_prefixes()
-        result: list[str] = []
-        for length in (6, 5, 4, 3, 2):
-            result.extend(sp.get(length, []))
-        return result
+        for length in (3, 4, 5, 6):
+            samples = sp.get(length, [])
+            # Take evenly spaced samples for diversity
+            step = max(1, len(samples) // 15)
+            merged.extend(samples[::step][:15])
+        # Sort by length descending so longer prefixes participate in interleave
+        merged.sort(key=lambda x: -len(x))
+        return merged
 
     @staticmethod
     def _harmonize_prefix(prefix: str, suffix: str) -> list[str]:
@@ -615,14 +687,15 @@ class NameGenerationEngine:
         avoid_ratio = sum(1 for ch in s if ch in avoided) / len(s)
         return max(0.0, min(1.0, 0.5 + pref_ratio * 0.4 - avoid_ratio * 0.3))
 
-    def _composite_score(self, name: str, prefix: str | None) -> float:
+    def _composite_score(self, name: str, prefix: str | None, avoidance: float = 0.0) -> float:
         """Multi-dimensional composite score for candidate ranking.
 
         Combines:
-          - phonological quality  (0.40) — CVCV rhythm, syllable count, endings
-          - Chinese transliterability (0.30) — how well prefix maps to Chinese
-          - WHO letter preference (0.15) — preferred/avoided letters
-          - length bonus            (0.15) — 7-12 chars ideal for antibodies
+          - phonological quality     (0.35) — CVCV rhythm, syllable count, endings
+          - Chinese transliterability (0.25) — how well prefix maps to Chinese
+          - WHO letter preference    (0.10) — preferred/avoided letters
+          - length bonus             (0.10) — 7-12 chars ideal
+          - avoidance               (0.20) — distance from existing same-stem prefixes
         """
         phono = self._phonological_score(name)
         chinese = self._chinese_transliterability(prefix or name)
@@ -639,11 +712,15 @@ class NameGenerationEngine:
         else:
             length_bonus = 0.3
 
+        # Avoidance bonus: 1.0 = completely novel prefix, 0.0 = exact match
+        avoidance_bonus = 1.0 - avoidance
+
         return (
-            0.40 * phono
-            + 0.30 * chinese
-            + 0.15 * who
-            + 0.15 * length_bonus
+            0.35 * phono
+            + 0.25 * chinese
+            + 0.10 * who
+            + 0.10 * length_bonus
+            + 0.20 * avoidance_bonus
         )
 
     # ── Validation helpers ──────────────────────────────────────────────────
