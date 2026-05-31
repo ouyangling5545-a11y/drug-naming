@@ -674,6 +674,9 @@ input[type="range"] {
 .pj-result-date {
   color: var(--color-muted-foreground); font-size: 11px; white-space: nowrap;
 }
+.pj-result-date-only {
+  font-size: 12px; font-weight: 600; color: var(--color-foreground);
+}
 .pj-phase-group { margin-bottom: 2px; }
 .pj-phase-header {
   display: flex; align-items: center; gap: 6px; padding: 7px 8px;
@@ -1286,16 +1289,16 @@ input[type="range"] {
         <div class="pj-info-empty" v-if="!pjSelectedProject.phases || pjSelectedProject.phases.length === 0">
           暂无任务数据
         </div>
-        <!-- Key Results: compact inputs for the 4 critical milestones -->
+        <!-- Key Results: compact inputs for the 4 critical milestones + NDA date -->
         <div class="pj-results-bar">
           <div class="pj-result-item" v-for="kr in pjKeyResults(pjSelectedProject)" :key="kr.id">
             <span class="pj-result-label">{{ kr.label }}</span>
-            <input class="pj-result-input"
+            <input v-if="!kr.dateOnly" class="pj-result-input"
               :value="kr.result"
               @blur="pjSaveResult(pjSelectedProject.id, kr.id, $event.target)"
               @keyup.enter="pjSaveResult(pjSelectedProject.id, kr.id, $event.target); $event.target.blur()"
               :placeholder="kr.hint">
-            <span class="pj-result-date" v-if="kr.start_date">{{ kr.start_date }}</span>
+            <span class="pj-result-date" :class="{ 'pj-result-date-only': kr.dateOnly }">{{ kr.start_date || '—' }}</span>
           </div>
         </div>
         <div v-for="phase in pjSelectedProject.phases" :key="phase.id" class="pj-phase-group">
@@ -1329,7 +1332,7 @@ input[type="range"] {
                   <option value="completed">已完成</option>
                   <option value="blocked">阻塞</option>
                 </select>
-                <button class="pj-ms-del" @click.stop="pjDeleteMilestone(pjSelectedProject.id, m, phase)" title="删除此里程碑">×</button>
+                <button v-if="!['cas_obtain','inn_rinn','pharm_approval','tm_notice'].includes(m.id)" class="pj-ms-del" @click.stop="pjDeleteMilestone(pjSelectedProject.id, m, phase)" title="删除此里程碑">×</button>
               </div>
             </div>
           </div>
@@ -2296,10 +2299,11 @@ createApp({
 
     function pjKeyResults(project) {
       const keys = [
-        { id: 'cas_obtain',     label: 'CAS',   hint: 'CAS号',   hasCas: false },
-        { id: 'inn_rinn',       label: 'INN',   hint: 'INN名',   hasCas: true },
-        { id: 'pharm_approval', label: '中文名', hint: '中文通用名', hasCas: true },
-        { id: 'tm_notice',      label: '商标',  hint: '商品名',   hasCas: true },
+        { id: 'cas_obtain',     label: 'CAS',   hint: 'CAS号',   hasCas: false, dateOnly: false },
+        { id: 'inn_rinn',       label: 'INN',   hint: 'INN名',   hasCas: true,  dateOnly: false },
+        { id: 'pharm_approval', label: '中文名', hint: '中文通用名', hasCas: true,  dateOnly: false },
+        { id: 'tm_notice',      label: '商标',  hint: '商品名',   hasCas: true,  dateOnly: false },
+        { id: 'nda_submit',     label: 'NDA',   hint: 'NDA递交日', hasCas: false, dateOnly: true  },
       ];
       if (!project || !project.phases) return [];
       const byId = {};
@@ -2309,14 +2313,20 @@ createApp({
       return keys.map(k => {
         const m = byId[k.id];
         return {
-          id: k.id, label: k.label, hint: k.hint,
+          id: k.id, label: k.label, hint: k.hint, dateOnly: k.dateOnly,
           result: m ? (m.result || '') : '',
           start_date: m ? ((m.planned_start || m.slowest_start || '').toString().slice(0, 10)) : '',
         };
       });
     }
 
+    const PROTECTED_MILESTONE_IDS = ['cas_obtain', 'inn_rinn', 'pharm_approval', 'tm_notice'];
+
     async function pjDeleteMilestone(projectId, milestone, phase) {
+      if (PROTECTED_MILESTONE_IDS.includes(milestone.id)) {
+        alert(`「${milestone.name}」是核心里程碑，不可删除。`);
+        return;
+      }
       if (!confirm(`确认删除里程碑「${milestone.name}」？\n该操作不可恢复。`)) return;
       try {
         const res = await fetch(`/api/v1/projects/${projectId}/milestones/${milestone.id}`, {
@@ -2462,6 +2472,7 @@ createApp({
       ['inn_naming', '#3b82f6', 'INN命名'],
       ['pharmacopoeia_review', '#f59e0b', '药典委核名'],
       ['trademark', '#8b5cf6', '商标品牌'],
+      ['nda_filing', '#10b981', 'NDA申报'],
     ];
     function pjPhaseColor(phaseId) {
       const entry = pjPhaseColors.find(c => c[0] === phaseId);
@@ -2619,6 +2630,7 @@ createApp({
       cas_application: '#E2E8F0', inn_naming: '#DBEAFE',
       pharmacopoeia_review: '#EDE9FE',
       trademark: '#FED7AA',
+      nda_filing: '#D1FAE5',
     };
     // 同色系逐渐加深（中→深），与淡底色拉开对比度，用于日/周进度条
     const PHASE_SHADES = {
@@ -2626,22 +2638,23 @@ createApp({
       inn_naming:           ['#93C5FD','#60A5FA','#3B82F6','#2563EB','#1D4ED8'],
       pharmacopoeia_review: ['#C4B5FD','#A78BFA','#7C3AED','#6D28D9','#5B21B6'],
       trademark:            ['#FDBA74','#FB923C','#F97316','#EA580C','#C2410C'],
+      nda_filing:           ['#6EE7B7','#34D399','#10B981','#059669','#047857'],
     };
     const STATUS_COLORS = {
       pending: '#94A3B8', in_progress: '#3B82F6',
       completed: '#10B981', blocked: '#EF4444',
     };
-    const ROW_LABELS = ['CAS申请', 'INN命名', '药典委核名', '商标'];
-    const PHASE_TO_ROW = { cas_application:0, inn_naming:1, pharmacopoeia_review:2, trademark:3 };
+    const ROW_LABELS = ['CAS申请', 'INN命名', '药典委核名', '商标', 'NDA申报'];
+    const PHASE_TO_ROW = { cas_application:0, inn_naming:1, pharmacopoeia_review:2, trademark:3, nda_filing:4 };
     const SUB_LANE_OFFSET = { pharmacopoeia_review: 0 };
     const ROW_H = 36;
-    const ROWS_PER_PROJECT = 4;
+    const ROWS_PER_PROJECT = 5;
     const PJ_HEADER_H = 32;
     const PROJECT_GAP = 12;
 
     // Row index → key milestone id for task info display in gantt
-    const ROW_KEY_MILESTONE = { 0: 'cas_obtain', 1: 'inn_rinn', 2: 'pharm_approval', 3: 'tm_notice' };
-    const ROW_KEY_LABEL = { 0: 'CAS', 1: 'INN', 2: '药典委', 3: '商标' };
+    const ROW_KEY_MILESTONE = { 0: 'cas_obtain', 1: 'inn_rinn', 2: 'pharm_approval', 3: 'tm_notice', 4: 'nda_submit' };
+    const ROW_KEY_LABEL = { 0: 'CAS', 1: 'INN', 2: '药典委', 3: '商标', 4: 'NDA' };
 
     function pjRowMilestones(project, rowIdx) {
       const result = [];
@@ -2659,8 +2672,8 @@ createApp({
       // Return logical row indices that have milestones for this project.
       // If CAS is known, skip row 0 (CAS申请).
       const hasCasPhase = (project.phases || []).some(p => p.id === 'cas_application');
-      if (hasCasPhase) return [0, 1, 2, 3];
-      return [1, 2, 3];
+      const rows =  hasCasPhase ? [0, 1, 2, 3, 4] : [1, 2, 3, 4];
+      return rows;
     }
 
     function pjProjectHeight(project) {
@@ -3490,14 +3503,14 @@ createApp({
       } catch(e) { alert('移除依赖失败: '+e.message); }
     }
 
-    // Load projects on tab switch
+    // Load projects on tab switch & on mount
     const pjLoaded = ref(false);
     watch(activeTab, (tab) => {
       if (tab === 'projects') {
         if (!pjLoaded.value) { pjLoadProjects(); pjLoaded.value = true; }
         setTimeout(pjRenderGantt, 200);
       }
-    });
+    }, { immediate: true });
     watch(pjFilter, () => { setTimeout(pjRenderGantt, 100); });
     watch(pjViewMode, (mode) => { if (mode === 'gantt') setTimeout(pjRenderGantt, 100); });
     watch(pjProjects, () => { setTimeout(pjRenderGantt, 100); }, { deep: true });
