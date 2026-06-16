@@ -4,10 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>创新药命名管理系统</title>
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<script src="/static/vue.global.prod.js"></script>
 <style>
 :root {
   /* Design System: Accessible & Ethical — Healthcare/Pharma */
@@ -35,8 +32,8 @@
   --surface-slate: #F8FAFC;
 
   /* Typography */
-  --font-heading: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
 
   /* Spacing scale (4pt system) */
@@ -760,6 +757,25 @@ input[type="range"] {
   border-radius: var(--radius-sm); font-size: 12px; pointer-events: none; z-index: 50;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 280px; white-space: nowrap;
 }
+
+/* ── Consult Tab ── */
+.consult-panel { height: calc(100vh - 200px); padding: 0 8px; }
+.consult-msg-user, .consult-msg-ai { margin-bottom: 12px; padding: 10px 14px; border-radius: 10px; max-width: 85%; }
+.consult-msg-user { background: #DBEAFE; margin-left: auto; font-size: 13px; }
+.consult-msg-ai { background: #FFF; border: 1px solid #E2E8F0; font-size: 13px; }
+.consult-msg-text { white-space: pre-wrap; line-height: 1.6; }
+.consult-results { margin-top: 8px; }
+.consult-result-group { margin-bottom: 10px; padding: 8px; background: #F8FAFC; border-radius: 6px; }
+.consult-result-summary { font-weight: 600; font-size: 13px; color: var(--color-foreground); margin-bottom: 2px; }
+.consult-result-source { font-size: 10px; color: #94A3B8; margin-bottom: 6px; }
+.consult-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.consult-table th { background: #E2E8F0; padding: 5px 8px; text-align: left; font-weight: 600; white-space: nowrap; }
+.consult-table td { padding: 4px 8px; border-bottom: 1px solid #F1F5F9; }
+.consult-table tr:hover td { background: #EFF6FF; }
+.consult-input { padding: 10px 14px; border: 1px solid var(--color-border); border-radius: 8px; font-size: 13px; font-family: var(--font-body); }
+.consult-input:focus { border-color: var(--color-primary); outline: none; }
+.consult-reg-list { padding-left: 20px; margin: 6px 0; font-size: 13px; line-height: 1.8; color: var(--color-foreground); }
+.consult-reg-list li { margin-bottom: 6px; }
 .tooltip-multi { white-space: normal; max-width: 300px; }
 .tooltip-item {
   border-left: 3px solid #94A3B8; padding: 4px 0 4px 8px; margin-bottom: 6px;
@@ -784,6 +800,7 @@ input[type="range"] {
     <div class="tab" :class="{active: activeTab==='projects'}" @click="activeTab='projects'">项目管理</div>
     <div class="tab" :class="{active: activeTab==='recommend'}" @click="activeTab='recommend'">智能推荐</div>
     <div class="tab" :class="{active: activeTab==='evaluate'}" @click="activeTab='evaluate'">名称评估</div>
+    <div class="tab" :class="{active: activeTab==='consult'}" @click="activeTab='consult'">名字检索</div>
   </div>
 
   <!-- ==================== TAB A: 名称评估 ==================== -->
@@ -1110,29 +1127,57 @@ input[type="range"] {
         </div>
       </div>
 
-      <!-- Prefix length filter -->
+      <!-- Prefix syllable filter -->
       <div v-if="recConfirmedStemKey" style="margin-top:8px;padding:10px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-sm);">
-        <label style="display:block;margin-bottom:6px;">前缀长度筛选 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（可多选）</span></label>
+        <label style="display:block;margin-bottom:6px;">前缀音节数 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（可多选）</span></label>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
-          <label v-for="n in [2,3,4,5,6]" :key="'plen'+n" style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;">
-            <input type="checkbox" :value="n" v-model="recPrefixLengths" style="width:16px;height:16px;">
-            {{ n }}字母
+          <label v-for="n in [1,2,3]" :key="'psyl'+n" style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;">
+            <input type="checkbox" :value="n" v-model="recPrefixSyllables" style="width:16px;height:16px;">
+            {{ n }}音节<span style="font-size:10px;color:var(--color-muted-foreground);">（{{ {1:'短促',2:'均衡',3:'优雅'}[n] }}）</span>
           </label>
         </div>
       </div>
 
       <!-- Chinese prefix hint -->
       <div v-if="recConfirmedStemKey" style="margin-top:8px;padding:10px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-sm);">
-        <label style="display:block;margin-bottom:4px;">中文前缀提示 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（输入期望的中文前缀字，系统反向查找匹配的拉丁前缀）</span></label>
+        <label style="display:block;margin-bottom:4px;">中文前缀组合 <span style="font-weight:400;font-size:11px;color:var(--color-muted-foreground);">（输入中文字或词组，AI 组合生成英文前缀，点击选中后生成）</span></label>
         <div style="display:flex;gap:8px;">
-          <input v-model="recChineseHint" placeholder="如：好、曲、近、宁、康..." style="flex:1;padding:6px 10px;border:1px solid var(--color-border);border-radius:var(--radius-sm);font-size:14px;" @keydown.enter="recGenerateCandidates">
-          <button class="btn btn-sm btn-outline" @click="recChineseHint=''" :disabled="!recChineseHint">清除</button>
+          <input v-model="recChineseHint" placeholder="如：达美、德瑞、布维、格达..." style="flex:1;padding:6px 10px;border:1px solid var(--color-border);border-radius:var(--radius-sm);font-size:14px;" @keydown.enter="recGenerateCandidates">
+          <button class="btn btn-sm btn-outline" @click="recClearChineseHint()" :disabled="!recChineseHint">清除</button>
         </div>
-        <div v-if="recChineseMatchedPrefixes.length" style="margin-top:4px;font-size:11px;color:var(--color-primary);">
-          匹配拉丁前缀：<span v-for="(p,i) in recChineseMatchedPrefixes" :key="p" style="font-family:var(--font-mono);margin-left:4px;padding:1px 4px;background:var(--surface-green);border-radius:3px;">{{ p }}{{ i < recChineseMatchedPrefixes.length-1 ? ',' : '' }}</span>
+        <div v-if="recChineseComposed.length" style="margin-top:6px;">
+          <div style="font-size:11px;color:var(--color-muted-foreground);margin-bottom:4px;">
+            生成 {{ recChineseComposed.length }} 个前缀（点击选中，可多选）：
+            <span v-if="recChineseSelected.size" style="color:var(--color-primary);font-weight:600;">已选 {{ recChineseSelected.size }} 个</span>
+            <button class="btn btn-sm" @click="recPocaBatch()" :disabled="recCnPocaLoading" style="margin-left:8px;padding:2px 8px;font-size:11px;">
+              {{ recCnPocaLoading ? '评分中 '+(recCnPocaDone||0)+'/'+recChineseComposed.length : '⚡一键评分' }}
+            </button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;max-height:160px;overflow-y:auto;">
+            <span v-for="c in recChineseComposed" :key="c.prefix" style="display:inline-flex;align-items:center;gap:3px;">
+              <span
+                @click="recToggleChinesePrefix(c.prefix)"
+                :style="{
+                  padding:'3px 8px', borderRadius:'4px 0 0 4px', fontSize:'12px', cursor:'pointer',
+                  fontFamily:'var(--font-mono)',
+                  background: recChineseSelected.has(c.prefix) ? 'var(--color-primary)' : '#F1F5F9',
+                  color: recChineseSelected.has(c.prefix) ? '#fff' : 'var(--color-foreground)',
+                  border: recChineseSelected.has(c.prefix) ? '1px solid var(--color-primary)' : '1px solid #E2E8F0'
+                }">{{ c.name }}</span>
+              <span @click.stop="recPocaTest(c.name)"
+                :style="{
+                  padding:'3px 5px', borderRadius:'0 4px 4px 0', fontSize:'10px', cursor:'pointer',
+                  background: recCnPocaScores[c.name] ? (recCnPocaScores[c.name].poca < 70 ? '#DCFCE7' : '#FEF3C7') : '#F8FAFC',
+                  color: recCnPocaScores[c.name] ? (recCnPocaScores[c.name].poca < 70 ? '#16A34A' : '#D97706') : '#94A3B8',
+                  border: '1px solid #E2E8F0', borderLeft:'none'
+                }"
+                :title="recCnPocaScores[c.name] ? 'POCA:'+recCnPocaScores[c.name].poca+'% '+recCnPocaScores[c.name].tag : '点击测试POCA'"
+              >🅿{{ recCnPocaScores[c.name] ? recCnPocaScores[c.name].poca+'%' : '?' }}</span>
+            </span>
+          </div>
         </div>
         <div v-else-if="recChineseHint" style="margin-top:4px;font-size:11px;color:var(--color-muted-foreground);">
-          未找到匹配前缀（请尝试其他字）
+          查找中…
         </div>
       </div>
 
@@ -1240,6 +1285,52 @@ input[type="range"] {
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB D: 名字检索 ==================== -->
+  <div v-if="activeTab==='consult'" class="consult-panel">
+    <div style="display:flex;gap:16px;height:100%;">
+      <div style="flex:1;display:flex;flex-direction:column;min-width:0;gap:12px;">
+        <div style="display:flex;gap:8px;">
+          <input class="consult-input" v-model="consultQuery" @keyup.enter="consultSend" placeholder="输入你要检索的词干或名字字词信息" style="flex:1;">
+          <button class="btn" @click="consultSend" :disabled="consultLoading" style="background:var(--color-primary);color:#fff;">检索</button>
+        </div>
+        <div class="consult-messages" ref="consultMsgs" style="flex:1;overflow-y:auto;padding:16px;background:#F8FAFC;border-radius:12px;">
+          <div v-if="consultHistory.length===0" style="text-align:center;color:#CBD5E1;padding:60px 0;font-size:13px;">输入问题开始检索</div>
+          <div v-for="(msg, mi) in consultHistory" :key="mi" :class="msg.role==='user' ? 'consult-msg-user' : 'consult-msg-ai'">
+            <div class="consult-msg-text">{{ msg.text }}</div>
+            <div v-if="msg.results && msg.results.length" class="consult-results">
+              <div v-for="(r, ri) in msg.results" :key="ri" class="consult-result-group">
+                <div class="consult-result-summary">{{ r.summary }}</div>
+                <div class="consult-result-source">来源：{{ r.source }}</div>
+                <!-- Regulations: show as numbered list -->
+                <ol v-if="r.source && r.source.startsWith('regulations')" class="consult-reg-list">
+                  <li v-for="(item, ii) in consultPageItems(msg, ri, r)" :key="ii">{{ item.clause }}</li>
+                </ol>
+                <!-- Table: for structured data -->
+                <table v-else-if="r.items && r.items.length" class="consult-table">
+                  <thead><tr><th v-for="h in consultHeaders(r)" :key="h">{{ h }}</th></tr></thead>
+                  <tbody><tr v-for="(item, ii) in consultPageItems(msg, ri, r)" :key="ii"><td v-for="h in consultHeaders(r)" :key="h">{{ consultCell(item, h) }}</td></tr></tbody>
+                </table>
+                <!-- Pagination -->
+                <div v-if="r.items && r.items.length > consultPageSize" style="display:flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;flex-wrap:wrap;">
+                  <button class="btn btn-outline" @click="consultPage[msgKey(msg,ri)]=1" :disabled="consultPage[msgKey(msg,ri)]===1" style="padding:2px 6px;font-size:10px;">首页</button>
+                  <button class="btn btn-outline" @click="consultPage[msgKey(msg,ri)]--" :disabled="consultPage[msgKey(msg,ri)]<=1" style="padding:2px 6px;font-size:10px;">◀</button>
+                  <span v-for="pg in consultPageRange(msg, ri, r)" :key="pg">
+                    <strong v-if="pg===consultPage[msgKey(msg,ri)]" style="color:var(--color-primary);padding:2px 5px;">{{ pg }}</strong>
+                    <a v-else @click="consultPage[msgKey(msg,ri)]=pg" style="cursor:pointer;color:#64748B;padding:2px 5px;">{{ pg }}</a>
+                  </span>
+                  <button class="btn btn-outline" @click="consultPage[msgKey(msg,ri)]++" :disabled="consultPage[msgKey(msg,ri)]>=consultTotalPages(r)" style="padding:2px 6px;font-size:10px;">▶</button>
+                  <button class="btn btn-outline" @click="consultPage[msgKey(msg,ri)]=consultTotalPages(r)" :disabled="consultPage[msgKey(msg,ri)]>=consultTotalPages(r)" style="padding:2px 6px;font-size:10px;">末页</button>
+                  <span style="color:#94A3B8;">共 {{ r.items.length }} 条 / {{ consultTotalPages(r) }} 页</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-if="consultLoading" class="consult-msg-ai" style="color:#94A3B8;">思考中…</div>
         </div>
       </div>
     </div>
@@ -1532,7 +1623,6 @@ input[type="range"] {
     </div>
   </div>
 </div>
-
 <script>
 const { createApp, ref, reactive, nextTick, computed, watch } = Vue;
 createApp({
@@ -1764,7 +1854,7 @@ createApp({
     const recTopK = ref(100);
     const recPocaThreshold = ref(85);
     const recStats = ref(null);
-    const recPrefixLengths = ref([2,3,4,5,6]);
+    const recPrefixSyllables = ref([1,2,3]);
     const recChineseHint = ref('');
     const recSelected = reactive(new Set());
     const recSelectedCn = reactive(new Map());
@@ -1772,21 +1862,67 @@ createApp({
     const recTotalPages = computed(() => Math.max(1, Math.ceil(recRecommendCandidates.value.length / recPageSize.value)));
     const recPagedCandidates = computed(() => recRecommendCandidates.value.slice(recPage.value * recPageSize.value, (recPage.value + 1) * recPageSize.value));
     const recAllSelected = computed(() => recPagedCandidates.value.length > 0 && recPagedCandidates.value.every(c => recSelected.has(c.name)));
-    const recChineseMatchedPrefixes = ref([]);
-    const recChineseMatchedLengths = ref([]);
-    // Debounced watch: when Chinese hint changes, fetch matching Latin prefixes from server
+    const recChineseComposed = ref([]);  // [{prefix, name, phonological_score}]
+    const recChineseSelected = reactive(new Set());  // selected prefix strings
     let _recCnTimer = null;
+    // Debounced watch: when Chinese hint changes, compose English prefixes from char→syllable mappings
     watch(recChineseHint, (hint) => {
       clearTimeout(_recCnTimer);
-      if (!hint.trim()) { recChineseMatchedPrefixes.value = []; recChineseMatchedLengths.value = []; return; }
+      if (!hint.trim()) { recChineseComposed.value = []; recChineseSelected.clear(); return; }
       _recCnTimer = setTimeout(async () => {
         try {
-          const res = await apiPost('/naming/chinese-prefix-hint', {q: hint.trim()});
-          recChineseMatchedPrefixes.value = res.prefixes || [];
-          recChineseMatchedLengths.value = res.lengths || [];
-        } catch (e) { recChineseMatchedPrefixes.value = []; recChineseMatchedLengths.value = []; }
+          const stem = recConfirmedStemKey.value || 'kitug';
+          const res = await apiPost('/naming/chinese-compose', {
+            chars: hint.trim(),
+            stem: stem,
+            max_results: 30
+          });
+          recChineseComposed.value = res.candidates || [];
+          recChineseSelected.clear();
+        } catch (e) { recChineseComposed.value = []; }
       }, 300);
     });
+    function recClearChineseHint() {
+      recChineseHint.value = '';
+      recChineseComposed.value = [];
+      recChineseSelected.clear();
+    }
+    function recToggleChinesePrefix(pfx) {
+      if (recChineseSelected.has(pfx)) recChineseSelected.delete(pfx);
+      else recChineseSelected.add(pfx);
+    }
+    const recCnPocaScores = reactive({});  // {name: {poca, tag}}
+    const recCnPocaLoading = ref(false);
+    const recCnPocaDone = ref(0);
+    async function recPocaTest(name) {
+      if (recCnPocaScores[name] && recCnPocaScores[name].loading) return;
+      recCnPocaScores[name] = { loading: true, poca: '…', tag: '…' };
+      try {
+        const res = await fetch(API + '/poca/evaluate?proposed_name=' + encodeURIComponent(name) + '&threshold=50&max_similar=3', { method: 'POST' });
+        const d = await res.json();
+        const poca = d.poca_score ? Math.round(d.poca_score * 100) : '?';
+        const verdict = d.verdict || '';
+        const tag = verdict.includes('通过') ? 'PASS' : verdict.includes('复核') ? 'REVIEW' : verdict.includes('过高') || verdict.includes('不建议') ? 'REJECT' : '?';
+        recCnPocaScores[name] = { poca, tag, loading: false };
+      } catch (e) {
+        recCnPocaScores[name] = { poca: '!', tag: 'ERR', loading: false };
+      }
+    }
+    async function recPocaBatch() {
+      const names = recChineseComposed.value.map(c => c.name);
+      if (!names.length) return;
+      recCnPocaLoading.value = true;
+      recCnPocaDone.value = 0;
+      // Run in parallel batches of 5
+      for (let i = 0; i < names.length; i += 5) {
+        const batch = names.slice(i, i + 5);
+        await Promise.all(batch.map(async (name) => {
+          await recPocaTest(name);
+          recCnPocaDone.value++;
+        }));
+      }
+      recCnPocaLoading.value = false;
+    }
 
     function recStepClass(n) { const s=recStep.value; if(s>n)return'done'; if(s===n)return'current'; return''; }
     function recToggleStem(key) { recExpandedStems[key] = !recExpandedStems[key]; }
@@ -2145,8 +2281,8 @@ createApp({
           top_k: recTopK.value,
           poca_threshold: recPocaThreshold.value,
           dedup_strict: true,
-          prefix_lengths: recPrefixLengths.value.length ? recPrefixLengths.value : [2,3,4,5,6],
-          chinese_prefix_hint: recChineseHint.value.trim() || null
+          prefix_syllables: recPrefixSyllables.value.length ? recPrefixSyllables.value : [1,2,3],
+          prefix_whitelist: recChineseSelected.size > 0 ? [...recChineseSelected] : null,
         });
         recRecommendCandidates.value = res.candidates || [];
         recStats.value = res.stats || null;
@@ -2972,7 +3108,7 @@ createApp({
               }
               if (km) break;
             }
-            const startStr = km ? (km.fastest_start || km.slowest_start || '') : '';
+            const startStr = km ? (km.planned_start || km.slowest_start || '') : '';
             const resultStr = km ? (km.result || '') : '';
 
             // Label (bold)
@@ -3321,13 +3457,8 @@ createApp({
         }
       }
       if (best) {
-        pjDragState.value = {
-          mode: 'milestone',
-          project: best.project, milestone: best.milestone,
-          startX: mx, origDate: best.milestone.planned_start || best.milestone.slowest_start,
-          canvas: canvas
-        };
-        canvas.style.cursor = 'grabbing';
+        // Milestone dragging is disabled to prevent accidental plan changes.
+        // Clicking a milestone marker only shows the tooltip (handled in mousemove).
         e.preventDefault();
         return;
       }
@@ -3515,8 +3646,95 @@ createApp({
     watch(pjViewMode, (mode) => { if (mode === 'gantt') setTimeout(pjRenderGantt, 100); });
     watch(pjProjects, () => { setTimeout(pjRenderGantt, 100); }, { deep: true });
 
+    // ── Consult Tab ──
+    const consultQuery = ref('');
+    const consultHistory = ref([]);
+    const consultLoading = ref(false);
+    const consultMsgs = ref(null);
+
+    function consultHeaders(result) {
+      if (!result.items || !result.items.length) return [];
+      const keys = Object.keys(result.items[0]);
+      // Preferred display order
+      const order = ['project','stem','chinese_name','meaning','chinese','cas_number','category','position','status','examples','inn_name','trademark','matched_by','planned_date'];
+      const ordered = order.filter(k => keys.includes(k));
+      const rest = keys.filter(k => !ordered.includes(k) && !k.startsWith('_'));
+      return [...ordered, ...rest].slice(0, 8);
+    }
+
+    function consultCell(item, header) {
+      const v = item[header];
+      if (v === null || v === undefined) return '—';
+      if (Array.isArray(v)) return v.slice(0, 5).join(', ');
+      return String(v);
+    }
+
+    // ── Pagination ──
+    const consultPageSize = 20;
+    const consultPage = reactive({});
+
+    function msgKey(msg, ri) { return msg.text.substring(0, 20) + '_' + ri; }
+
+    function consultTotalPages(result) {
+      if (!result.items) return 1;
+      return Math.ceil(result.items.length / consultPageSize);
+    }
+
+    function consultPageItems(msg, ri, result) {
+      const key = msgKey(msg, ri);
+      if (!consultPage[key]) consultPage[key] = 1;
+      const start = (consultPage[key] - 1) * consultPageSize;
+      return (result.items || []).slice(start, start + consultPageSize);
+    }
+
+    function consultPageRange(msg, ri, result) {
+      const total = consultTotalPages(result);
+      const key = msgKey(msg, ri);
+      const cur = consultPage[key] || 1;
+      const pages = [];
+      // Show up to 7 page numbers around current
+      let s = Math.max(1, cur - 3);
+      let e = Math.min(total, s + 6);
+      if (e - s < 6) s = Math.max(1, e - 6);
+      for (let i = s; i <= e; i++) pages.push(i);
+      return pages;
+    }
+
+    async function consultSend() {
+      const q = consultQuery.value.trim();
+      if (!q) return;
+      consultHistory.value = [{ role: 'user', text: q, results: [] }]; // replace on each query
+      consultQuery.value = '';
+      consultLoading.value = true;
+      try {
+        const res = await fetch('/api/v1/consult/', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ query: q })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        consultHistory.value.push({
+          role: 'ai',
+          text: data.summary,
+          results: data.results || [],
+        });
+      } catch(e) {
+        consultHistory.value.push({ role: 'ai', text: '查询出错：' + e.message, results: [] });
+      }
+      consultLoading.value = false;
+      // Scroll to bottom
+      setTimeout(() => {
+        const el = consultMsgs.value;
+        if (el) el.scrollTop = el.scrollHeight;
+      }, 100);
+    }
+
     return {
       activeTab,
+      // Consult
+      consultQuery, consultHistory, consultLoading, consultMsgs, consultSend, consultHeaders, consultCell,
+      consultPageSize, consultPage, consultPageItems, consultPageRange, consultTotalPages, msgKey,
+      // Projects
       pjProjects, pjFilter, pjViewMode, pjShowCreate, pjTriggerFile, pjDrawer,
       pjForm, pjTargetClasses, pjMechanisms, pjChemicalClasses,
       pjFiltered, pjPhaseName, pjStatusLabel, pjStatusBadgeClass,
@@ -3549,7 +3767,7 @@ createApp({
       recMatchedStems, recConfirmedStemKey, recConfirmedStemObj,
       recRecommendCandidates, recHasGenerated, recPage, recPageSize, recTopK,
       recSelected, recSelectedCn, recShowKetcher, recPocaThreshold, recStats,
-      recPrefixLengths, recChineseHint, recChineseMatchedPrefixes, recChineseMatchedLengths,
+      recPrefixSyllables, recChineseHint, recChineseComposed, recChineseSelected, recToggleChinesePrefix, recClearChineseHint, recPocaTest, recPocaBatch, recCnPocaScores, recCnPocaLoading, recCnPocaDone,
       recTotalPages, recPagedCandidates, recAllSelected,
       recToggleAll, recToggleSelect, recSelectCn, recConfirmStem,
       comboOpen, comboIdx, comboStemFiltered,

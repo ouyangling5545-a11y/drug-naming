@@ -76,6 +76,9 @@ def has_invalid_consonant_cluster(name: str) -> bool:
         is_coda = (i == len(s))
 
         if run_len == 2:
+            # Geminate (same letter twice): always valid across syllable boundary
+            if run[0] == run[1]:
+                continue
             if is_onset and run in VALID_ONSET_CLUSTERS:
                 continue
             if is_coda and run in VALID_CODA_CLUSTERS:
@@ -146,8 +149,24 @@ def boundary_cluster_valid(prefix: str, suffix: str) -> bool:
     if len(boundary) == 2:
         return boundary in VALID_ONSET_CLUSTERS or boundary in VALID_CODA_CLUSTERS
     if len(boundary) == 3:
-        return boundary in VALID_TRIPLE_ONSETS
-    # 4+ always bad
+        # Triple onset (e.g. "str") OR coda(2)+onset(1) (e.g. "ng"+"k")
+        if boundary in VALID_TRIPLE_ONSETS:
+            return True
+        coda2 = boundary[:2]
+        onset1 = boundary[2]
+        if coda2 in VALID_CODA_CLUSTERS and onset1 in CONSONANTS:
+            return True
+        # Also check coda(1)+onset(2)
+        coda1 = boundary[0]
+        onset2 = boundary[1:]
+        if coda1 in CONSONANTS and onset2 in VALID_ONSET_CLUSTERS:
+            return True
+        return False
+    if len(boundary) == 4:
+        # coda(2)+onset(2) only
+        coda2 = boundary[:2]
+        onset2 = boundary[2:]
+        return coda2 in VALID_CODA_CLUSTERS and onset2 in VALID_ONSET_CLUSTERS
     return False
 
 

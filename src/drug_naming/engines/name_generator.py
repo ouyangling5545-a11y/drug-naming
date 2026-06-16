@@ -23,92 +23,153 @@ from collections import OrderedDict
 VOWELS = frozenset("aeiouy")
 CONSONANTS = frozenset("bcdfghjklmnpqrstvwxz")
 
-# ── Syllable-template prefix generation ───────────────────────────────────
+# ── Syllable-driven prefix generation ─────────────────────────────────────
+# Organises prefixes by SYLLABLE COUNT (1, 2, 3) rather than letter count.
+# Syllable count determines rhythm and memorability; letter count is incidental.
 
-def _generate_syllable_prefixes() -> dict[int, list[str]]:
-    """Generate phonotactically valid prefixes using English syllable templates."""
+import random as _random
+
+def _generate_prefixes_by_syllable() -> dict[int, list[str]]:
+    """Generate phonotactically valid prefixes, bucketed by syllable count."""
     from ..engines.phonotactic import (
         VALID_ONSET_CLUSTERS, VALID_TRIPLE_ONSETS, VALID_CODA_CLUSTERS,
     )
 
     single_cons = sorted(CONSONANTS)
     vowels = sorted(VOWELS)
-    onsets = sorted(VALID_ONSET_CLUSTERS)
-    triples = sorted(VALID_TRIPLE_ONSETS)
-    codas = sorted(VALID_CODA_CLUSTERS)
+    onsets = sorted(VALID_ONSET_CLUSTERS)       # CC: bl, br, dr, fl, fr, gl, gr, pl, pr, tr, sc, sk, sl, sm, sn, sp, st, sw
+    triples = sorted(VALID_TRIPLE_ONSETS)       # CCC: sch, scr, shr, spl, spr, squ, str
+    codas = sorted(VALID_CODA_CLUSTERS)          # CC coda: ct, ft, ld, lf, lk, ll, lm, lp, lt, mp, nd, ng, nk, nt, pt, rd, rk, rl, rm, rn, rp, rt, sk, sp, st
     single_codas = ['b', 'd', 'f', 'g', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'x', 'z']
 
-    by_length: dict[int, list[str]] = {2: [], 3: [], 4: [], 5: [], 6: []}
+    by_syllable: dict[int, list[str]] = {1: [], 2: [], 3: []}
 
-    # 2-letter: C + V
+    def _add(pfx: str):
+        """Filter and add a prefix to its syllable bucket."""
+        # No double-start letters (bba, cci...)
+        if len(pfx) >= 2 and pfx[0] == pfx[1]:
+            return
+        # No triple-repeated letters (aaab...)
+        if any(pfx[i] == pfx[i + 1] == pfx[i + 2] for i in range(len(pfx) - 2)):
+            return
+        # Count syllables (vowel-group heuristic)
+        syls = sum(1 for i, ch in enumerate(pfx) if ch in VOWELS and (i == 0 or pfx[i-1] not in VOWELS))
+        if syls < 1:
+            syls = 1
+        if syls in by_syllable:
+            by_syllable[syls].append(pfx)
+
+    # ═══ 1-SYLLABLE PREFIXES ═══
+    # C+V: ba, be, bi... (2 letters, 1 syllable)
     for c in single_cons:
         for v in vowels:
-            by_length[2].append(c + v)
+            _add(c + v)
 
-    # 3-letter: onset_cluster + V
+    # CC+V: bla, bre, bri... (3 letters, 1 syllable)
     for cl in onsets:
         for v in vowels:
-            by_length[3].append(cl + v)
+            _add(cl + v)
 
-    # 3-letter: C + V + coda
+    # C+V+C: bad, bev, dil... (3 letters, 1 syllable)
     for c in single_cons:
         for v in vowels:
             for cd in single_codas:
                 if c != cd:
-                    by_length[3].append(c + v + cd)
+                    _add(c + v + cd)
 
-    # 4-letter: onset_cluster + V + coda
+    # CCC+V: scha, spre, stri... (4 letters, 1 syllable)
+    for to in triples:
+        for v in vowels:
+            _add(to + v)
+
+    # CC+V+C: bram, drep, grol... (4 letters, 1 syllable)
     for cl in onsets:
         for v in vowels:
             for cd in single_codas:
-                by_length[4].append(cl + v + cd)
+                _add(cl + v + cd)
 
-    # 4-letter: C + V + coda_cluster
+    # C+V+CC: bend, filt, mont... (4 letters, 1 syllable)
     for c in single_cons:
         for v in vowels:
             for cc in codas:
-                by_length[4].append(c + v + cc)
+                _add(c + v + cc)
 
-    # 5-letter: triple_onset + V
-    for to in triples:
-        for v in vowels:
-            by_length[5].append(to + v)
-
-    # 5-letter: onset_cluster + V + coda_cluster
-    for cl in onsets:
-        for v in vowels:
-            for cc in codas:
-                by_length[5].append(cl + v + cc)
-
-    # 6-letter: triple_onset + V + coda
+    # CCC+V+C: schram, streng... (5-6 letters, 1 syllable)
     for to in triples:
         for v in vowels:
             for cd in single_codas:
-                by_length[6].append(to + v + cd)
+                _add(to + v + cd)
 
-    # Filter: remove double-start and triple-repeated letters
-    for length in by_length:
-        filtered = []
-        for p in by_length[length]:
-            if len(p) >= 2 and p[0] == p[1]:
-                continue
-            if any(p[i] == p[i + 1] == p[i + 2] for i in range(len(p) - 2)):
-                continue
-            filtered.append(p)
-        by_length[length] = filtered
+    # CC+V+CC: brand, dremp, glont... (5 letters, 1 syllable)
+    for cl in onsets:
+        for v in vowels:
+            for cc in codas:
+                _add(cl + v + cc)
 
-    return by_length
+    # ═══ 2-SYLLABLE PREFIXES ═══
+    # CVCV: bela, dore, gami... (4 letters, 2 syllables)
+    for c1 in single_cons:
+        for v1 in vowels:
+            for c2 in single_cons:
+                for v2 in vowels:
+                    _add(c1 + v1 + c2 + v2)
+
+    # CCVCV: brava, drema, grile... (5 letters, 2 syllables)
+    for cl in onsets:
+        for v1 in vowels:
+            for c2 in single_cons:
+                for v2 in vowels:
+                    _add(cl + v1 + c2 + v2)
+
+    # VCV: abe, ela, ovi... (3 letters, 2 syllables)
+    for v1 in vowels:
+        for c2 in single_cons:
+            for v2 in vowels:
+                _add(v1 + c2 + v2)
+
+    # CVCVC: belar, damen, gires... (5 letters, 2 syllables)
+    for c1 in single_cons:
+        for v1 in vowels:
+            for c2 in single_cons:
+                for v2 in vowels:
+                    for cd in single_codas:
+                        pfx = c1 + v1 + c2 + v2 + cd
+                        if len(pfx) <= 6 and c1 != cd:
+                            _add(pfx)
+
+    # ═══ 3-SYLLABLE PREFIXES ═══
+    # CVCVCV: belano, dimera, gavite... (6 letters, 3 syllables)
+    for c1 in single_cons:
+        for v1 in vowels:
+            for c2 in ['l','m','n','r','v','d','p','t','s']:
+                for v2 in vowels:
+                    for c3 in single_cons:
+                        for v3 in vowels:
+                            _add(c1 + v1 + c2 + v2 + c3 + v3)
+
+    # CCVCVCV: brelina, drovame, gralime... (7 letters, 3 syllables)
+    for cl in onsets:
+        for v1 in vowels:
+            for c2 in ['l','m','n','r','v']:
+                for v2 in vowels:
+                    for c3 in single_cons:
+                        for v3 in vowels:
+                            pfx = cl + v1 + c2 + v2 + c3 + v3
+                            if len(pfx) <= 8:
+                                _add(pfx)
+
+    return by_syllable
 
 
-_SYLLABLE_PREFIXES: dict[int, list[str]] | None = None
+_SYLLABLE_POOL: dict[int, list[str]] | None = None
 
 
-def _get_syllable_prefixes() -> dict[int, list[str]]:
-    """Lazily build and return the syllable-template prefix cache."""
-    global _SYLLABLE_PREFIXES
-    if _SYLLABLE_PREFIXES is None:
-        _SYLLABLE_PREFIXES = _generate_syllable_prefixes()
-    return _SYLLABLE_PREFIXES
+def _get_prefixes_by_syllable() -> dict[int, list[str]]:
+    """Lazily build and return the syllable-based prefix cache."""
+    global _SYLLABLE_POOL
+    if _SYLLABLE_POOL is None:
+        _SYLLABLE_POOL = _generate_prefixes_by_syllable()
+    return _SYLLABLE_POOL
 
 
 # WHO Rule 7: ph→f, th→t, y→i, avoid h/k
@@ -297,37 +358,50 @@ class NameGenerationEngine:
                 continue
             filtered.append(c)
 
-        # Sort by phonological score, then apply diversity-aware cap:
-        # reserve slots for each prefix length (2,3,4,5,6) so short prefixes
-        # aren't drowned out by the larger volume of longer ones.
+        # Sort by phonological score, then apply syllable-aware diversity cap:
+        # reserve slots for each syllable count (1,2,3) so rhythmic variety
+        # is guaranteed — short punchy names don't get drowned out by
+        # longer ones, and vice versa.
         filtered.sort(key=lambda c: c.phonological_score, reverse=True)
         total_cap = constraints.max_candidates_per_stem * len(request.matched_stems)
-        per_length_quota = max(total_cap // 6, 8)
 
-        by_length: dict[int, list[NameCandidate]] = {2: [], 3: [], 4: [], 5: [], 6: []}
+        # Bucket by SYLLABLE count (not letter count)
+        by_syllable: dict[int, list[NameCandidate]] = {1: [], 2: [], 3: [], 4: []}
         for c in filtered:
-            pl = len(c.prefix or "")
-            if pl in by_length:
-                by_length[pl].append(c)
+            syl = count_syllables(c.name)
+            if syl in by_syllable:
+                by_syllable[syl].append(c)
+            else:
+                by_syllable[4].append(c)  # 4+ syllables → overflow bucket
 
-        # Each group is already sorted (inherited from filtered sort)
+        # Quota: distribute slots across syllable counts.
+        # 2-syllable prefixes (the sweet spot) get the largest share.
+        quota = {
+            1: max(total_cap // 8, 15),    # punchy 1-syl: drep-, brem-
+            2: max(total_cap // 3, 50),    # balanced 2-syl: drapa, brema  ← sweet spot
+            3: max(total_cap // 4, 30),    # elegant 3-syl: brelina, drovame
+            4: max(total_cap // 10, 10),   # grand 4-syl: fallback
+        }
+
         seen: set[str] = set()
         unique: list[NameCandidate] = []
-        for pl in (2, 3, 4, 5, 6):
+        for syl in (1, 2, 3, 4):
             taken = 0
-            for c in by_length[pl]:
-                if c.name.lower() not in seen and taken < per_length_quota:
+            for c in by_syllable[syl]:
+                if c.name.lower() not in seen and taken < quota[syl]:
                     seen.add(c.name.lower())
                     unique.append(c)
                     taken += 1
 
-        # Fill remaining slots with best remaining candidates (any length)
+        # Fill remaining slots with best remaining candidates (any syllable count)
+        remaining = total_cap - len(unique)
         for c in filtered:
-            if len(unique) >= total_cap:
+            if remaining <= 0:
                 break
             if c.name.lower() not in seen:
                 seen.add(c.name.lower())
                 unique.append(c)
+                remaining -= 1
 
         if boundary_skips:
             flag_counts["boundary_cluster_invalid"] = boundary_skips
@@ -470,33 +544,84 @@ class NameGenerationEngine:
         return min(score, 1.0)
 
     @staticmethod
+    def _stratified_sample(items: list[str], target: int) -> list[str]:
+        """Sample evenly across starting letters, then fill remainder randomly."""
+        if not items or target <= 0:
+            return []
+        by_init: dict[str, list[str]] = {}
+        for p in items:
+            by_init.setdefault(p[0], []).append(p)
+        per_letter = max(1, target // max(len(by_init), 1))
+        sampled: list[str] = []
+        for letter in sorted(by_init):
+            sampled.extend(by_init[letter][:per_letter])
+        if len(sampled) < target:
+            all_set = set(sampled)
+            remaining = [p for p in items if p not in all_set]
+            import random
+            sampled.extend(random.sample(remaining, min(target - len(sampled), len(remaining))))
+        import random
+        random.shuffle(sampled)
+        return sampled[:target]
+
+    @staticmethod
     def _base_prefix_pool(cc: str) -> list[str]:
         """Return the appropriate base prefix pool for the chemical class.
 
-        Small molecules now use CORE_PREFIXES (54 single-syllable) +
-        SMALL_MOLECULE_PREFIXES (40+ two-letter) as the primary pool,
-        ordered by length (4→3→2) for diversity.
+        Now syllable-driven: samples randomly from each syllable bucket
+        (1-syl, 2-syl, 3-syl) for rhythm diversity.  CCVCV patterns
+        (drapa, brema...) are weighted higher — they score ~10% better
+        on POCA than plain CVCV (bela, dame...).
 
-        Antibodies keep the merged L1 (453 real WHO prefixes) + core
-        (55 single-syllable).
+        Antibodies keep the merged L1 (453 real WHO prefixes) + core.
         """
-        if cc in ('monoclonal_antibody', 'antibody_fragment', 'bispecific_antibody', 'antibody_drug_conjugate'):
-            merged = list(OrderedDict.fromkeys(ANTIBODY_PREFIXES_L1 + ANTIBODY_PREFIXES))
-            return merged
+        sp = _get_prefixes_by_syllable()
 
-        # Small molecules: CORE_PREFIXES + SMALL_MOLECULE_PREFIXES as primary,
-        # plus a small sample of longer syllable-template prefixes for length diversity.
-        merged = list(OrderedDict.fromkeys(CORE_PREFIXES + SMALL_MOLECULE_PREFIXES))
-        # Sample ~12 per length from syllable templates (3,4,5,6) as fallback
-        sp = _get_syllable_prefixes()
-        for length in (3, 4, 5, 6):
-            samples = sp.get(length, [])
-            # Take evenly spaced samples for diversity
-            step = max(1, len(samples) // 15)
-            merged.extend(samples[::step][:15])
-        # Sort by length descending so longer prefixes participate in interleave
-        merged.sort(key=lambda x: -len(x))
-        return merged
+        if cc in ('monoclonal_antibody', 'antibody_fragment', 'bispecific_antibody', 'antibody_drug_conjugate'):
+            # Combine real WHO antibody prefixes with syllable-generated pool
+            ab_real = list(OrderedDict.fromkeys(ANTIBODY_PREFIXES_L1 + ANTIBODY_PREFIXES))
+            pool = list(ab_real)
+            # Add syllable-generated prefixes for diversity beyond the fixed list
+            pool.extend(NameGenerationEngine._stratified_sample(
+                [p for p in sp.get(2, []) if len(p) >= 4 and p[1] in 'rl' and p[0] in 'bpdtg'], 300))
+            pool.extend(NameGenerationEngine._stratified_sample(
+                [p for p in sp.get(3, []) if len(p) >= 6 and p[1] in 'rl'], 150))
+            import random
+            random.shuffle(pool)
+            return pool
+
+        # ── Per-syllable stratified sampling ──
+        # Within each syllable bucket, group by starting letter and sample
+        # evenly to avoid alphabet bias (e.g. all b-starting prefixes).
+        # Then shuffle for randomness.
+        pool: list[str] = []
+
+        # 1-syllable: prefer CCVC/CVCC (>3 letters, consonant-cluster start)
+        syl1_all = sp.get(1, [])
+        syl1_ccvc = [p for p in syl1_all if len(p) >= 4 and p[1] in 'rl']
+        syl1_cv = [p for p in syl1_all if p not in set(syl1_ccvc)]
+        pool.extend(NameGenerationEngine._stratified_sample(syl1_ccvc, 200))
+        pool.extend(NameGenerationEngine._stratified_sample(syl1_cv, 100))
+
+        # 2-syllable: prefer CCVCV (>4 letters, consonant-cluster start with plosive)
+        syl2_all = sp.get(2, [])
+        syl2_ccvcv = [p for p in syl2_all if len(p) >= 5 and p[1] in 'rl' and p[0] in 'bpdtg']
+        syl2_cvcv = [p for p in syl2_all if p not in set(syl2_ccvcv)]
+        pool.extend(NameGenerationEngine._stratified_sample(syl2_ccvcv, 400))
+        pool.extend(NameGenerationEngine._stratified_sample(syl2_cvcv, 200))
+
+        # 3-syllable: prefer CCVCVCV
+        syl3_all = sp.get(3, [])
+        syl3_ccvcvcv = [p for p in syl3_all if len(p) >= 6 and p[1] in 'rl']
+        syl3_cvcvcv = [p for p in syl3_all if p not in set(syl3_ccvcvcv)]
+        pool.extend(NameGenerationEngine._stratified_sample(syl3_ccvcvcv, 150))
+        pool.extend(NameGenerationEngine._stratified_sample(syl3_cvcvcv, 50))
+
+        # Add CORE and SMALL as fallback (already pre-sorted)
+        fallback = list(OrderedDict.fromkeys(CORE_PREFIXES + SMALL_MOLECULE_PREFIXES))
+        pool.extend(fallback)
+
+        return pool
 
     @staticmethod
     def _harmonize_prefix(prefix: str, suffix: str) -> list[str]:
